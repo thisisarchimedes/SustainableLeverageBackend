@@ -178,4 +178,4 @@ class EVMStorageManipulator {
   }
 }
 
-export default EVMStorageManipulator;
+export default EVMStorageManipulator
