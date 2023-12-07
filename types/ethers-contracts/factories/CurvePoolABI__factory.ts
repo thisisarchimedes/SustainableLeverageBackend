@@ -2,8 +2,7 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Signer, utils } from "ethers";
-import type { Provider } from "@ethersproject/providers";
+import { Contract, Interface, type ContractRunner } from "ethers";
 import type { CurvePoolABI, CurvePoolABIInterface } from "../CurvePoolABI";
 
 const _abi = [
@@ -1152,12 +1151,12 @@ const _abi = [
 export class CurvePoolABI__factory {
   static readonly abi = _abi;
   static createInterface(): CurvePoolABIInterface {
-    return new utils.Interface(_abi) as CurvePoolABIInterface;
+    return new Interface(_abi) as CurvePoolABIInterface;
   }
   static connect(
     address: string,
-    signerOrProvider: Signer | Provider
+    runner?: ContractRunner | null
   ): CurvePoolABI {
-    return new Contract(address, _abi, signerOrProvider) as CurvePoolABI;
+    return new Contract(address, _abi, runner) as unknown as CurvePoolABI;
   }
 }

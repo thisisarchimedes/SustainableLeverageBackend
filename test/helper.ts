@@ -1,56 +1,54 @@
 import { ethers } from "hardhat";
-import { BigNumber } from "ethers";
 import { CurvePoolABI } from '../types/ethers-contracts';
+import { ALUSD } from "./addresses";
+import "@nomicfoundation/hardhat-ethers";
 
 
-const tokenAddressToSlot: { [id: string]: number } = {
-    ALUSD: 1
-};
+const tokenAddressToSlot: { [id: string]: number } = {};
+tokenAddressToSlot[ALUSD] = 1;
 
-const toBytes32 = (bn: BigNumber) => {
-    return ethers.utils.hexlify(ethers.utils.zeroPad(bn.toHexString(), 32));
+const toBytes32 = (bn: bigint) => {
+  return ethers.hexlify(ethers.zeroPadValue(ethers.toBeHex(bn), 32));
 };
 
 const setStorageAt = async (address: string, index: string, value: string) => {
-    await ethers.provider.send("hardhat_setStorageAt", [address, index, value]);
-    await ethers.provider.send("evm_mine", []); // Just mines to the next block
+  await ethers.provider.send("hardhat_setStorageAt", [address, index, value]);
+  await ethers.provider.send("evm_mine", []); // Just mines to the next block
 };
 
-const setERC20Balance = async (userAddress: string, tokenAddress: string, balance: BigNumber) => {
-    const index = ethers.utils.solidityKeccak256([
-      "uint256", "uint256"
-    ], [userAddress, tokenAddressToSlot[tokenAddress]]);
-    await setStorageAt(tokenAddress, index, toBytes32(balance));
+const setERC20Balance = async (userAddress: string, tokenAddress: string, balance: bigint) => {
+  const index = ethers.solidityPackedKeccak256([
+    "uint256", "uint256"
+  ], [userAddress, tokenAddressToSlot[tokenAddress]]);
+  await setStorageAt(tokenAddress, index, toBytes32(balance));
 };
 
-function RemoveDecimals(number: BigNumber, decimals: number) {
-    return Number(ethers.utils.formatUnits(number, decimals))
+function RemoveDecimals(number: bigint, decimals: number) {
+  return Number(ethers.formatUnits(number, decimals))
 }
 
 async function getMainSigner() {
-    const [signer] = await ethers.getSigners();
-    return signer;
+  const [signer] = await ethers.getSigners();
+  return signer;
 }
 
 async function fetchTokenIndex(pool: CurvePoolABI, token: string): Promise<number> {
-    let tokenIndex = 0;
-    for (let i = 0; i < 4; i++) {
-      let _token;
-      _token = await pool.coins(i);
-  
-      if (_token == token) {
-        tokenIndex = i;
-        break;
-      }
+  let tokenIndex = 0;
+  for (let i = 0; i < 4; i++) {
+    let _token;
+    _token = await pool.coins(i);
+
+    if (_token == token) {
+      tokenIndex = i;
+      break;
     }
-    return Number(tokenIndex.toString());
   }
+  return Number(tokenIndex.toString());
+}
 
-const helper = {
-    setERC20Balance,
-    RemoveDecimals,
-    getMainSigner,
-    fetchTokenIndex
+export default {
+  setERC20Balance,
+  RemoveDecimals,
+  getMainSigner,
+  fetchTokenIndex
 };
-
-export default helper;
