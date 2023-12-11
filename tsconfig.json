@@ -8,5 +8,10 @@
     "skipLibCheck": true,
     "resolveJsonModule": true,
     "sourceMap": true
-  }
+  },
+  "exclude": [
+    "node_modules/",
+    "typechain-types/",
+    "types/ethers-contracts/"
+  ]
 }
