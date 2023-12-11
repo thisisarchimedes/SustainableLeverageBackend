@@ -53,6 +53,21 @@ export default class CurvePool {
     return dumpTokenPriceInValueToken * 10n ** BigInt(this.dumpTokenDecimals) / priceReferenceAmount;
   }
 
+  public async rebalance() {
+    const amountToSwap = this.valueTokenBalance * 5n / 100n
+
+    for (let i = 0; i < 100; i++) {
+      await this.exchangeValueTokenForDumpToken(amountToSwap)
+
+      const alUSDPriceInFRAXBPAfter = await this.getDumpTokenPriceInValueToken()
+      // console.log("alUSDPriceInFRAXBPAfter", helper.RemoveDecimals(alUSDPriceInFRAXBPAfter, this.valueTokenDecimals)) // Debug
+      if (helper.RemoveDecimals(alUSDPriceInFRAXBPAfter, this.valueTokenDecimals) >= 0.99
+        && helper.RemoveDecimals(alUSDPriceInFRAXBPAfter, this.valueTokenDecimals) <= 1.01) {
+        break
+      }
+    }
+  }
+
   public async unbalance(percentToUnbalance: number) {
     assert.ok(percentToUnbalance <= 100, "Percentage can't be higher than 100")
 
@@ -63,8 +78,8 @@ export default class CurvePool {
       await this.exchangeDumpTokenForValueToken(amountToSwap)
 
       const alUSDPriceInFRAXBPAfter = await this.getDumpTokenPriceInValueToken()
-      const differenceInPercaentage = helper.RemoveDecimals(alUSDPriceInFRAXBPAfter, this.valueTokenDecimals) / helper.RemoveDecimals(alUSDPriceInFRAXBPBefore, this.valueTokenDecimals);
-      if (differenceInPercaentage < 1 - percentToUnbalance / 100) {
+      // console.log("alUSDPriceInFRAXBPAfter", helper.RemoveDecimals(alUSDPriceInFRAXBPAfter, this.valueTokenDecimals)) // Debug
+      if (helper.RemoveDecimals(alUSDPriceInFRAXBPAfter, this.valueTokenDecimals) < 1 - percentToUnbalance / 100) {
         break
       }
     }

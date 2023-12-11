@@ -17,39 +17,23 @@ describe('Rebalance pool', function () {
 
   it('Rebalance pegged curve pool', async function () {
     helper.setERC20Balance(signer.address, ALUSD, curvePool.dumpTokenBalance);
-    helper.setERC20Balance(signer.address, FRAXBP, curvePool.valueTokenBalance);
-
-    console.log(await curvePool.getDumpTokenPriceInValueToken());
-    console.log("valueTokenBalance", curvePool.valueTokenBalance)
-    console.log("dumpTokenBalance", curvePool.dumpTokenBalance)
 
     // Unbalance the pool
     await curvePool.unbalance(25);
 
     // Reinit pool balances
     curvePool = await CurvePool.createInstance(signer, CURVE_POOL, ALUSD, FRAXBP);
-    helper.setERC20Balance(signer.address, ALUSD, curvePool.dumpTokenBalance);
-    helper.setERC20Balance(signer.address, FRAXBP, curvePool.valueTokenBalance);
-
-    const alUSDPriceInFRAXBPBefore = await curvePool.getDumpTokenPriceInValueToken();
+    helper.setERC20Balance(signer.address, FRAXBP, curvePool.valueTokenBalance * 5n);
 
     // Assert the pool is unbalanced
+    const alUSDPriceInFRAXBPBefore = await curvePool.getDumpTokenPriceInValueToken();
     assert(helper.RemoveDecimals(alUSDPriceInFRAXBPBefore, curvePool.valueTokenDecimals) < 0.75, "Pool is not unbalanced at start")
 
-
-    for (let i = 0; i < 70; i++) {
-      const amountToSwap = (await curvePool.contractPool.balances(curvePool.valueTokenIndex)) * 1n / 100n
-      await curvePool.exchangeValueTokenForDumpToken(amountToSwap)
-
-      const alUSDPriceInFRAXBPAfter = await curvePool.getDumpTokenPriceInValueToken()
-      console.log("alUSD:", helper.RemoveDecimals(alUSDPriceInFRAXBPAfter, curvePool.valueTokenDecimals));
-      const differenceInPercaentage = helper.RemoveDecimals(alUSDPriceInFRAXBPAfter, curvePool.valueTokenDecimals) / helper.RemoveDecimals(alUSDPriceInFRAXBPBefore, curvePool.valueTokenDecimals);
-      if (differenceInPercaentage <= 0.01) {
-        break
-      }
-    }
+    // Rebalance the pool
+    await curvePool.rebalance();
 
     // Assert for balanced pool
-    assert.approximately(helper.RemoveDecimals(alUSDPriceInFRAXBPBefore, curvePool.valueTokenDecimals), 1, 0.01, "Pool did not balance")
+    const alUSDPriceInFRAXBPAfter = await curvePool.getDumpTokenPriceInValueToken()
+    assert.approximately(helper.RemoveDecimals(alUSDPriceInFRAXBPAfter, curvePool.valueTokenDecimals), 1, 0.01, "Pool did not balance")
   });
 });

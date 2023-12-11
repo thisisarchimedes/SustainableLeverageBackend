@@ -15,20 +15,24 @@ describe('Unbalance pool', function () {
   })
 
   it('Unbalance pegged curve pool', async function () {
+    helper.setERC20Balance(signer.address, FRAXBP, curvePool.valueTokenBalance * 5n);
+    
+    // Rebalance the pool
+    await curvePool.rebalance();
+    
+    // Reinit pool balances
+    curvePool = await CurvePool.createInstance(signer, CURVE_POOL, ALUSD, FRAXBP);
     helper.setERC20Balance(signer.address, ALUSD, curvePool.dumpTokenBalance);
-
-    // TODO: balance
 
     // Assert the pool is roughly balanced
     const alUSDPriceInFRAXBPBefore = await curvePool.getDumpTokenPriceInValueToken()
     assert.approximately(helper.RemoveDecimals(alUSDPriceInFRAXBPBefore, curvePool.valueTokenDecimals), 1, 0.01, "Pool is not balanced at start")
 
-    // unbalance the pool
-    curvePool.unbalance(25);
+    // Unbalance the pool
+    await curvePool.unbalance(25);
 
+    // Assert for unbalanced pool
     const alUSDPriceInFRAXBPAfter = await curvePool.getDumpTokenPriceInValueToken()
-    // assert(alUSDPriceInFRAXBPAfter < alUSDPriceInFRAXBPBefore * 75n / 100n); // TODO: remove after rebalanced
-
     assert(helper.RemoveDecimals(alUSDPriceInFRAXBPAfter, curvePool.valueTokenDecimals) < 0.75, "Pool is not unbalanced enough");
   });
 });
