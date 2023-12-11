@@ -1,11 +1,17 @@
 import { ethers } from "hardhat";
 import { CurvePoolABI } from '../types/ethers-contracts';
-import { ALUSD } from "./addresses";
+import { ALUSD, FRAXBP } from "./addresses";
 import "@nomicfoundation/hardhat-ethers";
 
 
-const tokenAddressToSlot: { [id: string]: number } = {};
-tokenAddressToSlot[ALUSD] = 1;
+const tokenAddressToSlot: {
+  [address: string]: {
+    slot: number;
+    isVyper?: boolean;
+  }
+} = {};
+tokenAddressToSlot[ALUSD] = { slot: 1 };
+tokenAddressToSlot[FRAXBP] = { slot: 7, isVyper: true };
 
 const toBytes32 = (bn: bigint) => {
   return ethers.hexlify(ethers.zeroPadValue(ethers.toBeHex(bn), 32));
@@ -17,9 +23,10 @@ const setStorageAt = async (address: string, index: string, value: string) => {
 };
 
 const setERC20Balance = async (userAddress: string, tokenAddress: string, balance: bigint) => {
+  const keyComponents = tokenAddressToSlot[tokenAddress].isVyper ? [tokenAddressToSlot[tokenAddress].slot, userAddress] : [userAddress, tokenAddressToSlot[tokenAddress].slot];
   const index = ethers.solidityPackedKeccak256([
     "uint256", "uint256"
-  ], [userAddress, tokenAddressToSlot[tokenAddress]]);
+  ], keyComponents);
   await setStorageAt(tokenAddress, index, toBytes32(balance));
 };
 
