@@ -1,5 +1,5 @@
 import {ethers} from 'hardhat';
-import {type CurvePoolABI} from '../types/ethers-contracts';
+import {type CurvePoolABI} from '../types/ethers-contracts/CurvePoolABI';
 import {ALUSD, FRAXBP} from './addresses';
 import '@nomicfoundation/hardhat-ethers';
 

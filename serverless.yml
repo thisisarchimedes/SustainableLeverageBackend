@@ -1,0 +1,15 @@
+app: sustainable-leverage-backend
+service: sustainable-leverage-backend
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+
+plugins:
+  - serverless-offline
+  - serverless-dotenv-plugin
+
+functions:
+  liquidator:
+    handler: dist/src/liquidator/lambda-handler.handler

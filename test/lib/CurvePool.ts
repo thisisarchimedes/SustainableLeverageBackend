@@ -1,7 +1,7 @@
 import { CurvePoolABI__factory } from '../../types/ethers-contracts/factories/CurvePoolABI__factory';
 import { ERC20__factory } from '../../types/ethers-contracts/factories/ERC20__factory';
 import { type HardhatEthersSigner } from '@nomicfoundation/hardhat-ethers/signers';
-import { type CurvePoolABI } from '../../types/ethers-contracts';
+import { type CurvePoolABI } from '../../types/ethers-contracts/CurvePoolABI';
 import { CURVE_POOL } from '../addresses';
 import { assert } from 'chai';
 import { ethers } from 'hardhat';

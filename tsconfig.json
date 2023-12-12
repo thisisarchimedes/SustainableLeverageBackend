@@ -7,11 +7,16 @@
     "strict": true,
     "skipLibCheck": true,
     "resolveJsonModule": true,
-    "sourceMap": true
+    "sourceMap": true,
+    "rootDir": ".",
+    "outDir": "./dist",
   },
+  "include": [
+    "src/**/*"
+  ],
   "exclude": [
-    "node_modules/",
-    "typechain-types/",
-    "types/ethers-contracts/"
+    "node_modules",
+    "typechain-types",
+    "types/ethers-contracts"
   ]
 }
