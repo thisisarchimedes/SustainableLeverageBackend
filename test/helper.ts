@@ -1,14 +1,15 @@
-import {ethers} from 'hardhat';
-import {type CurvePoolABI} from '../types/ethers-contracts/CurvePoolABI';
-import {ALUSD, FRAXBP} from './addresses';
+import { ethers } from 'hardhat';
+import { type CurvePoolABI } from '../types/ethers-contracts/CurvePoolABI';
+import { ALUSD, FRAXBP } from './addresses';
 import '@nomicfoundation/hardhat-ethers';
+import { type HardhatEthersSigner } from '@nomicfoundation/hardhat-ethers/signers';
 
 const tokenAddressToSlot: Record<string, {
 	slot: number;
 	isVyper?: boolean;
 }> = {};
-tokenAddressToSlot[ALUSD] = {slot: 1};
-tokenAddressToSlot[FRAXBP] = {slot: 7, isVyper: true};
+tokenAddressToSlot[ALUSD] = { slot: 1 };
+tokenAddressToSlot[FRAXBP] = { slot: 7, isVyper: true };
 
 const toBytes32 = (bn: bigint) => ethers.hexlify(ethers.zeroPadValue(ethers.toBeHex(bn), 32));
 
@@ -29,7 +30,7 @@ function removeDecimals(number: bigint, decimals: number) {
 	return Number(ethers.formatUnits(number, decimals));
 }
 
-async function getMainSigner() {
+async function getMainSigner(): Promise<HardhatEthersSigner> {
 	const [signer] = await ethers.getSigners();
 	return signer;
 }

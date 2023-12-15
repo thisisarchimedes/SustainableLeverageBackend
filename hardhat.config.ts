@@ -1,4 +1,4 @@
-import {type HardhatUserConfig} from 'hardhat/config';
+import { type HardhatUserConfig } from 'hardhat/config';
 import '@nomicfoundation/hardhat-ethers';
 
 const config: HardhatUserConfig = {
@@ -6,9 +6,12 @@ const config: HardhatUserConfig = {
 	networks: {
 		hardhat: {
 			forking: {
-				url: 'https://eth-mainnet.g.alchemy.com/v2/6k1zoPGPM7goxf3Vtzmz4iILuWbTff85',
+				url: 'http://ec2-54-209-173-28.compute-1.amazonaws.com:8545',
 			},
 		},
+		localhost: {
+			url: "http://127.0.0.1:8545",
+		}
 	},
 };
 
