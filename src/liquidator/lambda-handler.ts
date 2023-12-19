@@ -1,6 +1,7 @@
 import { type Context } from 'aws-lambda/handler';
 import { Client, type ClientConfig } from 'pg';
 import liquidator from './liquidator';
+import { loadConfig } from '../lib/config-service';
 
 // RDS database configuration
 let client: Client;
@@ -34,8 +35,11 @@ export async function handler(
 ) {
 	context.callbackWaitsForEmptyEventLoop = false;
 
+	// Load Config
+	const config = await loadConfig();
+
 	try {
-		await liquidator(client);
+		await liquidator(config, client);
 	} catch (error) {
 		console.error(error);
 	}

@@ -3,7 +3,7 @@
 /* eslint-disable */
 
 import { Contract, Interface, type ContractRunner } from "ethers";
-import type { ERC20, ERC20Interface } from "../ERC20";
+import type { ERC20, ERC20Interface } from "../../../test/ABIs/ERC20";
 
 const _abi = [
   {

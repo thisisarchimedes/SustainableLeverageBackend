@@ -21,7 +21,29 @@ import type {
   TypedLogDescription,
   TypedListener,
   TypedContractMethod,
-} from "./common";
+} from "../../common";
+
+export type ClosePositionParamsStruct = {
+  nftId: BigNumberish;
+  minWBTC: BigNumberish;
+  swapRoute: BigNumberish;
+  swapData: BytesLike;
+  exchange: AddressLike;
+};
+
+export type ClosePositionParamsStructOutput = [
+  nftId: bigint,
+  minWBTC: bigint,
+  swapRoute: bigint,
+  swapData: string,
+  exchange: string
+] & {
+  nftId: bigint;
+  minWBTC: bigint;
+  swapRoute: bigint;
+  swapData: string;
+  exchange: string;
+};
 
 export type DependencyAddressesStruct = {
   expiredVault: AddressLike;
@@ -34,6 +56,7 @@ export type DependencyAddressesStruct = {
   oracleManager: AddressLike;
   positionOpener: AddressLike;
   positionCloser: AddressLike;
+  positionLiquidator: AddressLike;
   positionLedger: AddressLike;
   swapManager: AddressLike;
 };
@@ -49,6 +72,7 @@ export type DependencyAddressesStructOutput = [
   oracleManager: string,
   positionOpener: string,
   positionCloser: string,
+  positionLiquidator: string,
   positionLedger: string,
   swapManager: string
 ] & {
@@ -62,23 +86,21 @@ export type DependencyAddressesStructOutput = [
   oracleManager: string;
   positionOpener: string;
   positionCloser: string;
+  positionLiquidator: string;
   positionLedger: string;
   swapManager: string;
 };
 
-export interface PositionCloserInterface extends Interface {
+export interface PositionLiquidatorInterface extends Interface {
   getFunction(
     nameOrSignature:
       | "DEFAULT_ADMIN_ROLE"
-      | "closeExpiredOrLiquidatedPosition"
-      | "closePosition"
       | "getCurrentExpiredVault"
       | "getRoleAdmin"
       | "grantRole"
       | "hasRole"
       | "initialize"
       | "liquidatePosition"
-      | "monitor"
       | "renounceRole"
       | "revokeRole"
       | "setDependencies"
@@ -92,7 +114,7 @@ export interface PositionCloserInterface extends Interface {
       | "ExpiredVaultUpdated"
       | "Initialized"
       | "MonitorUpdated"
-      | "PositionClosed"
+      | "PositionLiquidated"
       | "RoleAdminChanged"
       | "RoleGranted"
       | "RoleRevoked"
@@ -101,14 +123,6 @@ export interface PositionCloserInterface extends Interface {
   encodeFunctionData(
     functionFragment: "DEFAULT_ADMIN_ROLE",
     values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "closeExpiredOrLiquidatedPosition",
-    values: [BigNumberish, AddressLike]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "closePosition",
-    values: [BigNumberish, BigNumberish, BigNumberish, BytesLike, AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "getCurrentExpiredVault",
@@ -132,9 +146,8 @@ export interface PositionCloserInterface extends Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "liquidatePosition",
-    values: [BigNumberish, BigNumberish, BigNumberish, BytesLike, AddressLike]
+    values: [ClosePositionParamsStruct]
   ): string;
-  encodeFunctionData(functionFragment: "monitor", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "renounceRole",
     values: [BytesLike, AddressLike]
@@ -165,14 +178,6 @@ export interface PositionCloserInterface extends Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "closeExpiredOrLiquidatedPosition",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "closePosition",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
     functionFragment: "getCurrentExpiredVault",
     data: BytesLike
   ): Result;
@@ -187,7 +192,6 @@ export interface PositionCloserInterface extends Interface {
     functionFragment: "liquidatePosition",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "monitor", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "renounceRole",
     data: BytesLike
@@ -244,30 +248,27 @@ export namespace MonitorUpdatedEvent {
   export type LogDescription = TypedLogDescription<Event>;
 }
 
-export namespace PositionClosedEvent {
+export namespace PositionLiquidatedEvent {
   export type InputTuple = [
     nftId: BigNumberish,
-    user: AddressLike,
     strategy: AddressLike,
-    receivedAmount: BigNumberish,
-    wbtcDebtAmount: BigNumberish,
-    exitFee: BigNumberish
+    wbtcDebtPaid: BigNumberish,
+    claimableAmount: BigNumberish,
+    liquidationFee: BigNumberish
   ];
   export type OutputTuple = [
     nftId: bigint,
-    user: string,
     strategy: string,
-    receivedAmount: bigint,
-    wbtcDebtAmount: bigint,
-    exitFee: bigint
+    wbtcDebtPaid: bigint,
+    claimableAmount: bigint,
+    liquidationFee: bigint
   ];
   export interface OutputObject {
     nftId: bigint;
-    user: string;
     strategy: string;
-    receivedAmount: bigint;
-    wbtcDebtAmount: bigint;
-    exitFee: bigint;
+    wbtcDebtPaid: bigint;
+    claimableAmount: bigint;
+    liquidationFee: bigint;
   }
   export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
   export type Filter = TypedDeferredTopicFilter<Event>;
@@ -333,11 +334,11 @@ export namespace RoleRevokedEvent {
   export type LogDescription = TypedLogDescription<Event>;
 }
 
-export interface PositionCloser extends BaseContract {
-  connect(runner?: ContractRunner | null): PositionCloser;
+export interface PositionLiquidator extends BaseContract {
+  connect(runner?: ContractRunner | null): PositionLiquidator;
   waitForDeployment(): Promise<this>;
 
-  interface: PositionCloserInterface;
+  interface: PositionLiquidatorInterface;
 
   queryFilter<TCEvent extends TypedContractEvent>(
     event: TCEvent,
@@ -378,24 +379,6 @@ export interface PositionCloser extends BaseContract {
 
   DEFAULT_ADMIN_ROLE: TypedContractMethod<[], [string], "view">;
 
-  closeExpiredOrLiquidatedPosition: TypedContractMethod<
-    [nftID: BigNumberish, sender: AddressLike],
-    [void],
-    "nonpayable"
-  >;
-
-  closePosition: TypedContractMethod<
-    [
-      nftId: BigNumberish,
-      minWBTC: BigNumberish,
-      swapRoute: BigNumberish,
-      swapData: BytesLike,
-      exchange: AddressLike
-    ],
-    [void],
-    "nonpayable"
-  >;
-
   getCurrentExpiredVault: TypedContractMethod<[], [string], "view">;
 
   getRoleAdmin: TypedContractMethod<[role: BytesLike], [string], "view">;
@@ -415,18 +398,10 @@ export interface PositionCloser extends BaseContract {
   initialize: TypedContractMethod<[], [void], "nonpayable">;
 
   liquidatePosition: TypedContractMethod<
-    [
-      nftId: BigNumberish,
-      minWBTC: BigNumberish,
-      swapRoute: BigNumberish,
-      swapData: BytesLike,
-      exchange: AddressLike
-    ],
+    [params: ClosePositionParamsStruct],
     [void],
     "nonpayable"
   >;
-
-  monitor: TypedContractMethod<[], [string], "view">;
 
   renounceRole: TypedContractMethod<
     [role: BytesLike, callerConfirmation: AddressLike],
@@ -472,26 +447,6 @@ export interface PositionCloser extends BaseContract {
     nameOrSignature: "DEFAULT_ADMIN_ROLE"
   ): TypedContractMethod<[], [string], "view">;
   getFunction(
-    nameOrSignature: "closeExpiredOrLiquidatedPosition"
-  ): TypedContractMethod<
-    [nftID: BigNumberish, sender: AddressLike],
-    [void],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "closePosition"
-  ): TypedContractMethod<
-    [
-      nftId: BigNumberish,
-      minWBTC: BigNumberish,
-      swapRoute: BigNumberish,
-      swapData: BytesLike,
-      exchange: AddressLike
-    ],
-    [void],
-    "nonpayable"
-  >;
-  getFunction(
     nameOrSignature: "getCurrentExpiredVault"
   ): TypedContractMethod<[], [string], "view">;
   getFunction(
@@ -517,19 +472,10 @@ export interface PositionCloser extends BaseContract {
   getFunction(
     nameOrSignature: "liquidatePosition"
   ): TypedContractMethod<
-    [
-      nftId: BigNumberish,
-      minWBTC: BigNumberish,
-      swapRoute: BigNumberish,
-      swapData: BytesLike,
-      exchange: AddressLike
-    ],
+    [params: ClosePositionParamsStruct],
     [void],
     "nonpayable"
   >;
-  getFunction(
-    nameOrSignature: "monitor"
-  ): TypedContractMethod<[], [string], "view">;
   getFunction(
     nameOrSignature: "renounceRole"
   ): TypedContractMethod<
@@ -583,11 +529,11 @@ export interface PositionCloser extends BaseContract {
     MonitorUpdatedEvent.OutputObject
   >;
   getEvent(
-    key: "PositionClosed"
+    key: "PositionLiquidated"
   ): TypedContractEvent<
-    PositionClosedEvent.InputTuple,
-    PositionClosedEvent.OutputTuple,
-    PositionClosedEvent.OutputObject
+    PositionLiquidatedEvent.InputTuple,
+    PositionLiquidatedEvent.OutputTuple,
+    PositionLiquidatedEvent.OutputObject
   >;
   getEvent(
     key: "RoleAdminChanged"
@@ -645,15 +591,15 @@ export interface PositionCloser extends BaseContract {
       MonitorUpdatedEvent.OutputObject
     >;
 
-    "PositionClosed(uint256,address,address,uint256,uint256,uint256)": TypedContractEvent<
-      PositionClosedEvent.InputTuple,
-      PositionClosedEvent.OutputTuple,
-      PositionClosedEvent.OutputObject
+    "PositionLiquidated(uint256,address,uint256,uint256,uint256)": TypedContractEvent<
+      PositionLiquidatedEvent.InputTuple,
+      PositionLiquidatedEvent.OutputTuple,
+      PositionLiquidatedEvent.OutputObject
     >;
-    PositionClosed: TypedContractEvent<
-      PositionClosedEvent.InputTuple,
-      PositionClosedEvent.OutputTuple,
-      PositionClosedEvent.OutputObject
+    PositionLiquidated: TypedContractEvent<
+      PositionLiquidatedEvent.InputTuple,
+      PositionLiquidatedEvent.OutputTuple,
+      PositionLiquidatedEvent.OutputObject
     >;
 
     "RoleAdminChanged(bytes32,bytes32,bytes32)": TypedContractEvent<

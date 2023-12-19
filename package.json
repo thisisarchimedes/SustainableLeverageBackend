@@ -10,9 +10,7 @@
     "build": "tsc",
     "test": "hardhat test",
     "test-mocha": "mocha -r ts-node/register test/**/*.ts --timeout 600000",
-    "generate-abis": "typechain --target=ethers-v6 ./src/ABIs/*",
-    "generate-test-abis": "typechain --target=ethers-v6 ./test/ABIs/*",
-    "script-liquidator": "yarn build && yarn serverless invoke local --function liquidator"
+    "generate-types": "rm -vrf ./types/ethers-contracts && typechain --target=ethers-v6 ./src/ABIs/* ./test/ABIs/*"
   },
   "devDependencies": {
     "@typechain/ethers-v6": "^0.5.1",
@@ -36,6 +34,7 @@
     "typescript": "^5.3.2"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.476.0",
     "@nomicfoundation/hardhat-ethers": "^3.0.5",
     "aws-lambda": "^1.0.7",
     "dotenv": "^16.3.1",

@@ -6,7 +6,7 @@ const config: HardhatUserConfig = {
 	networks: {
 		hardhat: {
 			forking: {
-				url: 'http://ec2-54-209-173-28.compute-1.amazonaws.com:8545',
+				url: 'http://ec2-52-90-97-121.compute-1.amazonaws.com:8545',
 			},
 		},
 		localhost: {

@@ -21,7 +21,7 @@ import type {
   TypedLogDescription,
   TypedListener,
   TypedContractMethod,
-} from "./common";
+} from "../../common";
 
 export type DependencyAddressesStruct = {
   expiredVault: AddressLike;
@@ -34,6 +34,7 @@ export type DependencyAddressesStruct = {
   oracleManager: AddressLike;
   positionOpener: AddressLike;
   positionCloser: AddressLike;
+  positionLiquidator: AddressLike;
   positionLedger: AddressLike;
   swapManager: AddressLike;
 };
@@ -49,6 +50,7 @@ export type DependencyAddressesStructOutput = [
   oracleManager: string,
   positionOpener: string,
   positionCloser: string,
+  positionLiquidator: string,
   positionLedger: string,
   swapManager: string
 ] & {
@@ -62,6 +64,7 @@ export type DependencyAddressesStructOutput = [
   oracleManager: string;
   positionOpener: string;
   positionCloser: string;
+  positionLiquidator: string;
   positionLedger: string;
   swapManager: string;
 };
@@ -108,8 +111,8 @@ export interface LeveragedStrategyInterface extends Interface {
       | "hasRole"
       | "initialize"
       | "isCollateralToBorrowRatioAllowed"
-      | "isPositionLiquidatable(address,uint256,uint256)"
-      | "isPositionLiquidatable(uint256)"
+      | "isPositionLiquidatable"
+      | "isPositionLiquidatableEstimation"
       | "previewPositionValueInWBTC"
       | "reduceQuotaBy"
       | "removeStrategy"
@@ -194,11 +197,11 @@ export interface LeveragedStrategyInterface extends Interface {
     values: [AddressLike, BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
-    functionFragment: "isPositionLiquidatable(address,uint256,uint256)",
+    functionFragment: "isPositionLiquidatable",
     values: [AddressLike, BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
-    functionFragment: "isPositionLiquidatable(uint256)",
+    functionFragment: "isPositionLiquidatableEstimation",
     values: [BigNumberish]
   ): string;
   encodeFunctionData(
@@ -291,11 +294,11 @@ export interface LeveragedStrategyInterface extends Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "isPositionLiquidatable(address,uint256,uint256)",
+    functionFragment: "isPositionLiquidatable",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "isPositionLiquidatable(uint256)",
+    functionFragment: "isPositionLiquidatableEstimation",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -581,13 +584,13 @@ export interface LeveragedStrategy extends BaseContract {
     "view"
   >;
 
-  "isPositionLiquidatable(address,uint256,uint256)": TypedContractMethod<
+  isPositionLiquidatable: TypedContractMethod<
     [strategy: AddressLike, positionValue: BigNumberish, debt: BigNumberish],
     [boolean],
     "view"
   >;
 
-  "isPositionLiquidatable(uint256)": TypedContractMethod<
+  isPositionLiquidatableEstimation: TypedContractMethod<
     [nftId: BigNumberish],
     [boolean],
     "view"
@@ -731,14 +734,14 @@ export interface LeveragedStrategy extends BaseContract {
     "view"
   >;
   getFunction(
-    nameOrSignature: "isPositionLiquidatable(address,uint256,uint256)"
+    nameOrSignature: "isPositionLiquidatable"
   ): TypedContractMethod<
     [strategy: AddressLike, positionValue: BigNumberish, debt: BigNumberish],
     [boolean],
     "view"
   >;
   getFunction(
-    nameOrSignature: "isPositionLiquidatable(uint256)"
+    nameOrSignature: "isPositionLiquidatableEstimation"
   ): TypedContractMethod<[nftId: BigNumberish], [boolean], "view">;
   getFunction(
     nameOrSignature: "previewPositionValueInWBTC"
