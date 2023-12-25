@@ -10,7 +10,7 @@
     "build": "tsc",
     "test": "hardhat test",
     "test-mocha": "mocha -r ts-node/register test/**/*.ts --timeout 600000",
-    "generate-types": "rm -vrf ./types/ethers-contracts && typechain --target=ethers-v6 ./src/ABIs/* ./test/ABIs/*"
+    "generate-types": "rm -vrf ./types/ethers-contracts && typechain --target=ethers-v6 ./src/ABIs/* ./scripts/ABIs/* ./test/ABIs/*"
   },
   "devDependencies": {
     "@typechain/ethers-v6": "^0.5.1",
