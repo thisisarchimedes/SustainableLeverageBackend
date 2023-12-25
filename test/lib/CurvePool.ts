@@ -1,7 +1,7 @@
-import { CurvePoolABI__factory } from '../../types/ethers-contracts/factories/CurvePoolABI__factory';
-import { ERC20__factory } from '../../types/ethers-contracts/factories/ERC20__factory';
+import { CurvePoolABI__factory } from '../../types/ethers-contracts/factories/test/ABIs/CurvePoolABI__factory';
+import { ERC20__factory } from '../../types/ethers-contracts/factories/test/ABIs/ERC20__factory';
 import { type HardhatEthersSigner } from '@nomicfoundation/hardhat-ethers/signers';
-import { type CurvePoolABI } from '../../types/ethers-contracts/CurvePoolABI';
+import { type CurvePoolABI } from '../../types/ethers-contracts/test/ABIs/CurvePoolABI';
 import { CURVE_POOL } from '../addresses';
 import { assert } from 'chai';
 import { ethers } from 'hardhat';
@@ -48,7 +48,7 @@ export default class CurvePool {
   public async getDumpTokenPriceInValueToken(dumpPercentage = 10): Promise<bigint> {
     assert.ok(dumpPercentage <= 100, 'Percentage can\'t be higher than 100');
     // Take a significant amount of dump token otherwise get a skewed price
-    const priceReferenceAmount = this.dumpTokenBalance * BigInt(dumpPercentage) / 100n;
+    const priceReferenceAmount = this.dumpTokenBalance * BigInt(dumpPercentage) / 10000n; // 0.1%
     const dumpTokenPriceInValueToken = await this.contractPool.get_dy(this.dumpTokenIndex, this.valueTokenIndex, priceReferenceAmount);
 
     return dumpTokenPriceInValueToken * (10n ** BigInt(this.dumpTokenDecimals)) / priceReferenceAmount;
