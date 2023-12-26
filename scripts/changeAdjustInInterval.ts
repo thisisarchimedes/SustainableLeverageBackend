@@ -1,8 +1,13 @@
-import { ethers } from "hardhat";
+import { ethers, network } from "hardhat";
 import '@nomicfoundation/hardhat-ethers';
 import { MultiPoolStrategy__factory } from '../types/ethers-contracts/factories/scripts/ABIs/MultiPoolStrategy__factory';
 
 async function main() {
+  await network.provider.request({
+    method: "hardhat_impersonateAccount",
+    params: ["0x93B435e55881Ea20cBBAaE00eaEdAf7Ce366BeF2"]
+  });
+
   // Get a signer for the impersonated account
   const impersonatedSigner = await ethers.getSigner("0x93B435e55881Ea20cBBAaE00eaEdAf7Ce366BeF2");
 
