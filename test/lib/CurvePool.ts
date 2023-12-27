@@ -57,13 +57,13 @@ export default class CurvePool {
   public async rebalance(): Promise<void> {
     const amountToSwap = this.valueTokenBalance * 5n / 100n;
 
-    for (let i = 0; i < 100; i++) {
+    for (let i = 0; i < 1000; i++) {
       // eslint-disable-next-line no-await-in-loop
       await this.exchangeValueTokenForDumpToken(amountToSwap);
 
       // eslint-disable-next-line no-await-in-loop
       const alUSDPriceInFRAXBPAfter = await this.getDumpTokenPriceInValueToken();
-      // Console.log("alUSDPriceInFRAXBPAfter", helper.removeDecimals(alUSDPriceInFRAXBPAfter, this.valueTokenDecimals)) // Debug
+      // console.log("alUSDPriceInFRAXBPAfter", i, helper.removeDecimals(alUSDPriceInFRAXBPAfter, this.valueTokenDecimals)) // Debug
       if (helper.removeDecimals(alUSDPriceInFRAXBPAfter, this.valueTokenDecimals) >= 0.99 && helper.removeDecimals(alUSDPriceInFRAXBPAfter, this.valueTokenDecimals) <= 1.01) {
         break;
       }
@@ -75,7 +75,7 @@ export default class CurvePool {
 
     const amountToSwap = this.dumpTokenBalance * 5n / 100n;
 
-    for (let i = 0; i < 20; i++) {
+    for (let i = 0; i < 100; i++) {
       // eslint-disable-next-line no-await-in-loop
       await this.exchangeDumpTokenForValueToken(amountToSwap);
 

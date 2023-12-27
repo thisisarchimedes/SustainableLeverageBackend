@@ -1,5 +1,5 @@
 import { ethers } from 'hardhat';
-import { type CurvePoolABI } from '../types/ethers-contracts/CurvePoolABI';
+import { type CurvePoolABI } from '../types/ethers-contracts/test/ABIs/CurvePoolABI';
 import { ALUSD, FRAXBP } from './addresses';
 import '@nomicfoundation/hardhat-ethers';
 import { type HardhatEthersSigner } from '@nomicfoundation/hardhat-ethers/signers';

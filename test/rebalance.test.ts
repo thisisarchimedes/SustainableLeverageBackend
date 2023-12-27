@@ -1,7 +1,7 @@
-import {assert} from 'chai';
+import { assert } from 'chai';
 import '@nomicfoundation/hardhat-ethers';
-import {type HardhatEthersSigner} from '@nomicfoundation/hardhat-ethers/signers';
-import {ALUSD, CURVE_POOL, FRAXBP} from './addresses';
+import { type HardhatEthersSigner } from '@nomicfoundation/hardhat-ethers/signers';
+import { ALUSD, CURVE_POOL, FRAXBP } from './addresses';
 import helper from './helper';
 import CurvePool from './lib/CurvePool';
 
@@ -22,7 +22,7 @@ describe('Rebalance pool', () => {
 
 		// Reinit pool balances
 		curvePool = await CurvePool.createInstance(signer, CURVE_POOL, ALUSD, FRAXBP);
-		await helper.setERC20Balance(signer.address, FRAXBP, curvePool.valueTokenBalance * 5n);
+		await helper.setERC20Balance(signer.address, FRAXBP, curvePool.valueTokenBalance * 100n);
 
 		// Assert the pool is unbalanced
 		const alUSDPriceInFRAXBPBefore = await curvePool.getDumpTokenPriceInValueToken();
