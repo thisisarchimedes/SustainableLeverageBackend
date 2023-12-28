@@ -6,9 +6,10 @@ import { CURVE_POOL } from '../addresses';
 import { assert } from 'chai';
 import { ethers } from 'hardhat';
 import helper from '../helper';
+import { Address } from '../../types/common';
 
 export default class CurvePool {
-  static async createInstance(signer: HardhatEthersSigner, poolAddress: string, dumpToken: string, valueToken: string): Promise<CurvePool> {
+  static async createInstance(signer: HardhatEthersSigner, poolAddress: Address, dumpToken: Address, valueToken: Address): Promise<CurvePool> {
     const pool = CurvePoolABI__factory.connect(poolAddress, signer);
     const valueTokenContract = ERC20__factory.connect(valueToken, signer);
     const dumpTokenContract = ERC20__factory.connect(dumpToken, signer);

@@ -3,22 +3,24 @@ import { type CurvePoolABI } from '../types/ethers-contracts/test/ABIs/CurvePool
 import { ALUSD, FRAXBP } from './addresses';
 import '@nomicfoundation/hardhat-ethers';
 import { type HardhatEthersSigner } from '@nomicfoundation/hardhat-ethers/signers';
+import { Address } from '../types/common';
 
-const tokenAddressToSlot: Record<string, {
+type MemorySlot = {
 	slot: number;
 	isVyper?: boolean;
-}> = {};
+};
+const tokenAddressToSlot: { [key: Address]: MemorySlot } = {};
 tokenAddressToSlot[ALUSD] = { slot: 1 };
 tokenAddressToSlot[FRAXBP] = { slot: 7, isVyper: true };
 
 const toBytes32 = (bn: bigint) => ethers.hexlify(ethers.zeroPadValue(ethers.toBeHex(bn), 32));
 
-const setStorageAt = async (address: string, index: string, value: string) => {
+const setStorageAt = async (address: Address, index: string, value: string) => {
 	await ethers.provider.send('hardhat_setStorageAt', [address, index, value]);
 	await ethers.provider.send('evm_mine', []); // Just mines to the next block
 };
 
-const setERC20Balance = async (userAddress: string, tokenAddress: string, balance: bigint) => {
+const setERC20Balance = async (userAddress: Address, tokenAddress: Address, balance: bigint) => {
 	const keyComponents = tokenAddressToSlot[tokenAddress].isVyper ? [tokenAddressToSlot[tokenAddress].slot, userAddress] : [userAddress, tokenAddressToSlot[tokenAddress].slot];
 	const index = ethers.solidityPackedKeccak256([
 		'uint256', 'uint256',
@@ -35,7 +37,7 @@ async function getMainSigner(): Promise<HardhatEthersSigner> {
 	return signer;
 }
 
-async function fetchTokenIndex(pool: CurvePoolABI, token: string): Promise<number> {
+async function fetchTokenIndex(pool: CurvePoolABI, token: Address): Promise<number> {
 	let tokenIndex = 0;
 	for (let i = 0; i < 4; i++) {
 		// eslint-disable-next-line no-await-in-loop
