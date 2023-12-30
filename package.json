@@ -13,7 +13,6 @@
     "generate-types": "rm -vrf ./types/ethers-contracts && typechain --target=ethers-v6 ./src/ABIs/* ./scripts/ABIs/* ./test/ABIs/*"
   },
   "devDependencies": {
-    "@typechain/ethers-v6": "^0.5.1",
     "@types/aws-lambda": "^8.10.130",
     "@types/chai": "^4.3.11",
     "@types/mocha": "^10.0.6",
@@ -30,7 +29,6 @@
     "serverless-dotenv-plugin": "^6.0.0",
     "serverless-offline": "^13.3.1",
     "ts-node": "^10.9.1",
-    "typechain": "^8.3.2",
     "typescript": "^5.3.2"
   },
   "dependencies": {
