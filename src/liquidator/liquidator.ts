@@ -6,8 +6,6 @@ import { Provider } from 'ethers';
 import { WBTC, WBTC_DECIMALS } from '../constants';
 import { AMMs, Contracts, EthereumAddress } from "@thisisarchimedes/backend-sdk";
 
-const POSITION_LEDGER = '0xaE251Cd1a1d8121876cA609141bA5C63C0889e42'; // TODO: remove
-
 export default async function liquidator(config: Config, client: Client) {
   const signer = new ethers.Wallet(process.env.PRIVATE_KEY!, ethers.provider);
 
@@ -29,7 +27,7 @@ export default async function liquidator(config: Config, client: Client) {
 
     // Simulate the transaction
     try {
-      const payload = await getPayload(signer.provider!, nftId);
+      const payload = await getPayload(signer.provider!, config, nftId);
 
       const response = await positionLiquidator.liquidatePosition({
         nftId,
@@ -50,8 +48,8 @@ export default async function liquidator(config: Config, client: Client) {
   }
 }
 
-const getPayload = async (provider: Provider, nftId: number): Promise<string> => {
-  const positionLedger = Contracts.leverage.positionLedger(new EthereumAddress(POSITION_LEDGER), provider);
+const getPayload = async (provider: Provider, config: Config, nftId: number): Promise<string> => {
+  const positionLedger = Contracts.leverage.positionLedger(config.positionLedger, provider);
   const ledgerEntry = await positionLedger.getPosition(nftId);
 
   const strategy = Contracts.general.multiPoolStrategy(new EthereumAddress(ledgerEntry.strategyAddress), provider);
