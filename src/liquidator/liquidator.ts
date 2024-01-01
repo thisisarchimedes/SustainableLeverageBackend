@@ -12,7 +12,7 @@ export default async function liquidator(config: Config, client: Client) {
   const signer = new ethers.Wallet(process.env.PRIVATE_KEY!, ethers.provider);
 
   // const leveragedStrategy = LeveragedStrategy__factory.connect(config.leveragedStrategy, signer);
-  const positionLiquidator = Contracts.leverage.positionLiquidator(new EthereumAddress(config.positionLiquidator), signer);
+  const positionLiquidator = Contracts.leverage.positionLiquidator(config.positionLiquidator, signer);
 
   // Query to get all nftIds
   const res = await client.query('SELECT "nftId" FROM "LeveragePosition" WHERE "positionState" = \'OPEN\'');

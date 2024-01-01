@@ -1,18 +1,15 @@
-import { CurvePoolABI__factory } from '../../types/ethers-contracts/factories/test/ABIs/CurvePoolABI__factory';
-import { ERC20__factory } from '../../types/ethers-contracts/factories/test/ABIs/ERC20__factory';
 import { type HardhatEthersSigner } from '@nomicfoundation/hardhat-ethers/signers';
-import { type CurvePoolABI } from '../../types/ethers-contracts/test/ABIs/CurvePoolABI';
 import { CURVE_POOL } from '../addresses';
 import { assert } from 'chai';
 import { ethers } from 'hardhat';
 import helper from '../helper';
-import { Address } from '../../types/common';
+import { Contracts, EthereumAddress, CurvePool as CurvePoolContract } from '@thisisarchimedes/backend-sdk';
 
 export default class CurvePool {
-  static async createInstance(signer: HardhatEthersSigner, poolAddress: Address, dumpToken: Address, valueToken: Address): Promise<CurvePool> {
-    const pool = CurvePoolABI__factory.connect(poolAddress, signer);
-    const valueTokenContract = ERC20__factory.connect(valueToken, signer);
-    const dumpTokenContract = ERC20__factory.connect(dumpToken, signer);
+  static async createInstance(signer: HardhatEthersSigner, poolAddress: EthereumAddress, dumpToken: EthereumAddress, valueToken: EthereumAddress): Promise<CurvePool> {
+    const pool = Contracts.general.curvePool(poolAddress, signer);
+    const valueTokenContract = Contracts.general.ERC20(valueToken, signer);
+    const dumpTokenContract = Contracts.general.ERC20(dumpToken, signer);
     const valueTokenDecimals = Number(await valueTokenContract.decimals());
     const dumpTokenDecimals = Number(await dumpTokenContract.decimals());
 
@@ -29,7 +26,7 @@ export default class CurvePool {
   }
 
   constructor(
-    public readonly contractPool: CurvePoolABI,
+    public readonly contractPool: CurvePoolContract,
     public readonly valueTokenIndex: number,
     public readonly dumpTokenIndex: number,
     public readonly valueTokenBalance: bigint,

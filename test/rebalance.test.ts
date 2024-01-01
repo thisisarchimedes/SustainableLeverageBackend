@@ -4,6 +4,7 @@ import { type HardhatEthersSigner } from '@nomicfoundation/hardhat-ethers/signer
 import { ALUSD, CURVE_POOL, FRAXBP } from './addresses';
 import helper from './helper';
 import CurvePool from './lib/CurvePool';
+import { EthereumAddress } from '@thisisarchimedes/backend-sdk';
 
 describe('Rebalance pool', () => {
 	let signer: HardhatEthersSigner;
@@ -11,7 +12,7 @@ describe('Rebalance pool', () => {
 
 	before(async () => {
 		signer = await helper.getMainSigner();
-		curvePool = await CurvePool.createInstance(signer, CURVE_POOL, ALUSD, FRAXBP);
+		curvePool = await CurvePool.createInstance(signer, new EthereumAddress(CURVE_POOL), new EthereumAddress(ALUSD), new EthereumAddress(FRAXBP));
 	});
 
 	it('Rebalance pegged curve pool', async () => {
@@ -21,7 +22,7 @@ describe('Rebalance pool', () => {
 		await curvePool.unbalance(25);
 
 		// Reinit pool balances
-		curvePool = await CurvePool.createInstance(signer, CURVE_POOL, ALUSD, FRAXBP);
+		curvePool = await CurvePool.createInstance(signer, new EthereumAddress(CURVE_POOL), new EthereumAddress(ALUSD), new EthereumAddress(FRAXBP));
 		await helper.setERC20Balance(signer.address, FRAXBP, curvePool.valueTokenBalance * 100n);
 
 		// Assert the pool is unbalanced
