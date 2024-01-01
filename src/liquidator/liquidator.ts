@@ -4,7 +4,7 @@ import { Client } from 'pg';
 import { Config } from '../lib/config-service';
 import { Provider } from 'ethers';
 import { WBTC, WBTC_DECIMALS } from '../constants';
-import { AMMs, Contracts } from "@thisisarchimedes/backend-sdk";
+import { AMMs, Contracts, EthereumAddress } from "@thisisarchimedes/backend-sdk";
 
 const POSITION_LEDGER = '0xaE251Cd1a1d8121876cA609141bA5C63C0889e42'; // TODO: remove
 
@@ -12,7 +12,7 @@ export default async function liquidator(config: Config, client: Client) {
   const signer = new ethers.Wallet(process.env.PRIVATE_KEY!, ethers.provider);
 
   // const leveragedStrategy = LeveragedStrategy__factory.connect(config.leveragedStrategy, signer);
-  const positionLiquidator = Contracts.leverage.positionLiquidator(config.positionLiquidator, signer);
+  const positionLiquidator = Contracts.leverage.positionLiquidator(new EthereumAddress(config.positionLiquidator), signer);
 
   // Query to get all nftIds
   const res = await client.query('SELECT "nftId" FROM "LeveragePosition" WHERE "positionState" = \'OPEN\'');
@@ -51,17 +51,17 @@ export default async function liquidator(config: Config, client: Client) {
 }
 
 const getPayload = async (provider: Provider, nftId: number): Promise<string> => {
-  const positionLedger = PositionLedger__factory.connect(POSITION_LEDGER, provider);
+  const positionLedger = Contracts.leverage.positionLedger(new EthereumAddress(POSITION_LEDGER), provider);
   const ledgerEntry = await positionLedger.getPosition(nftId);
 
-  const strategy = MultiPoolStrategy__factory.connect(ledgerEntry.strategyAddress, provider);
+  const strategy = Contracts.general.multiPoolStrategy(new EthereumAddress(ledgerEntry.strategyAddress), provider);
   const strategyAsset = await strategy.asset();
   const minimumExpectedAssets = await strategy.convertToAssets(ledgerEntry.strategyShares);
 
-  const asset = ERC20__factory.connect(strategyAsset, provider);
+  const asset = Contracts.general.ERC20(new EthereumAddress(strategyAsset), provider);
   const assetDecimals = await asset.decimals();
 
-  const uniSwap = new AMMs.uniswap.default(process.env.MAINNET_RPC_URL!);
+  const uniSwap = new AMMs.UniSwap(process.env.MAINNET_RPC_URL!);
   const { payload } = await uniSwap.buildPayload(
     ethers.formatUnits(minimumExpectedAssets, assetDecimals),
       strategyAsset,
