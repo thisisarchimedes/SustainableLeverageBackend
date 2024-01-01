@@ -10,6 +10,7 @@ import { Config } from '../lib/config-service';
 import { Provider } from 'ethers';
 import { Address } from '../../types/common';
 import { WBTC, WBTC_DECIMALS } from '../constants';
+import { AMMs } from "@thisisarchimedes/backend-sdk";
 
 const POSITION_LEDGER = '0xaE251Cd1a1d8121876cA609141bA5C63C0889e42'; // TODO: remove
 
@@ -66,13 +67,14 @@ const getPayload = async (provider: Provider, nftId: number): Promise<string> =>
   const asset = ERC20__factory.connect(strategyAsset, provider);
   const assetDecimals = await asset.decimals();
 
-  const { payload } = await fetchUniswapRouteAndBuildPayload(
+  const uniSwap = new AMMs.uniswap.default(process.env.MAINNET_RPC_URL!);
+  const { payload } = await uniSwap.buildPayload(
     ethers.formatUnits(minimumExpectedAssets, assetDecimals),
-    strategyAsset,
-    Number(assetDecimals),
-    WBTC,
-    WBTC_DECIMALS,
-  );
+      strategyAsset,
+      Number(assetDecimals),
+      WBTC,
+      WBTC_DECIMALS,
+    );
 
   return payload;
 }
