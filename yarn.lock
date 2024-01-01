@@ -2993,9 +2993,9 @@
     defer-to-connect "^2.0.0"
 
 "@thisisarchimedes/backend-sdk@^1.0.35":
-  version "1.0.35"
-  resolved "https://npm.pkg.github.com/download/@thisisarchimedes/backend-sdk/1.0.35/8bc02cb1be6ae73d7aa2d552f1a553459e7a7c77#8bc02cb1be6ae73d7aa2d552f1a553459e7a7c77"
-  integrity sha512-qkDckzO+VyaozsJ1tBnLCp3ujnd/BETuDTFTWcVIa+Nb6ZVS5OI7k3isZdAxCnP4nKQFEiIdU0WEoF+27+2xkA==
+  version "1.0.38"
+  resolved "https://npm.pkg.github.com/download/@thisisarchimedes/backend-sdk/1.0.38/398b9a1e04a9e217345d3fbe39f06fa4576940b2#398b9a1e04a9e217345d3fbe39f06fa4576940b2"
+  integrity sha512-9rAPe5uWApliMPalONMsQIvehzcgYL8HkbxaSs4UikHteNMQ2YvTdsgBpfbitSLH0mZjMD6PWDE4fN4zlg6bEg==
   dependencies:
     "@aws-sdk/client-s3" "^3.484.0"
     "@aws-sdk/client-sqs" "^3.427.0"

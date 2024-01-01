@@ -1,16 +1,10 @@
 import { ethers } from 'hardhat';
 import '@nomicfoundation/hardhat-ethers';
 import { Client } from 'pg';
-import { PositionLiquidator__factory } from '../../types/ethers-contracts/factories/src/ABIs/PositionLiquidator__factory';
-// import { LeveragedStrategy__factory } from '../../types/ethers-contracts/factories/src/ABIs/LeveragedStrategy__factory';
-import { PositionLedger__factory } from '../../types/ethers-contracts/factories/src/ABIs/PositionLedger__factory';
-import { MultiPoolStrategy__factory } from '../../types/ethers-contracts/factories/src/ABIs/MultiPoolStrategy__factory';
-import { ERC20__factory } from '../../types/ethers-contracts/factories/src/ABIs/ERC20__factory';
 import { Config } from '../lib/config-service';
 import { Provider } from 'ethers';
-import { Address } from '../../types/common';
 import { WBTC, WBTC_DECIMALS } from '../constants';
-import { AMMs } from "@thisisarchimedes/backend-sdk";
+import { AMMs, Contracts } from "@thisisarchimedes/backend-sdk";
 
 const POSITION_LEDGER = '0xaE251Cd1a1d8121876cA609141bA5C63C0889e42'; // TODO: remove
 
@@ -18,7 +12,7 @@ export default async function liquidator(config: Config, client: Client) {
   const signer = new ethers.Wallet(process.env.PRIVATE_KEY!, ethers.provider);
 
   // const leveragedStrategy = LeveragedStrategy__factory.connect(config.leveragedStrategy, signer);
-  const positionLiquidator = PositionLiquidator__factory.connect(config.positionLiquidator, signer);
+  const positionLiquidator = Contracts.leverage.positionLiquidator(config.positionLiquidator, signer);
 
   // Query to get all nftIds
   const res = await client.query('SELECT "nftId" FROM "LeveragePosition" WHERE "positionState" = \'OPEN\'');
