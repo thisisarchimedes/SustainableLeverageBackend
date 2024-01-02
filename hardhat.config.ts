@@ -1,5 +1,6 @@
 import { type HardhatUserConfig } from 'hardhat/config';
 import '@nomicfoundation/hardhat-ethers';
+import 'dotenv/config';
 
 const config: HardhatUserConfig = {
 	solidity: '0.8.21',
@@ -9,12 +10,12 @@ const config: HardhatUserConfig = {
 	networks: {
 		hardhat: {
 			forking: {
-				url: 'http://ec2-52-4-114-208.compute-1.amazonaws.com:8545',
+				url: process.env.RPC_URL!,
 				blockNumber: 18820117
 			}
 		},
 		external: {
-			url: 'http://ec2-52-4-114-208.compute-1.amazonaws.com:8545',
+			url: process.env.RPC_URL!,
 			chainId: 31337
 		},
 		localhost: {
