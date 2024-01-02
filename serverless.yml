@@ -3,6 +3,9 @@ service: sustainable-leverage-backend
 frameworkVersion: '3'
 useDotenv: true
 
+custom:
+  stage: ${opt:stage, 'dev'} # 'dev' is the default if no stage is provided
+
 provider:
   name: aws
   runtime: nodejs18.x
@@ -14,6 +17,7 @@ plugins:
 functions:
   liquidator:
     handler: dist/src/liquidator/lambda-handler.handler
+    name: sustainable-leverage-backend-${self:custom.stage}-liquidator
     layers:
       - ${env:LAYER_ARN}
     environment:
