@@ -1,14 +1,12 @@
-import { ethers } from 'hardhat';
-import '@nomicfoundation/hardhat-ethers';
 import { Client } from 'pg';
 import { Config } from '../lib/config-service';
-import { Provider } from 'ethers';
+import { Provider, ethers } from 'ethers';
 import { WBTC, WBTC_DECIMALS } from '../constants';
 import { Contracts, EthereumAddress } from "@thisisarchimedes/backend-sdk";
 import UniSwap from '../lib/UniSwap';
 
 export default async function liquidator(config: Config, client: Client) {
-  const signer = new ethers.Wallet(process.env.PRIVATE_KEY!, ethers.provider);
+  const signer = new ethers.Wallet(process.env.PRIVATE_KEY!);
 
   // const leveragedStrategy = LeveragedStrategy__factory.connect(config.leveragedStrategy, signer);
   const positionLiquidator = Contracts.leverage.positionLiquidator(config.positionLiquidator, signer);
