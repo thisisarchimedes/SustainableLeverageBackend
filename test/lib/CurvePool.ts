@@ -12,7 +12,7 @@ export default class CurvePool {
     const dumpTokenContract = Contracts.general.ERC20(dumpToken, signer);
     const valueTokenDecimals = Number(await valueTokenContract.decimals());
     const dumpTokenDecimals = Number(await dumpTokenContract.decimals());
-
+    
     const valueTokenIndex = await helper.fetchTokenIndex(pool, valueToken);
     const dumpTokenIndex = await helper.fetchTokenIndex(pool, dumpToken);
 

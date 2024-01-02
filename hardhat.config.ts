@@ -6,12 +6,12 @@ const config: HardhatUserConfig = {
 	networks: {
 		hardhat: {
 			forking: {
-				url: 'http://ec2-54-167-31-43.compute-1.amazonaws.com:8545',
+				url: 'http://ec2-52-4-114-208.compute-1.amazonaws.com:8545',
 				blockNumber: 18820117
 			}
 		},
 		external: {
-			url: 'http://ec2-54-167-31-43.compute-1.amazonaws.com:8545',
+			url: 'http://ec2-52-4-114-208.compute-1.amazonaws.com:8545',
 			chainId: 31337
 		},
 		localhost: {

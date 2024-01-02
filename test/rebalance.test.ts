@@ -16,14 +16,14 @@ describe('Rebalance pool', () => {
 	});
 
 	it('Rebalance pegged curve pool', async () => {
-		await helper.setERC20Balance(signer.address, ALUSD, curvePool.dumpTokenBalance);
+		await helper.setERC20Balance(new EthereumAddress(signer.address), new EthereumAddress(ALUSD), curvePool.dumpTokenBalance);
 
 		// Unbalance the pool
 		await curvePool.unbalance(25);
 
 		// Reinit pool balances
 		curvePool = await CurvePool.createInstance(signer, new EthereumAddress(CURVE_POOL), new EthereumAddress(ALUSD), new EthereumAddress(FRAXBP));
-		await helper.setERC20Balance(signer.address, FRAXBP, curvePool.valueTokenBalance * 100n);
+		await helper.setERC20Balance(new EthereumAddress(signer.address), new EthereumAddress(FRAXBP), curvePool.valueTokenBalance * 100n);
 
 		// Assert the pool is unbalanced
 		const alUSDPriceInFRAXBPBefore = await curvePool.getDumpTokenPriceInValueToken();

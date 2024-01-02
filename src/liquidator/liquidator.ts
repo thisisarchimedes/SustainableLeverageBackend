@@ -4,7 +4,8 @@ import { Client } from 'pg';
 import { Config } from '../lib/config-service';
 import { Provider } from 'ethers';
 import { WBTC, WBTC_DECIMALS } from '../constants';
-import { AMMs, Contracts, EthereumAddress } from "@thisisarchimedes/backend-sdk";
+import { Contracts, EthereumAddress } from "@thisisarchimedes/backend-sdk";
+import UniSwap from '../lib/UniSwap';
 
 export default async function liquidator(config: Config, client: Client) {
   const signer = new ethers.Wallet(process.env.PRIVATE_KEY!, ethers.provider);
@@ -59,14 +60,14 @@ const getPayload = async (provider: Provider, config: Config, nftId: number): Pr
   const asset = Contracts.general.ERC20(new EthereumAddress(strategyAsset), provider);
   const assetDecimals = await asset.decimals();
 
-  const uniSwap = new AMMs.UniSwap(process.env.MAINNET_RPC_URL!);
+  const uniSwap = new UniSwap(process.env.MAINNET_RPC_URL!);
   const { payload } = await uniSwap.buildPayload(
     ethers.formatUnits(minimumExpectedAssets, assetDecimals),
-      strategyAsset,
-      Number(assetDecimals),
-      WBTC,
-      WBTC_DECIMALS,
-    );
+    new EthereumAddress(strategyAsset),
+    Number(assetDecimals),
+    new EthereumAddress(WBTC),
+    WBTC_DECIMALS,
+  );
 
   return payload;
 }

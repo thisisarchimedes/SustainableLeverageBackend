@@ -1,0 +1,110 @@
+name: Deploy
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  AWS_REGION: us-east-1
+  PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
+
+jobs:
+  deploy-sustainable-leverage-liquidation-bot:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Use Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: "18"
+      - name: Install dependencies
+        run: yarn
+      - name: Build
+        run: yarn build
+      - name: Remove development dependencies
+        run: yarn --production
+      - name: Prepare deployment package
+        run: |
+          mkdir -p deploy-package
+          rsync -av --progress ./dist/ ./deploy-package/ --exclude test
+          cp -r ./node_modules ./deploy-package/
+      - name: List contents of deploy-package directory
+        run: ls -al ./deploy-package
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+      - name: Install AWS SAM CLI
+        run: pip install --user aws-sam-cli
+      - name: Package the SAM application
+        run: sam package --template-file template.yaml --output-template-file packaged.yaml
+      - name: Deploy to AWS Lambda
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+          DB_HOST: ${{ secrets.DB_HOST }}
+          DB_PORT: ${{ secrets.DB_PORT }}
+          DB_NAME: ${{ secrets.DB_NAME }}
+          DB_USER: ${{ secrets.DB_USER }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          S3_BUCKET_CONFIG: ${{ secrets.S3_BUCKET_CONFIG }}
+          S3_ADDRESSES_KEY: ${{ secrets.S3_ADDRESSES_KEY }}
+          RPC_URL: ${{ secrets.RPC_URL }}
+          MAINNET_RPC_URL: ${{ secrets.MAINNET_RPC_URL }}
+          PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
+        run: yarn serverless deploy
+
+  deploy-sustainable-leverage-liquidation-bot-demo:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Use Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '18'
+      - name: Install dependencies
+        run: yarn
+      - name: Build
+        run: yarn build
+      - name: Remove development dependencies
+        run: yarn --production
+      - name: Prepare deployment package
+        run: |
+          mkdir -p deploy-package
+          rsync -av --progress ./dist/ ./deploy-package/ --exclude test
+          cp -r ./node_modules ./deploy-package/
+      - name: List contents of deploy-package directory
+        run: ls -al ./deploy-package
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+      - name: Install AWS SAM CLI
+        run: pip install --user aws-sam-cli
+      - name: Package the SAM application
+        run: sam package --template-file template.yaml --output-template-file packaged.yaml
+      - name: Deploy the SAM application
+        id: deploy
+        run: |
+          sam deploy --debug --template-file packaged.yaml --stack-name SustainableLeverageLiquidationBot --capabilities CAPABILITY_IAM --parameter-overrides \
+          ParameterKey=DBHost,ParameterValue="${{ secrets.DB_HOST }}" \
+          ParameterKey=DBPort,ParameterValue="${{ secrets.DB_PORT }}" \
+          ParameterKey=DBName,ParameterValue="${{ secrets.DB_NAME }}" \
+          ParameterKey=DBUser,ParameterValue="${{ secrets.DB_USER }}" \
+          ParameterKey=DBPassword,ParameterValue="${{ secrets.DB_PASSWORD }}" \
+          ParameterKey=S3BucketConfig,ParameterValue="${{ secrets.S3_BUCKET_CONFIG }}" \
+          ParameterKey=S3AddressesKey,ParameterValue="${{ secrets.S3_ADDRESSES_KEY }}" \
+          ParameterKey=RpcUrl,ParameterValue="${{ secrets.RPC_URL }}" \
+          ParameterKey=MainnetRpcUrl,ParameterValue="${{ secrets.MAINNET_RPC_URL }}" \
+          ParameterKey=PrivateKey,ParameterValue="${{ secrets.PRIVATE_KEY }}" \
+          ParameterKey=Environment,ParameterValue="demo"
