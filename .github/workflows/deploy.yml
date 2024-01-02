@@ -30,7 +30,12 @@ jobs:
         env:
           MAINNET_RPC_URL: ${{ secrets.MAINNET_RPC_URL }}
           RPC_URL: ${{ secrets.RPC_URL }}
-        run: yarn test
+        run: |
+          ls
+          cat ./hardhat.config.ts
+          echo $MAINNET_RPC_URL
+          echo $RPC_URL
+          yarn test
 
   deploy-uniswap-sdk-layer:
     runs-on: ubuntu-latest
