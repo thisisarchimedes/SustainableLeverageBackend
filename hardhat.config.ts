@@ -3,6 +3,9 @@ import '@nomicfoundation/hardhat-ethers';
 
 const config: HardhatUserConfig = {
 	solidity: '0.8.21',
+	mocha: {
+		timeout: 300000
+	},
 	networks: {
 		hardhat: {
 			forking: {

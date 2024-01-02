@@ -1,5 +1,5 @@
 {
-  "name": "SustainableLeverageBackend",
+  "name": "sustainable-leverage-backend",
   "version": "1.0.0",
   "main": "index.js",
   "repository": "https://github.com/thisisarchimedes/SustainableLeverageBackend.git",
@@ -9,7 +9,6 @@
     "lint": "eslint */**.ts --fix",
     "build": "tsc",
     "test": "hardhat test",
-    "test-mocha": "mocha -r ts-node/register test/**/*.ts --timeout 600000",
     "generate-types": "rm -vrf ./types/ethers-contracts && typechain --target=ethers-v6 ./src/ABIs/* ./scripts/ABIs/* ./test/ABIs/*"
   },
   "devDependencies": {
