@@ -7,29 +7,41 @@
   "private": true,
   "scripts": {
     "lint": "eslint */**.ts --fix",
-    "build": "tsc .",
+    "build": "tsc",
     "test": "hardhat test",
     "test-mocha": "mocha -r ts-node/register test/**/*.ts --timeout 600000",
-    "generate-test-abis": "typechain --target=ethers-v6 ./test/ABIs/*"
+    "generate-types": "rm -vrf ./types/ethers-contracts && typechain --target=ethers-v6 ./src/ABIs/* ./scripts/ABIs/* ./test/ABIs/*"
   },
   "devDependencies": {
-    "@typechain/ethers-v6": "^0.5.1",
+    "@nomicfoundation/hardhat-ethers": "^3.0.5",
+    "@types/aws-lambda": "^8.10.130",
     "@types/chai": "^4.3.11",
     "@types/mocha": "^10.0.6",
     "@types/node": "^20.10.3",
+    "@types/pg": "^8.10.9",
     "@typescript-eslint/eslint-plugin": "^6.13.2",
     "@typescript-eslint/parser": "^6.13.2",
+    "@uniswap/router-sdk": "^1.7.1",
+    "@uniswap/sdk-core": "^4.0.10",
+    "@uniswap/smart-order-router": "^3.20.0",
+    "@uniswap/v3-sdk": "^3.10.0",
     "chai": "^4.3.10",
     "eslint": "^8.55.0",
     "eslint-plugin-promise": "^6.1.1",
     "hardhat": "^2.19.2",
     "mocha": "^10.2.0",
+    "serverless": "^3.38.0",
+    "serverless-dotenv-plugin": "^6.0.0",
+    "serverless-offline": "^13.3.2",
     "ts-node": "^10.9.1",
-    "typechain": "^8.3.2",
     "typescript": "^5.3.2"
   },
   "dependencies": {
-    "@nomicfoundation/hardhat-ethers": "^3.0.5",
-    "ethers": "^6.9.0"
+    "@aws-sdk/client-s3": "^3.476.0",
+    "@thisisarchimedes/backend-sdk": "^1.0.35",
+    "aws-lambda": "^1.0.7",
+    "dotenv": "^16.3.1",
+    "ethers": "^6.9.1",
+    "pg": "^8.11.3"
   }
 }

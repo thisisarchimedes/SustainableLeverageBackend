@@ -1,20 +1,18 @@
-import { CurvePoolABI__factory } from '../../types/ethers-contracts/factories/CurvePoolABI__factory';
-import { ERC20__factory } from '../../types/ethers-contracts/factories/ERC20__factory';
 import { type HardhatEthersSigner } from '@nomicfoundation/hardhat-ethers/signers';
-import { type CurvePoolABI } from '../../types/ethers-contracts';
 import { CURVE_POOL } from '../addresses';
 import { assert } from 'chai';
 import { ethers } from 'hardhat';
 import helper from '../helper';
+import { Contracts, EthereumAddress, CurvePool as CurvePoolContract } from '@thisisarchimedes/backend-sdk';
 
 export default class CurvePool {
-  static async createInstance(signer: HardhatEthersSigner, poolAddress: string, dumpToken: string, valueToken: string): Promise<CurvePool> {
-    const pool = CurvePoolABI__factory.connect(poolAddress, signer);
-    const valueTokenContract = ERC20__factory.connect(valueToken, signer);
-    const dumpTokenContract = ERC20__factory.connect(dumpToken, signer);
+  static async createInstance(signer: HardhatEthersSigner, poolAddress: EthereumAddress, dumpToken: EthereumAddress, valueToken: EthereumAddress): Promise<CurvePool> {
+    const pool = Contracts.general.curvePool(poolAddress, signer);
+    const valueTokenContract = Contracts.general.ERC20(valueToken, signer);
+    const dumpTokenContract = Contracts.general.ERC20(dumpToken, signer);
     const valueTokenDecimals = Number(await valueTokenContract.decimals());
     const dumpTokenDecimals = Number(await dumpTokenContract.decimals());
-
+    
     const valueTokenIndex = await helper.fetchTokenIndex(pool, valueToken);
     const dumpTokenIndex = await helper.fetchTokenIndex(pool, dumpToken);
 
@@ -28,7 +26,7 @@ export default class CurvePool {
   }
 
   constructor(
-    public readonly contractPool: CurvePoolABI,
+    public readonly contractPool: CurvePoolContract,
     public readonly valueTokenIndex: number,
     public readonly dumpTokenIndex: number,
     public readonly valueTokenBalance: bigint,
@@ -48,7 +46,7 @@ export default class CurvePool {
   public async getDumpTokenPriceInValueToken(dumpPercentage = 10): Promise<bigint> {
     assert.ok(dumpPercentage <= 100, 'Percentage can\'t be higher than 100');
     // Take a significant amount of dump token otherwise get a skewed price
-    const priceReferenceAmount = this.dumpTokenBalance * BigInt(dumpPercentage) / 100n;
+    const priceReferenceAmount = this.dumpTokenBalance * BigInt(dumpPercentage) / 10000n; // 0.1%
     const dumpTokenPriceInValueToken = await this.contractPool.get_dy(this.dumpTokenIndex, this.valueTokenIndex, priceReferenceAmount);
 
     return dumpTokenPriceInValueToken * (10n ** BigInt(this.dumpTokenDecimals)) / priceReferenceAmount;
@@ -57,13 +55,13 @@ export default class CurvePool {
   public async rebalance(): Promise<void> {
     const amountToSwap = this.valueTokenBalance * 5n / 100n;
 
-    for (let i = 0; i < 100; i++) {
+    for (let i = 0; i < 1000; i++) {
       // eslint-disable-next-line no-await-in-loop
       await this.exchangeValueTokenForDumpToken(amountToSwap);
 
       // eslint-disable-next-line no-await-in-loop
       const alUSDPriceInFRAXBPAfter = await this.getDumpTokenPriceInValueToken();
-      // Console.log("alUSDPriceInFRAXBPAfter", helper.removeDecimals(alUSDPriceInFRAXBPAfter, this.valueTokenDecimals)) // Debug
+      // console.log("alUSDPriceInFRAXBPAfter", i, helper.removeDecimals(alUSDPriceInFRAXBPAfter, this.valueTokenDecimals)) // Debug
       if (helper.removeDecimals(alUSDPriceInFRAXBPAfter, this.valueTokenDecimals) >= 0.99 && helper.removeDecimals(alUSDPriceInFRAXBPAfter, this.valueTokenDecimals) <= 1.01) {
         break;
       }
@@ -75,7 +73,7 @@ export default class CurvePool {
 
     const amountToSwap = this.dumpTokenBalance * 5n / 100n;
 
-    for (let i = 0; i < 20; i++) {
+    for (let i = 0; i < 100; i++) {
       // eslint-disable-next-line no-await-in-loop
       await this.exchangeDumpTokenForValueToken(amountToSwap);
 

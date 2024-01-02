@@ -1,9 +1,10 @@
-import {assert} from 'chai';
+import { assert } from 'chai';
 import '@nomicfoundation/hardhat-ethers';
-import {type HardhatEthersSigner} from '@nomicfoundation/hardhat-ethers/signers';
-import {ALUSD, CURVE_POOL, FRAXBP} from './addresses';
+import { type HardhatEthersSigner } from '@nomicfoundation/hardhat-ethers/signers';
+import { ALUSD, CURVE_POOL, FRAXBP } from './addresses';
 import helper from './helper';
 import CurvePool from './lib/CurvePool';
+import { EthereumAddress } from '@thisisarchimedes/backend-sdk';
 
 describe('Rebalance pool', () => {
 	let signer: HardhatEthersSigner;
@@ -11,18 +12,18 @@ describe('Rebalance pool', () => {
 
 	before(async () => {
 		signer = await helper.getMainSigner();
-		curvePool = await CurvePool.createInstance(signer, CURVE_POOL, ALUSD, FRAXBP);
+		curvePool = await CurvePool.createInstance(signer, new EthereumAddress(CURVE_POOL), new EthereumAddress(ALUSD), new EthereumAddress(FRAXBP));
 	});
 
 	it('Rebalance pegged curve pool', async () => {
-		await helper.setERC20Balance(signer.address, ALUSD, curvePool.dumpTokenBalance);
+		await helper.setERC20Balance(new EthereumAddress(signer.address), new EthereumAddress(ALUSD), curvePool.dumpTokenBalance);
 
 		// Unbalance the pool
 		await curvePool.unbalance(25);
 
 		// Reinit pool balances
-		curvePool = await CurvePool.createInstance(signer, CURVE_POOL, ALUSD, FRAXBP);
-		await helper.setERC20Balance(signer.address, FRAXBP, curvePool.valueTokenBalance * 5n);
+		curvePool = await CurvePool.createInstance(signer, new EthereumAddress(CURVE_POOL), new EthereumAddress(ALUSD), new EthereumAddress(FRAXBP));
+		await helper.setERC20Balance(new EthereumAddress(signer.address), new EthereumAddress(FRAXBP), curvePool.valueTokenBalance * 100n);
 
 		// Assert the pool is unbalanced
 		const alUSDPriceInFRAXBPBefore = await curvePool.getDumpTokenPriceInValueToken();
