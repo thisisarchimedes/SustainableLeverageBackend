@@ -2,6 +2,8 @@ import { type HardhatUserConfig } from 'hardhat/config';
 import '@nomicfoundation/hardhat-ethers';
 import 'dotenv/config';
 
+console.log('env', process.env);
+
 const config: HardhatUserConfig = {
 	solidity: '0.8.21',
 	mocha: {

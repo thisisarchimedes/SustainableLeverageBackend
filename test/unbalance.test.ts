@@ -11,7 +11,6 @@ describe('Unbalance pool', () => {
 	let curvePool: CurvePool;
 
 	before(async () => {
-		console.log('env', process.env);
 		signer = await helper.getMainSigner();
 		curvePool = await CurvePool.createInstance(signer, new EthereumAddress(CURVE_POOL), new EthereumAddress(ALUSD), new EthereumAddress(FRAXBP));
 	});
