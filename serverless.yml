@@ -1,7 +1,11 @@
 app: sustainable-leverage-backend
 service: sustainable-leverage-backend
 frameworkVersion: '3'
+
 useDotenv: true
+package:
+  individually: true
+  excludeDevDependencies: true
 
 custom:
   stage: ${opt:stage, 'dev'} # 'dev' is the default if no stage is provided
