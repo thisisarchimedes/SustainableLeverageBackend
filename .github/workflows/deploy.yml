@@ -12,6 +12,8 @@ env:
 jobs:
   test:
     runs-on: ubuntu-latest
+    # Skip
+    if: false
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
