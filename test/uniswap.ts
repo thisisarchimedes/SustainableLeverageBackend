@@ -1,5 +1,5 @@
 import { assert } from 'chai';
-import UniSwap from '../src/lib/Uniswap'
+import UniSwap from '../src/lib/UniSwap'
 import { EthereumAddress } from '@thisisarchimedes/backend-sdk';
 import "dotenv/config"
 
