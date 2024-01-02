@@ -69,9 +69,13 @@ jobs:
         with:
           node-version: "18"
       - name: Get latest version of uniswap-sdk layer
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
         run: |
           LATEST_VERSION=$(aws lambda list-layer-versions --layer-name uniswap-sdk | jq -r '.LayerVersions | max_by(.Version) | .Version')
-          echo lv=$LATEST_VERSION
+          echo LATEST_VERSION=$LATEST_VERSION
           LAYER_ARN="arn:aws:lambda:${{ secrets.AWS_REGION }}:240910251918:layer:uniswap-sdk:$LATEST_VERSION"
           echo "LAYER_ARN=$LAYER_ARN" >> $GITHUB_ENV
       - name: Install dependencies
@@ -122,9 +126,13 @@ jobs:
         with:
           node-version: "18"
       - name: Get latest version of uniswap-sdk layer
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
         run: |
           LATEST_VERSION=$(aws lambda list-layer-versions --layer-name uniswap-sdk | jq -r '.LayerVersions | max_by(.Version) | .Version')
-          echo lv=$LATEST_VERSION
+          echo LATEST_VERSION=$LATEST_VERSION
           LAYER_ARN="arn:aws:lambda:${{ secrets.AWS_REGION }}:240910251918:layer:uniswap-sdk:$LATEST_VERSION"
           echo "LAYER_ARN=$LAYER_ARN" >> $GITHUB_ENV
       - name: Install dependencies
