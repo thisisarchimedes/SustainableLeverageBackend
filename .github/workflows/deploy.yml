@@ -86,6 +86,8 @@ jobs:
           cp -r ./node_modules ./deploy-package/
       - name: List contents of deploy-package directory
         run: ls -al ./deploy-package
+      - name: Install Serverless Framework
+        run: yarn global add serverless
       - name: Deploy to AWS Lambda
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -133,6 +135,8 @@ jobs:
           cp -r ./node_modules ./deploy-package/
       - name: List contents of deploy-package directory
         run: ls -al ./deploy-package
+      - name: Install Serverless Framework
+        run: yarn global add serverless
       - name: Deploy to AWS Lambda
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
