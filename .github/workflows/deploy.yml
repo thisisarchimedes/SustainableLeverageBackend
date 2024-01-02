@@ -84,13 +84,6 @@ jobs:
         run: yarn build
       - name: Remove development dependencies
         run: yarn --production
-      - name: Prepare deployment package
-        run: |
-          mkdir -p deploy-package
-          rsync -av --progress ./dist/ ./deploy-package/ --exclude test
-          cp -r ./node_modules ./deploy-package/
-      - name: List contents of deploy-package directory
-        run: ls -al ./deploy-package
       - name: Install Serverless Framework
         run: |
           yarn global add serverless
@@ -141,13 +134,6 @@ jobs:
         run: yarn build
       - name: Remove development dependencies
         run: yarn --production
-      - name: Prepare deployment package
-        run: |
-          mkdir -p deploy-package
-          rsync -av --progress ./dist/ ./deploy-package/ --exclude test
-          cp -r ./node_modules ./deploy-package/
-      - name: List contents of deploy-package directory
-        run: ls -al ./deploy-package
       - name: Install Serverless Framework
         run: |
           yarn global add serverless
