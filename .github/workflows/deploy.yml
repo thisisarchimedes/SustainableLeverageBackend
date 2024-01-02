@@ -104,7 +104,7 @@ jobs:
           RPC_URL: ${{ secrets.RPC_URL }}
           MAINNET_RPC_URL: ${{ secrets.MAINNET_RPC_URL }}
           PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
-        run: yarn serverless deploy --stage prod
+        run: serverless deploy --stage prod
 
   deploy-sustainable-leverage-liquidation-bot-demo:
     runs-on: ubuntu-latest
@@ -153,4 +153,4 @@ jobs:
           RPC_URL: ${{ secrets.RPC_URL }}
           MAINNET_RPC_URL: ${{ secrets.MAINNET_RPC_URL }}
           PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
-        run: yarn serverless deploy --stage demo
+        run: serverless deploy --stage demo
