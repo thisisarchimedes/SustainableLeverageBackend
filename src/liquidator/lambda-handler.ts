@@ -1,11 +1,6 @@
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const fs = require('fs');
-const files = fs.readdirSync('/opt');
-console.log(files);
-
 import { type Context } from 'aws-lambda/handler';
 import { Client, type ClientConfig } from 'pg';
-// import liquidator from './liquidator';
+import liquidator from './liquidator';
 import { loadConfig } from '../lib/config-service';
 
 // RDS database configuration
@@ -45,7 +40,7 @@ export async function handler(
 	console.log(config);
 
 	try {
-		// await liquidator(config, client);
+		await liquidator(config, client);
 	} catch (error) {
 		console.error(error);
 	}
