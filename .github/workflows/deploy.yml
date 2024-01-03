@@ -41,7 +41,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v2
         with:
-          node-version: '18'
+          node-version: "18"
       - name: Install dependencies for Lambda Layer
         run: |
           mkdir -p layer/nodejs
@@ -58,7 +58,7 @@ jobs:
         run: |
           aws lambda publish-layer-version \
             --layer-name uniswap-sdk \
-            --zip-file fileb://layer.zip \
+            --zip-file fileb://layer/layer.zip \
             --compatible-runtimes nodejs18.x
 
   deploy-sustainable-leverage-liquidation-bot:
