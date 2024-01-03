@@ -22,6 +22,11 @@ functions:
   liquidator:
     handler: dist/src/liquidator/lambda-handler.handler
     name: sustainable-leverage-backend-${self:custom.stage}-liquidator
+    timeout: 60
+    events:
+      - schedule:
+          rate: rate(1 minute)
+          enabled: true
     layers:
       - ${env:LAYER_ARN}
     environment:
