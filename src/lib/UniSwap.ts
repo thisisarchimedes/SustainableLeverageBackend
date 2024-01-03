@@ -1,10 +1,20 @@
 import { CurrencyAmount, Token, TradeType } from '@uniswap/sdk-core'
 import { Protocol } from '@uniswap/router-sdk'
 import { AlphaRouter, SwapRoute } from '@uniswap/smart-order-router'
-import { ethers as uniSwapEthers } from '@uniswap/smart-order-router/node_modules/ethers'
 import { Pool } from '@uniswap/v3-sdk'
 import { ethers } from 'ethers'
 import { EthereumAddress } from '@thisisarchimedes/backend-sdk'
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let uniSwapEthers: any;
+
+if (process.env.AWS_EXECUTION_ENV) {
+  // Running on AWS Lambda
+  uniSwapEthers = require('/opt/nodejs/node_modules/ethers');
+} else {
+  // Running locally
+  uniSwapEthers = require('@uniswap/smart-order-router/node_modules/ethers');
+}
 
 export default class Uniswap {
   private router: AlphaRouter
