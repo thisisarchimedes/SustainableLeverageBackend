@@ -1,3 +1,8 @@
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const fs = require('fs');
+const files = fs.readdirSync('/opt');
+console.log(files);
+
 import { type Context } from 'aws-lambda/handler';
 import { Client, type ClientConfig } from 'pg';
 import liquidator from './liquidator';
@@ -34,11 +39,6 @@ export async function handler(
 	context: Context,
 ) {
 	context.callbackWaitsForEmptyEventLoop = false;
-	
-	// eslint-disable-next-line @typescript-eslint/no-var-requires
-	const fs = require('fs');
-	const files = fs.readdirSync('/opt');
-	console.log(files);
 
 	// Load Config
 	const config = await loadConfig();
