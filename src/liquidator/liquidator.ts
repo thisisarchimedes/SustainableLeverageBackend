@@ -12,7 +12,7 @@ export default async function liquidator(config: Config, client: Client) {
   const positionLiquidator = Contracts.leverage.positionLiquidator(config.positionLiquidator, signer);
 
   // Query to get all nftIds
-  const res = await client.query('SELECT "nftId" FROM "LeveragePosition" WHERE "positionState" = \'OPEN\'');
+  const res = await client.query('SELECT "nftId" FROM "LeveragePosition" WHERE "positionState" = \'LIVE\'');
 
   for (const row of res.rows) {
     const nftId: number = row.nftId;
