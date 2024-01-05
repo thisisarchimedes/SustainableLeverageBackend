@@ -1,12 +1,12 @@
 import { Client } from 'pg';
 import { Config } from '../lib/config-service';
-import { Provider, ethers } from 'ethers';
+import { Provider, ethers, getDefaultProvider } from 'ethers';
 import { WBTC, WBTC_DECIMALS } from '../constants';
 import { Contracts, EthereumAddress } from "@thisisarchimedes/backend-sdk";
 import UniSwap from '../lib/UniSwap';
 
 export default async function liquidator(config: Config, client: Client) {
-  const signer = new ethers.Wallet(process.env.PRIVATE_KEY!);
+  const signer = new ethers.Wallet(process.env.PRIVATE_KEY!, getDefaultProvider(process.env.RPC_URL!));
 
   // const leveragedStrategy = LeveragedStrategy__factory.connect(config.leveragedStrategy, signer);
   const positionLiquidator = Contracts.leverage.positionLiquidator(config.positionLiquidator, signer);
@@ -17,17 +17,16 @@ export default async function liquidator(config: Config, client: Client) {
   for (const row of res.rows) {
     const nftId: number = row.nftId;
 
-    // Call the smart contract function
-    // console.log(`NFT ID: ${nftId}, value in wbtc: ${await leveragedStrategy.previewPositionValueInWBTC(nftId)}`);
-    // const isLiquidatable = await leveragedStrategy.isPositionLiquidatableEstimation(nftId);
-    // console.log(`NFT ID: ${nftId}, is liquidatable: ${isLiquidatable}`);
-
     // TODO: add more conditions for liquidation
 
     // Simulate the transaction
+    // TODO: simulate the transaction describe
     try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const payload = await getPayload(signer.provider!, config, nftId);
 
+      // TODO: test that it actually does the "simulation" but not a failed tx
+      // TODO: test that it actually liquidates if needed
       const response = await positionLiquidator.liquidatePosition({
         nftId,
         minWBTC: 0,
@@ -43,7 +42,6 @@ export default async function liquidator(config: Config, client: Client) {
       console.log(error);
       console.log(`Position ${nftId} is not liquidatable`);
     }
-    break; // TODO: remove
   }
 }
 

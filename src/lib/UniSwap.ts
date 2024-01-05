@@ -61,7 +61,7 @@ export default class Uniswap {
       )
       return { swapOutputAmount, payload }
     } catch (err) {
-      console.log('fetchUniswapRoute err: ', err)
+      console.error('fetchUniswapRoute err: ', err)
       throw err
     }
   }

@@ -1,13 +1,16 @@
-import helper from './helper';
 import CurvePool from './lib/CurvePool';
-import { ALUSD, CURVE_POOL, FRAXBP } from './addresses';
-import { EthereumAddress } from '@thisisarchimedes/backend-sdk';
+import { ALUSD, CURVE_POOL, FRAXBP, getTokenBalancesSlot } from './addresses';
+import { EVMStorageManipulator, EthereumAddress } from '@thisisarchimedes/backend-sdk';
+import { JsonRpcProvider } from 'ethers';
+import { ethers } from 'hardhat';
 
 (async () => {
-  const signer = await helper.getMainSigner();
-  const curvePool = await CurvePool.createInstance(signer, new EthereumAddress(CURVE_POOL), new EthereumAddress(ALUSD), new EthereumAddress(FRAXBP));
-
-  await helper.setERC20Balance(new EthereumAddress(signer.address), new EthereumAddress(FRAXBP), curvePool.valueTokenBalance * 5n);
+  const [signer] = await ethers.getSigners();
+  const curvePool = await CurvePool.createInstance(signer, CURVE_POOL, ALUSD, FRAXBP);
+  const evmStorage = new EVMStorageManipulator(signer.provider as JsonRpcProvider);
+  
+  const fraxbpMemSlot = getTokenBalancesSlot(FRAXBP.toString());
+  await evmStorage.setERC20Balance(FRAXBP, fraxbpMemSlot.slot, new EthereumAddress(signer.address), curvePool.valueTokenBalance * 5n, fraxbpMemSlot.isVyper);
   
   // Rebalance the pool
   await curvePool.rebalance();

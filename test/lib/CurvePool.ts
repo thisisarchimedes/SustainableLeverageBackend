@@ -2,25 +2,26 @@ import { type HardhatEthersSigner } from '@nomicfoundation/hardhat-ethers/signer
 import { CURVE_POOL } from '../addresses';
 import { assert } from 'chai';
 import { ethers } from 'hardhat';
-import helper from '../helper';
 import { Contracts, EthereumAddress, CurvePool as CurvePoolContract } from '@thisisarchimedes/backend-sdk';
 
 export default class CurvePool {
+  //* Public methods *//
+
   static async createInstance(signer: HardhatEthersSigner, poolAddress: EthereumAddress, dumpToken: EthereumAddress, valueToken: EthereumAddress): Promise<CurvePool> {
     const pool = Contracts.general.curvePool(poolAddress, signer);
     const valueTokenContract = Contracts.general.ERC20(valueToken, signer);
     const dumpTokenContract = Contracts.general.ERC20(dumpToken, signer);
     const valueTokenDecimals = Number(await valueTokenContract.decimals());
     const dumpTokenDecimals = Number(await dumpTokenContract.decimals());
-    
-    const valueTokenIndex = await helper.fetchTokenIndex(pool, valueToken);
-    const dumpTokenIndex = await helper.fetchTokenIndex(pool, dumpToken);
+
+    const valueTokenIndex = await CurvePool.fetchTokenIndex(pool, valueToken);
+    const dumpTokenIndex = await CurvePool.fetchTokenIndex(pool, dumpToken);
 
     const valuetokenBalance = await pool.balances(valueTokenIndex);
     const dumpTokenBalance = await pool.balances(dumpTokenIndex);
 
-    await valueTokenContract.approve(CURVE_POOL, ethers.MaxUint256);
-    await dumpTokenContract.approve(CURVE_POOL, ethers.MaxUint256);
+    await valueTokenContract.approve(CURVE_POOL.toString(), ethers.MaxUint256);
+    await dumpTokenContract.approve(CURVE_POOL.toString(), ethers.MaxUint256);
 
     return new CurvePool(pool, valueTokenIndex, dumpTokenIndex, valuetokenBalance, dumpTokenBalance, dumpTokenDecimals, valueTokenDecimals);
   }
@@ -62,7 +63,7 @@ export default class CurvePool {
       // eslint-disable-next-line no-await-in-loop
       const alUSDPriceInFRAXBPAfter = await this.getDumpTokenPriceInValueToken();
       // console.log("alUSDPriceInFRAXBPAfter", i, helper.removeDecimals(alUSDPriceInFRAXBPAfter, this.valueTokenDecimals)) // Debug
-      if (helper.removeDecimals(alUSDPriceInFRAXBPAfter, this.valueTokenDecimals) >= 0.99 && helper.removeDecimals(alUSDPriceInFRAXBPAfter, this.valueTokenDecimals) <= 1.01) {
+      if (Number(ethers.formatUnits(alUSDPriceInFRAXBPAfter, this.valueTokenDecimals)) >= 0.99 && Number(ethers.formatUnits(alUSDPriceInFRAXBPAfter, this.valueTokenDecimals)) <= 1.01) {
         break;
       }
     }
@@ -80,9 +81,25 @@ export default class CurvePool {
       // eslint-disable-next-line no-await-in-loop
       const alUSDPriceInFRAXBPAfter = await this.getDumpTokenPriceInValueToken();
       // Console.log("alUSDPriceInFRAXBPAfter", helper.removeDecimals(alUSDPriceInFRAXBPAfter, this.valueTokenDecimals)) // Debug
-      if (helper.removeDecimals(alUSDPriceInFRAXBPAfter, this.valueTokenDecimals) < 1 - (percentToUnbalance / 100)) {
+      if (Number(ethers.formatUnits(alUSDPriceInFRAXBPAfter, this.valueTokenDecimals)) < 1 - (percentToUnbalance / 100)) {
         break;
       }
     }
+  }
+
+  //* Private methods *//
+
+  private static async fetchTokenIndex(pool: CurvePoolContract, token: EthereumAddress): Promise<number> {
+    let tokenIndex = 0;
+    for (let i = 0; i < 4; i++) {
+      // eslint-disable-next-line no-await-in-loop
+      const _token = await pool.coins(i);
+      if (_token === token.toString()) {
+        tokenIndex = i;
+        break;
+      }
+    }
+
+    return Number(tokenIndex);
   }
 }

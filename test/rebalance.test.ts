@@ -1,39 +1,44 @@
 import { assert } from 'chai';
 import '@nomicfoundation/hardhat-ethers';
 import { type HardhatEthersSigner } from '@nomicfoundation/hardhat-ethers/signers';
-import { ALUSD, CURVE_POOL, FRAXBP } from './addresses';
-import helper from './helper';
+import { ALUSD, CURVE_POOL, FRAXBP, getTokenBalancesSlot } from './addresses';
 import CurvePool from './lib/CurvePool';
-import { EthereumAddress } from '@thisisarchimedes/backend-sdk';
+import { EVMStorageManipulator, EthereumAddress } from '@thisisarchimedes/backend-sdk';
+import { JsonRpcProvider } from 'ethers';
+import { ethers } from 'hardhat';
 
 describe('Rebalance pool', () => {
 	let signer: HardhatEthersSigner;
 	let curvePool: CurvePool;
 
 	before(async () => {
-		signer = await helper.getMainSigner();
-		curvePool = await CurvePool.createInstance(signer, new EthereumAddress(CURVE_POOL), new EthereumAddress(ALUSD), new EthereumAddress(FRAXBP));
+		[signer] = await ethers.getSigners();
+		curvePool = await CurvePool.createInstance(signer, CURVE_POOL, ALUSD, FRAXBP);
 	});
 
 	it('Rebalance pegged curve pool', async () => {
-		await helper.setERC20Balance(new EthereumAddress(signer.address), new EthereumAddress(ALUSD), curvePool.dumpTokenBalance);
+		const evmStorage = new EVMStorageManipulator(signer.provider as JsonRpcProvider);
+	
+		const alUSDMemSlot = getTokenBalancesSlot(ALUSD.toString());
+		await evmStorage.setERC20Balance(ALUSD, alUSDMemSlot.slot, new EthereumAddress(signer.address), curvePool.dumpTokenBalance, alUSDMemSlot.isVyper);
 
 		// Unbalance the pool
 		await curvePool.unbalance(25);
 
 		// Reinit pool balances
-		curvePool = await CurvePool.createInstance(signer, new EthereumAddress(CURVE_POOL), new EthereumAddress(ALUSD), new EthereumAddress(FRAXBP));
-		await helper.setERC20Balance(new EthereumAddress(signer.address), new EthereumAddress(FRAXBP), curvePool.valueTokenBalance * 100n);
+		curvePool = await CurvePool.createInstance(signer, CURVE_POOL, ALUSD, FRAXBP);
+		const fraxbpMemSlot = getTokenBalancesSlot(FRAXBP.toString());
+		await evmStorage.setERC20Balance(FRAXBP, fraxbpMemSlot.slot, new EthereumAddress(signer.address), curvePool.valueTokenBalance * 100n, fraxbpMemSlot.isVyper);
 
 		// Assert the pool is unbalanced
 		const alUSDPriceInFRAXBPBefore = await curvePool.getDumpTokenPriceInValueToken();
-		assert(helper.removeDecimals(alUSDPriceInFRAXBPBefore, curvePool.valueTokenDecimals) < 0.75, 'Pool is not unbalanced at start');
+		assert(Number(ethers.formatUnits(alUSDPriceInFRAXBPBefore, curvePool.valueTokenDecimals)) < 0.75, 'Pool is not unbalanced at start');
 
 		// Rebalance the pool
 		await curvePool.rebalance();
 
 		// Assert for balanced pool
 		const alUSDPriceInFRAXBPAfter = await curvePool.getDumpTokenPriceInValueToken();
-		assert.approximately(helper.removeDecimals(alUSDPriceInFRAXBPAfter, curvePool.valueTokenDecimals), 1, 0.01, 'Pool did not balance');
+		assert.approximately(Number(ethers.formatUnits(alUSDPriceInFRAXBPAfter, curvePool.valueTokenDecimals)), 1, 0.01, 'Pool did not balance');
 	});
 });
