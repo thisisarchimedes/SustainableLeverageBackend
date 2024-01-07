@@ -21,31 +21,42 @@ export default async function liquidator(config: Config, client: Client) {
 
     // Simulate the transaction
     // TODO: simulate the transaction describe
-    try {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const payload = await getPayload(signer.provider!, config, nftId);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const payload = await getPayload(signer.provider!, config, nftId);
 
-      // TODO: test that it actually does the "simulation" but not a failed tx
-      // TODO: test that it actually liquidates if needed
-      const response = await positionLiquidator.liquidatePosition({
+    // TODO: test that it actually does the "simulation" but not a failed tx
+    // TODO: test that it actually liquidates if needed
+    try {
+      const data = positionLiquidator.interface.encodeFunctionData('liquidatePosition', [{
         nftId,
         minWBTC: 0,
         swapRoute: "0",
         swapData: payload,
         exchange: "0x0000000000000000000000000000000000000000",
-      });
+      }]);
+
+      // Create a transaction object
+      const tx = {
+        to: config.positionLiquidator.toString(),
+        data,
+        // Other properties like 'gasLimit' can be added if necessary
+      };
+
+      // Simulate the transaction
+      await signer.provider!.call(tx); // ! Simulate tx - reverts on failed simulation
+      const response = await signer.provider!.sendTransaction!(tx); // TODO: Double simulates, consider
 
       // Wait for the transaction to be mined
-      await response.wait(); // TODO: remove
+      await response.wait(); // TODO: should we wait for mining the block?
       console.log(`Position ${nftId} liquidated`);
-    }
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    catch (error: any) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
       if (error.data === "0x5e6797f9") { // NotEligibleForLiquidation selector
         console.log(`Position ${nftId} is not liquidatable`);
+      } else {
+        console.log(`Position ${nftId} liquidation errored with:`);
+        console.error(error.data); // Send to New Relic
       }
-      console.log(`Position ${nftId} liquidation errored with:`);
-      console.error(error.data); // Send to New Relic
     }
   }
 }

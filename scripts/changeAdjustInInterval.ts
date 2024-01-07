@@ -1,6 +1,6 @@
 import { ethers, network } from "hardhat";
 import '@nomicfoundation/hardhat-ethers';
-import { FRAXBPALUSD_STRATEGY } from "../test/addresses";
+import { FRAXBPALUSD_STRATEGY } from "../test/lib/addresses";
 import { Contracts } from "@thisisarchimedes/backend-sdk";
 
 async function main() {
