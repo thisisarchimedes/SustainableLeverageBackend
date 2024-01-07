@@ -26,13 +26,12 @@ jobs:
           MAINNET_RPC_URL: ${{ secrets.MAINNET_RPC_URL }}
           RPC_URL: ${{ secrets.RPC_URL }}
         run: yarn build
-    # TODO: Unskip tests
-    #   - name: Test
-    #     env:
-    #       MAINNET_RPC_URL: ${{ secrets.MAINNET_RPC_URL }}
-    #       RPC_URL: ${{ secrets.RPC_URL }}
-    #     run: |
-    #       yarn test
+      - name: Test
+        env:
+          MAINNET_RPC_URL: ${{ secrets.MAINNET_RPC_URL }}
+          RPC_URL: ${{ secrets.RPC_URL }}
+        run: |
+          yarn test
 
   deploy-uniswap-sdk-layer:
     runs-on: ubuntu-latest
