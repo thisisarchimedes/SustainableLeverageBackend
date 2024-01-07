@@ -5,6 +5,9 @@ import { WBTC, WBTC_DECIMALS } from '../constants';
 import { Contracts, EthereumAddress } from "@thisisarchimedes/backend-sdk";
 import UniSwap from '../lib/UniSwap';
 
+const GAS_PRICE_MULTIPLIER = 3n;
+const GAS_PRICE_DENOMINATOR = 2n;
+
 export default async function liquidator(config: Config, client: Client) {
   const signer = new ethers.Wallet(process.env.PRIVATE_KEY!, getDefaultProvider(process.env.RPC_URL!));
 
@@ -35,11 +38,17 @@ export default async function liquidator(config: Config, client: Client) {
         exchange: "0x0000000000000000000000000000000000000000",
       }]);
 
+      // Configure gas price
+      let gasPrice = await (await signer.provider!.getFeeData()).gasPrice;
+      if (gasPrice && GAS_PRICE_MULTIPLIER && GAS_PRICE_DENOMINATOR) {
+        gasPrice = gasPrice * GAS_PRICE_MULTIPLIER / GAS_PRICE_DENOMINATOR;
+      }
+
       // Create a transaction object
       const tx = {
         to: config.positionLiquidator.toString(),
         data,
-        // Other properties like 'gasLimit' can be added if necessary
+        gasPrice,
       };
 
       // Simulate the transaction
