@@ -1,7 +1,7 @@
 import { assert } from 'chai';
 import '@nomicfoundation/hardhat-ethers';
 import { type HardhatEthersSigner } from '@nomicfoundation/hardhat-ethers/signers';
-import { ALUSD, CURVE_POOL, FRAXBP, getTokenBalancesSlot } from './addresses';
+import { ALUSD, CURVE_POOL, FRAXBP, getTokenBalancesSlot } from './lib/addresses';
 import CurvePool from './lib/CurvePool';
 import { EVMStorageManipulator, EthereumAddress } from '@thisisarchimedes/backend-sdk';
 import { JsonRpcProvider } from 'ethers';

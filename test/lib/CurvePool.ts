@@ -1,5 +1,5 @@
 import { type HardhatEthersSigner } from '@nomicfoundation/hardhat-ethers/signers';
-import { CURVE_POOL } from '../addresses';
+import { CURVE_POOL } from './addresses';
 import { assert } from 'chai';
 import { ethers } from 'hardhat';
 import { Contracts, EthereumAddress, CurvePool as CurvePoolContract } from '@thisisarchimedes/backend-sdk';
