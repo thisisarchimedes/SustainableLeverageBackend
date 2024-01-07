@@ -57,11 +57,11 @@ export default async function liquidator(config: Config, client: Client) {
 
       // Wait for the transaction to be mined
       await response.wait(); // TODO: should we wait for mining the block?
-      console.log(`Position ${nftId} liquidated`);
+      console.warn(`Position ${nftId} liquidated`);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       if (error.data === "0x5e6797f9") { // NotEligibleForLiquidation selector
-        console.log(`Position ${nftId} is not liquidatable`);
+        console.log(`Position ${nftId} is not eligible for liquidation`);
       } else {
         console.log(`Position ${nftId} liquidation errored with:`);
         console.error(error); // Send to New Relic
