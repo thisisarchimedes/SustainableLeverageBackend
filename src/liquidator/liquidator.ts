@@ -64,7 +64,7 @@ export default async function liquidator(config: Config, client: Client) {
         console.log(`Position ${nftId} is not liquidatable`);
       } else {
         console.log(`Position ${nftId} liquidation errored with:`);
-        console.error(error.data); // Send to New Relic
+        console.error(error); // Send to New Relic
       }
     }
   }
