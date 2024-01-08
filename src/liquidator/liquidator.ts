@@ -62,7 +62,7 @@ export default async function liquidator(config: Config, client: Client, logger:
       const response = await signer.provider!.sendTransaction!(tx); // TODO: Double simulates, consider
 
       // Wait for the transaction to be mined
-      // await response.wait(); // TODO: should we wait for mining the block?
+      await response.wait();
       console.warn(`Position ${nftId} liquidated`);
       logger.warn(`Position ${nftId} liquidated`);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -70,8 +70,9 @@ export default async function liquidator(config: Config, client: Client, logger:
       if (error.data === "0x5e6797f9") { // NotEligibleForLiquidation selector
         console.log(`Position ${nftId} is not eligible for liquidation`);
       } else {
-        console.log(`Position ${nftId} liquidation errored with:`);
-        console.error(error); // Send to New Relic
+        logger.error(`Position ${nftId} liquidation errored with:`);
+        logger.error(error);
+        console.error(`Position ${nftId} liquidation errored with:`, error);
       }
     }
   }
