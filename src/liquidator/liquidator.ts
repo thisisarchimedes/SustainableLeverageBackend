@@ -8,11 +8,17 @@ import UniSwap from '../lib/UniSwap';
 const GAS_PRICE_MULTIPLIER = 3n;
 const GAS_PRICE_DENOMINATOR = 2n;
 
+// TODO: increase gas for stucked transactions
+// TODO: etherscan api
+
 export default async function liquidator(config: Config, client: Client, logger: Logger) {
   const signer = new ethers.Wallet(process.env.PRIVATE_KEY!, getDefaultProvider(process.env.RPC_URL!));
 
   // const leveragedStrategy = LeveragedStrategy__factory.connect(config.leveragedStrategy, signer);
   const positionLiquidator = Contracts.leverage.positionLiquidator(config.positionLiquidator, signer);
+
+  logger.info(`Test ${new Date()}`);
+  console.log(`Test ${new Date()}`);
 
   // Query to get all nftIds
   const res = await client.query('SELECT "nftId" FROM "LeveragePosition" WHERE "positionState" = \'LIVE\'');
@@ -26,8 +32,6 @@ export default async function liquidator(config: Config, client: Client, logger:
     // TODO: simulate the transaction describe
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const payload = await getPayload(signer.provider!, config, nftId);
-
-    logger.info(`Test ${new Date()}`);
 
     // TODO: test that it actually does the "simulation" but not a failed tx
     // TODO: test that it actually liquidates if needed
@@ -58,7 +62,7 @@ export default async function liquidator(config: Config, client: Client, logger:
       const response = await signer.provider!.sendTransaction!(tx); // TODO: Double simulates, consider
 
       // Wait for the transaction to be mined
-      await response.wait(); // TODO: should we wait for mining the block?
+      // await response.wait(); // TODO: should we wait for mining the block?
       console.warn(`Position ${nftId} liquidated`);
       logger.warn(`Position ${nftId} liquidated`);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
