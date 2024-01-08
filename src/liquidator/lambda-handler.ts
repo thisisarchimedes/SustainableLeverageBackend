@@ -28,7 +28,7 @@ if (typeof client === 'undefined') {
 
 	client.connect().catch(console.error);
 
-	console.log('Connected to the database');
+	console.log('Connecting to the database');
 } else {
 	console.log('Reusing database connection');
 }

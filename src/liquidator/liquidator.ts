@@ -17,8 +17,8 @@ export default async function liquidator(config: Config, client: Client, logger:
   // const leveragedStrategy = LeveragedStrategy__factory.connect(config.leveragedStrategy, signer);
   const positionLiquidator = Contracts.leverage.positionLiquidator(config.positionLiquidator, signer);
 
-  logger.info(`Test ${new Date()}`);
   console.log(`Test ${new Date()}`);
+  logger.info(`Test ${new Date()}`);
 
   // Query to get all nftIds
   const res = await client.query('SELECT "nftId" FROM "LeveragePosition" WHERE "positionState" = \'LIVE\'');
@@ -70,9 +70,9 @@ export default async function liquidator(config: Config, client: Client, logger:
       if (error.data === "0x5e6797f9") { // NotEligibleForLiquidation selector
         console.log(`Position ${nftId} is not eligible for liquidation`);
       } else {
+        console.error(`Position ${nftId} liquidation errored with:`, error);
         logger.error(`Position ${nftId} liquidation errored with:`);
         logger.error(error);
-        console.error(`Position ${nftId} liquidation errored with:`, error);
       }
     }
   }
