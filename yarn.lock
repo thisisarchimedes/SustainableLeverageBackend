@@ -2914,7 +2914,7 @@
   dependencies:
     defer-to-connect "^2.0.0"
 
-"@thisisarchimedes/backend-sdk@^1.0.40":
+"@thisisarchimedes/backend-sdk@^1.0.43":
   version "1.0.43"
   resolved "https://npm.pkg.github.com/download/@thisisarchimedes/backend-sdk/1.0.43/6f2c4d4e4f4bd4c6d1bff8da13e6f8bbd67c6eaa#6f2c4d4e4f4bd4c6d1bff8da13e6f8bbd67c6eaa"
   integrity sha512-O2JYJB/WmWAe8+0J5YaB5Pf3QllKgPHJ8gvtOXZMoFmSbtEVaT08957G4pxr12SzbOkCJnzX+ljrSBPd7VkEmA==

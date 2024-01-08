@@ -37,7 +37,7 @@
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.476.0",
-    "@thisisarchimedes/backend-sdk": "^1.0.40",
+    "@thisisarchimedes/backend-sdk": "^1.0.43",
     "aws-lambda": "^1.0.7",
     "dotenv": "^16.3.1",
     "ethers": "^6.9.1",
