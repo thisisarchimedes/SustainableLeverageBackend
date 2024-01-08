@@ -2,6 +2,7 @@ import { type Context } from 'aws-lambda/handler';
 import { Client, type ClientConfig } from 'pg';
 import liquidator from './liquidator';
 import { loadConfig } from '../lib/config-service';
+import { Logger } from '@thisisarchimedes/backend-sdk';
 
 // RDS database configuration
 let client: Client;
@@ -16,6 +17,9 @@ const dbConfig: ClientConfig = {
 	},
 };
 
+// Logger
+let logger: Logger;
+
 // If 'client' variable doesn't exist
 // @ts-expect-error cold start
 if (typeof client === 'undefined') {
@@ -29,6 +33,11 @@ if (typeof client === 'undefined') {
 	console.log('Reusing database connection');
 }
 
+// @ts-expect-error cold start
+if (typeof logger === 'undefined') {
+	logger = new Logger(process.env.NEW_RELIC_LICENSE_KEY!, process.env.NEW_RELIC_API_URI!, process.env.ENVIRONMENT!);
+}
+
 export async function handler(
 	event: unknown,
 	context: Context,
@@ -40,7 +49,7 @@ export async function handler(
 	console.log(config);
 
 	try {
-		await liquidator(config, client);
+		await liquidator(config, client, logger);
 	} catch (error) {
 		console.error(error);
 	}

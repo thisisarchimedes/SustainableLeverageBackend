@@ -2,13 +2,13 @@ import { Client } from 'pg';
 import { Config } from '../lib/config-service';
 import { Provider, ethers, getDefaultProvider } from 'ethers';
 import { WBTC, WBTC_DECIMALS } from '../constants';
-import { Contracts, EthereumAddress } from "@thisisarchimedes/backend-sdk";
+import { Contracts, EthereumAddress, Logger } from "@thisisarchimedes/backend-sdk";
 import UniSwap from '../lib/UniSwap';
 
 const GAS_PRICE_MULTIPLIER = 3n;
 const GAS_PRICE_DENOMINATOR = 2n;
 
-export default async function liquidator(config: Config, client: Client) {
+export default async function liquidator(config: Config, client: Client, logger: Logger) {
   const signer = new ethers.Wallet(process.env.PRIVATE_KEY!, getDefaultProvider(process.env.RPC_URL!));
 
   // const leveragedStrategy = LeveragedStrategy__factory.connect(config.leveragedStrategy, signer);
@@ -26,6 +26,8 @@ export default async function liquidator(config: Config, client: Client) {
     // TODO: simulate the transaction describe
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const payload = await getPayload(signer.provider!, config, nftId);
+
+    logger.info(`Test ${new Date()}`);
 
     // TODO: test that it actually does the "simulation" but not a failed tx
     // TODO: test that it actually liquidates if needed
@@ -58,6 +60,7 @@ export default async function liquidator(config: Config, client: Client) {
       // Wait for the transaction to be mined
       await response.wait(); // TODO: should we wait for mining the block?
       console.warn(`Position ${nftId} liquidated`);
+      logger.warn(`Position ${nftId} liquidated`);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       if (error.data === "0x5e6797f9") { // NotEligibleForLiquidation selector
