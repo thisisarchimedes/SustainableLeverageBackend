@@ -1,6 +1,6 @@
 app: sustainable-leverage-backend
 service: sustainable-leverage-backend
-frameworkVersion: '3'
+frameworkVersion: "3"
 
 useDotenv: true
 package:
@@ -43,3 +43,13 @@ functions:
       NEW_RELIC_API_URI: ${env:NEW_RELIC_API_URI}
       PRIVATE_KEY: ${env:PRIVATE_KEY}
       ENVIRONMENT: ${env:ENVIRONMENT}
+    vpc:
+      securityGroupIds:
+        - sg-096d1e5cdff417157
+      subnetIds:
+        - subnet-00497d072290230c7
+        - subnet-07fdd05668c9c6138
+        - subnet-0162099e7fa33a19f
+        - subnet-02730462251e846eb
+        - subnet-0395d0984fdf36b32
+        - subnet-053ccfd34847f8653
