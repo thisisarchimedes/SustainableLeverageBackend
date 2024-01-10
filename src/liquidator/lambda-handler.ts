@@ -1,40 +1,29 @@
 import { type Context } from 'aws-lambda/handler';
-import { Client, type ClientConfig } from 'pg';
 import liquidator from './liquidator';
 import { loadConfig } from '../lib/config-service';
 import { Logger } from '@thisisarchimedes/backend-sdk';
+import DataSource from '../lib/DataSource';
 
-// RDS database configuration
-let client: Client;
-const dbConfig: ClientConfig = {
-	user: process.env.DB_USER!,
-	host: process.env.DB_HOST!,
-	database: process.env.DB_NAME!,
-	password: process.env.DB_PASSWORD!,
-	port: Number(process.env.DB_PORT!),
-	ssl: {
-		rejectUnauthorized: false,
-	},
-};
+
+let dataSource: DataSource;
 
 // Logger
 let logger: Logger;
 
-// If 'client' variable doesn't exist
+// Cold Start
+// If 'dataSource' variable doesn't exist
 // @ts-expect-error cold start
-if (typeof client === 'undefined') {
+if (dataSource === undefined) {
 	// Connect to the database
-	client = new Client(dbConfig);
+	dataSource = new DataSource();
 
-	client.connect().catch(console.error);
-
-	console.log('Connecting to the database');
+	console.log('Creating new DataSource');
 } else {
-	console.log('Reusing database connection');
+	console.log('Using existing DataSource');
 }
 
 // @ts-expect-error cold start
-if (typeof logger === 'undefined') {
+if (logger === undefined) {
 	logger = new Logger(process.env.NEW_RELIC_LICENSE_KEY!, process.env.NEW_RELIC_API_URI!, process.env.ENVIRONMENT!);
 }
 
@@ -49,7 +38,7 @@ export async function handler(
 	console.log(config);
 
 	try {
-		await liquidator(config, client, logger);
+		await liquidator(config, dataSource, logger);
 	} catch (error) {
 		console.error(error);
 	}
