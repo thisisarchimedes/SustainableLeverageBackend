@@ -12,6 +12,13 @@ const GAS_PRICE_DENOMINATOR = 2n;
 // TODO: increase gas for stucked transactions
 // TODO: etherscan api
 
+/**
+ * Runs over the LIVE positions and simulates the liquidation tx
+ * on each of them, if it does not revert, executes the liquidation tx
+ * @param config Contracts addresses
+ * @param dataSource A data source to get the positions from
+ * @param logger Logger library
+ */
 export default async function liquidator(config: Config, dataSource: DataSource, logger: Logger) {
   const signer = new ethers.Wallet(process.env.PRIVATE_KEY!, getDefaultProvider(process.env.RPC_URL!));
   const txSimulator = new TransactionSimulator(signer);
@@ -19,7 +26,7 @@ export default async function liquidator(config: Config, dataSource: DataSource,
   // const leveragedStrategy = LeveragedStrategy__factory.connect(config.leveragedStrategy, signer);
   const positionLiquidator = Contracts.leverage.positionLiquidator(config.positionLiquidator, signer);
 
-  console.log(`Test ${new Date()}`);
+  console.log(`Test ${new Date()}`); // TODO: remove this is for testing the logger
   logger.info(`Test ${new Date()}`);
 
   // Query to get all nftIds
@@ -33,7 +40,7 @@ export default async function liquidator(config: Config, dataSource: DataSource,
     // Simulate the transaction
     // TODO: simulate the transaction describe
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const payload = await getPayload(signer.provider!, config, nftId);
+    const payload = await getClosePositionSwapPayload(signer.provider!, config, nftId);
 
     // TODO: test that it actually does the "simulation" but not a failed tx
     // TODO: test that it actually liquidates if needed
@@ -79,7 +86,14 @@ export default async function liquidator(config: Config, dataSource: DataSource,
   }
 }
 
-const getPayload = async (provider: Provider, config: Config, nftId: number): Promise<string> => {
+/**
+ * Returns the swap payload to close the position
+ * @param provider Ethers provider
+ * @param config Contracts addresses
+ * @param nftId The position nftId to get the swap payload for
+ * @returns string - swap payload to close the position
+ */
+const getClosePositionSwapPayload = async (provider: Provider, config: Config, nftId: number): Promise<string> => {
   const positionLedger = Contracts.leverage.positionLedger(config.positionLedger, provider);
   const ledgerEntry = await positionLedger.getPosition(nftId);
 

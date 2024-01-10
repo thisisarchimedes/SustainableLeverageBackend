@@ -32,8 +32,4 @@ module.exports = {
     "rules": {
         "require-await": "error"
     },
-    "ignorePatterns": [
-        "types/ethers-contracts/",
-        "typechain-types/",
-    ]
 }
