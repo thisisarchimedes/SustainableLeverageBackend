@@ -1,6 +1,6 @@
 import { type Context } from 'aws-lambda/handler';
 import liquidator from './liquidator';
-import { loadConfig } from '../lib/config-service';
+import { loadConfig } from '../lib/ConfigService';
 import { Logger } from '@thisisarchimedes/backend-sdk';
 import DataSource from '../lib/DataSource';
 
