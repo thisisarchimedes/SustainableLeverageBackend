@@ -1,4 +1,4 @@
-import { Config } from '../lib/config-service';
+import { Config } from '../lib/ConfigService';
 import { Provider, ethers, getDefaultProvider } from 'ethers';
 import { WBTC, WBTC_DECIMALS } from '../constants';
 import { Contracts, EthereumAddress, Logger } from "@thisisarchimedes/backend-sdk";

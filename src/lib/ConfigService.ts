@@ -1,6 +1,7 @@
-import { getJsonFromS3 } from "./s3-sevice";
 import "dotenv/config";
-import { EthereumAddress } from "@thisisarchimedes/backend-sdk";
+import { EthereumAddress, S3Service } from "@thisisarchimedes/backend-sdk";
+
+const s3Service = new S3Service();
 
 export interface Config {
   leveragedStrategy: EthereumAddress;
@@ -13,7 +14,7 @@ export async function loadConfig(): Promise<Config> {
   const bucketName = process.env.S3_BUCKET_CONFIG!;
   const keyName = process.env.S3_ADDRESSES_KEY!;
 
-  const addresses = await getJsonFromS3(bucketName, keyName) as [{ address: string, name: string }];
+  const addresses = await s3Service.getJsonObject(bucketName, keyName) as [{ address: string, name: string }];
 
   const config: Config = {
     leveragedStrategy: new EthereumAddress(addresses.filter(obj => obj.name === 'LeveragedStrategy')[0].address),
