@@ -8,8 +8,7 @@
   "scripts": {
     "lint": "eslint */**.ts --fix",
     "build": "tsc",
-    "test": "hardhat test",
-    "generate-types": "rm -vrf ./types/ethers-contracts && typechain --target=ethers-v6 ./src/ABIs/* ./scripts/ABIs/* ./test/ABIs/*"
+    "test": "hardhat test"
   },
   "devDependencies": {
     "@nomicfoundation/hardhat-ethers": "^3.0.5",

@@ -1,13 +1,71 @@
-# Sample Hardhat Project
+# Sustainable Leverage Backend
 
-This project demonstrates a basic Hardhat use case. It comes with a sample contract, a test for that contract, and a script that deploys that contract.
+This repo contains different backend services for the Archimedes Finance SustainableLeverage
 
-Try running some of the following tasks:
+## Backend Services
+* Positions Liquidator
 
-```shell
-npx hardhat help
-npx hardhat test
-REPORT_GAS=true npx hardhat test
-npx hardhat node
-npx hardhat run scripts/deploy.ts
+## Quick start
+
+### Install Dependencies
+#### Archimedes Finance BackendSDK
+Once of the dependencies is the backend-sdk package which requires
+GitHub's PAT_TOKEN:
+```bash
+export PAT_TOKEN={PAT_TOKEN}
+```
+
+```bash
+yarn install
+```
+
+### Environment
+Environment example:
+```bash
+PAT_TOKEN=
+PRIVATE_KEY=
+MAINNET_RPC_URL=
+RPC_URL=
+S3_BUCKET_CONFIG=
+S3_ADDRESSES_KEY=
+DB_HOST=
+DB_PORT=
+DB_NAME=
+DB_USER=
+DB_PASSWORD=
+NEW_RELIC_LICENSE_KEY=
+NEW_RELIC_API_URI=
+ENVIRONMENT=local
+```
+
+### Linting
+
+```bash
+yarn lint
+```
+
+### Build
+
+```bash
+yarn build
+```
+
+### Running Tests
+
+```bash
+yarn test
+```
+
+### Running Scripts
+
+*Configuring hardhat networks are on `hardhat.config.js`*
+
+Add **--network external** to each command to broadcast to external rpc
+configured in the hardhat config.
+
+```
+yarn hardhat run scripts/liquidator.ts
+yarn hardhat run scripts/rebalance.ts
+yarn hardhat run scripts/unbalance.ts
+yarn hardhat run scripts/changeAdjustInInterval.ts
 ```
