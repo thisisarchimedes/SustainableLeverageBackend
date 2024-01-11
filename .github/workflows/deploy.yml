@@ -7,6 +7,9 @@ on:
 
 env:
   AWS_REGION: us-east-1
+  EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}  # SSH private key stored in GitHub secrets
+  EC2_HOST: ${{ secrets.EC2_HOST }}        # EC2 instance IP or domain
+  EC2_USER: ubuntu
   PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
 
 jobs:
@@ -32,6 +35,64 @@ jobs:
           RPC_URL: ${{ secrets.RPC_URL }}
         run: |
           yarn test
+  
+  deploy-sustainable-leverage-liquidation-bot-demo-ec2:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: |
+          yarn
+          yarn add @uniswap/router-sdk @uniswap/sdk-core @uniswap/smart-order-router @uniswap/v3-sdk
+          yarn global add pm2
+
+      - name: Build
+        run: yarn build
+
+      - name: Copy files to EC2
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ env.EC2_HOST }}
+          username: ${{ env.EC2_USER }}
+          key: ${{ env.EC2_SSH_KEY }}
+          port: 22
+          source: "."
+          target: "/srv"
+
+      - name: Run deployment script on EC2
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ env.EC2_HOST }}
+          username: ${{ env.EC2_USER }}
+          key: ${{ env.EC2_SSH_KEY }}
+          port: 22
+          script: |
+            cd /srv
+            cat > .env << EOF
+            DB_HOST: ${{ secrets.DEMO_DB_HOST }}
+            DB_PORT: ${{ secrets.DEMO_DB_PORT }}
+            DB_NAME: ${{ secrets.DEMO_DB_NAME }}
+            DB_USER: ${{ secrets.DEMO_DB_USER }}
+            DB_PASSWORD: ${{ secrets.DEMO_DB_PASSWORD }}
+            S3_BUCKET_CONFIG: ${{ secrets.S3_BUCKET_CONFIG }}
+            S3_ADDRESSES_KEY: ${{ secrets.DEMO_S3_ADDRESSES_KEY }}
+            RPC_URL: ${{ secrets.DEMO_RPC_URL }}
+            MAINNET_RPC_URL: ${{ secrets.MAINNET_RPC_URL }}
+            NEW_RELIC_LICENSE_KEY: ${{ secrets.NEW_RELIC_LICENSE_KEY }}
+            NEW_RELIC_API_URI: ${{ secrets.NEW_RELIC_API_URI }}
+            PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
+            ENVIRONMENT: "demo"
+            EOF
+            pm2 kill                      # Stops all PM2-managed applications
+            yarn install --production     # Install production dependencies
+            pm2 start "yarn liquidator"   # Run the liquidator bot
 
   deploy-uniswap-sdk-layer:
     runs-on: ubuntu-latest
