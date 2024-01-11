@@ -1,10 +1,10 @@
-import { Client } from 'pg';
 import { Config } from '../lib/config-service';
 import { Provider, ethers, getDefaultProvider } from 'ethers';
 import { WBTC, WBTC_DECIMALS } from '../constants';
 import { Contracts, EthereumAddress, Logger } from "@thisisarchimedes/backend-sdk";
 import UniSwap from '../lib/UniSwap';
 import TransactionSimulator from '../lib/TransactionSimulator';
+import DataSource from '../lib/DataSource';
 
 const GAS_PRICE_MULTIPLIER = 3n;
 const GAS_PRICE_DENOMINATOR = 2n;
@@ -12,7 +12,7 @@ const GAS_PRICE_DENOMINATOR = 2n;
 // TODO: increase gas for stucked transactions
 // TODO: etherscan api
 
-export default async function liquidator(config: Config, client: Client, logger: Logger) {
+export default async function liquidator(config: Config, dataSource: DataSource, logger: Logger) {
   const signer = new ethers.Wallet(process.env.PRIVATE_KEY!, getDefaultProvider(process.env.RPC_URL!));
   const txSimulator = new TransactionSimulator(signer);
 
@@ -23,7 +23,7 @@ export default async function liquidator(config: Config, client: Client, logger:
   logger.info(`Test ${new Date()}`);
 
   // Query to get all nftIds
-  const res = await client.query('SELECT "nftId" FROM "LeveragePosition" WHERE "positionState" = \'LIVE\'');
+  const res = await dataSource.getLivePositions();
 
   for (const row of res.rows) {
     const nftId: number = row.nftId;
