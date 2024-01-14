@@ -1,6 +1,6 @@
 app: sustainable-leverage-backend
 service: sustainable-leverage-backend
-frameworkVersion: '3'
+frameworkVersion: "3"
 
 useDotenv: true
 package:
@@ -39,7 +39,6 @@ functions:
       S3_ADDRESSES_KEY: ${env:S3_ADDRESSES_KEY}
       RPC_URL: ${env:RPC_URL}
       MAINNET_RPC_URL: ${env:MAINNET_RPC_URL}
-      NEW_RELIC_LICENSE_KEY: ${env:NEW_RELIC_LICENSE_KEY}
-      NEW_RELIC_API_URI: ${env:NEW_RELIC_API_URI}
+      NEW_RELIC_API_KEY: ${env:NEW_RELIC_API_KEY}
       PRIVATE_KEY: ${env:PRIVATE_KEY}
       ENVIRONMENT: ${env:ENVIRONMENT}
