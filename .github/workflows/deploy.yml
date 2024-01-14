@@ -62,7 +62,6 @@ jobs:
           npm install -g yarn
           yarn
           yarn add @uniswap/router-sdk @uniswap/sdk-core @uniswap/smart-order-router @uniswap/v3-sdk
-          yarn global add pm2
 
       - name: Build
         run: yarn build
@@ -101,6 +100,8 @@ jobs:
             PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
             ENVIRONMENT: "demo"
             EOF
+            npm install -g yarn
+            yarn global add pm2
             pm2 kill                      # Stops all PM2-managed applications
             yarn install --production     # Install production dependencies
             pm2 start "yarn liquidator"   # Run the liquidator bot
