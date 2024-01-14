@@ -72,7 +72,7 @@ export default async function liquidator(config: Config, dataSource: DataSource,
       // Wait for the transaction to be mined
       await response.wait();
       console.warn(`Position ${nftId} liquidated; tx hash - ${response.hash}`);
-      logger.warn(`Position ${nftId} liquidated; tx hash - ${response.hash}`);
+      logger.warning(`Position ${nftId} liquidated; tx hash - ${response.hash}`);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       if (error.data === "0x5e6797f9") { // NotEligibleForLiquidation selector

@@ -24,7 +24,7 @@ if (dataSource === undefined) {
 
 // @ts-expect-error cold start
 if (logger === undefined) {
-	logger = new Logger(process.env.NEW_RELIC_LICENSE_KEY!, process.env.NEW_RELIC_API_URI!, process.env.ENVIRONMENT!);
+	logger = Logger.getInstance();
 }
 
 export async function handler(
