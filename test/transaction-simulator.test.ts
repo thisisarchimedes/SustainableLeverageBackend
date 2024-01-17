@@ -22,7 +22,7 @@ describe('Transaction Simulator Test', function () {
     const blockBefore = await signer.provider.getBlock("latest");
 
     // Create and send the transaction
-    const tx = await txSimulator.simulatAndRunTransaction({
+    const tx = await txSimulator.simulateAndRunTransaction({
       to: receiver.address,
       value: amount,
     });
@@ -53,7 +53,7 @@ describe('Transaction Simulator Test', function () {
     const blockBefore = await signer.provider.getBlock("latest");
 
     try {
-      const tx = await txSimulator.simulatAndRunTransaction(transaction);
+      const tx = await txSimulator.simulateAndRunTransaction(transaction);
       await tx.wait();
     } catch (error) {
       console.error("Transaction failed as expected:", error);

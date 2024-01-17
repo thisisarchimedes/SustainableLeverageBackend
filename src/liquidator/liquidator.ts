@@ -40,12 +40,8 @@ export default async function liquidator(config: Config, dataSource: DataSource,
     // TODO: add more conditions for liquidation
 
     // Simulate the transaction
-    // TODO: simulate the transaction describe
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const payload = await getClosePositionSwapPayload(signer.provider!, config, nftId);
 
-    // TODO: test that it actually does the "simulation" but not a failed tx
-    // TODO: test that it actually liquidates if needed
     try {
       const data = positionLiquidator.interface.encodeFunctionData('liquidatePosition', [{
         nftId,
@@ -69,7 +65,7 @@ export default async function liquidator(config: Config, dataSource: DataSource,
       };
 
       // Simulate the transaction
-      const response = await txSimulator.simulatAndRunTransaction(tx);
+      const response = await txSimulator.simulateAndRunTransaction(tx);
 
       // Wait for the transaction to be mined
       await response.wait();
