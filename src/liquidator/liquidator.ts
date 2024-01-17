@@ -33,7 +33,12 @@ export default async function liquidator(config: Config, dataSource: DataSource,
   const res = await dataSource.getLivePositions();
 
   for (const row of res.rows) {
-    const nftId: number = row.nftId;
+    const nftId: number = Number(row.nftId);
+    if(isNaN(nftId)) {
+      console.error(`Position nftId is not a number`);
+      logger.error(`Position nftId is not a number`);
+      continue;
+    }
 
     // TODO: add more conditions for liquidation
 
