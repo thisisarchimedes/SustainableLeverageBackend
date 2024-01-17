@@ -83,7 +83,9 @@ jobs:
           key: ${{ env.EC2_SSH_KEY }}
           port: 22
           script: |
-            source ~/.bashrc
+            export NVM_DIR="$HOME/.nvm"
+            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+            [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion          
             echo "Current PATH on EC2: $PATH"
             echo "Current User on EC2: $(whoami)"
             cd /srv
