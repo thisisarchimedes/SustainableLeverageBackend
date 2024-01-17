@@ -83,6 +83,8 @@ jobs:
           key: ${{ env.EC2_SSH_KEY }}
           port: 22
           script: |
+            echo "Current PATH on EC2: $PATH"
+            echo "Current User on EC2: $(whoami)"
             cd /srv
             cat > .env << EOF
             DB_HOST: ${{ secrets.DEMO_DB_HOST }}
