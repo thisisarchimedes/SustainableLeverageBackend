@@ -26,9 +26,6 @@ export default async function liquidator(config: Config, dataSource: DataSource,
   // const leveragedStrategy = LeveragedStrategy__factory.connect(config.leveragedStrategy, signer);
   const positionLiquidator = Contracts.leverage.positionLiquidator(config.positionLiquidator, signer);
 
-  console.log(`Test ${new Date()}`); // TODO: remove this is for testing the logger
-  logger.info(`Test ${new Date()}`);
-
   // Query to get all nftIds
   const res = await dataSource.getLivePositions();
 
