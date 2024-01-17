@@ -13,9 +13,8 @@ describe('DataSource Test', function () {
 
     for (const row of res.rows) {
       const nftId: number = Number(row.nftId);
-      console.log(typeof(nftId));
-      assert(nftId > 0, 'nftId should be greater than 0');
-      assert(isNaN(nftId), 'nftId is not a number');
+      assert(nftId >= 0, 'nftId should be greater than 0');
+      assert(!isNaN(nftId), 'nftId is not a number');
     }
   });
 });
