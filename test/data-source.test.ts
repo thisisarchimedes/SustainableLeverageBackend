@@ -12,9 +12,10 @@ describe('DataSource Test', function () {
     const res = await dataSource.getLivePositions();
 
     for (const row of res.rows) {
-      const nftId: number = row.nftId;
+      const nftId: number = Number(row.nftId);
+      console.log(typeof(nftId));
       assert(nftId > 0, 'nftId should be greater than 0');
-      assert(typeof (nftId) === 'number', 'nftId is not a number');
+      assert(isNaN(nftId), 'nftId is not a number');
     }
   });
 });
