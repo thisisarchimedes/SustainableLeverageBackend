@@ -89,19 +89,19 @@ jobs:
             [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
             cd /srv
             cat > .env << EOF
-            PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
-            DB_HOST: ${{ secrets.DEMO_DB_HOST }}
-            DB_PORT: ${{ secrets.DEMO_DB_PORT }}
-            DB_NAME: ${{ secrets.DEMO_DB_NAME }}
-            DB_USER: ${{ secrets.DEMO_DB_USER }}
-            DB_PASSWORD: ${{ secrets.DEMO_DB_PASSWORD }}
-            S3_BUCKET_CONFIG: ${{ secrets.S3_BUCKET_CONFIG }}
-            S3_ADDRESSES_KEY: ${{ secrets.DEMO_S3_ADDRESSES_KEY }}
-            RPC_URL: ${{ secrets.DEMO_RPC_URL }}
-            MAINNET_RPC_URL: ${{ secrets.MAINNET_RPC_URL }}
-            NEW_RELIC_API_KEY: ${{ secrets.NEW_RELIC_API_KEY }}
-            PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
-            ENVIRONMENT: "demo"
+            PAT_TOKEN=${{ secrets.PAT_TOKEN }}
+            DB_HOST=${{ secrets.DEMO_DB_HOST }}
+            DB_PORT=${{ secrets.DEMO_DB_PORT }}
+            DB_NAME=${{ secrets.DEMO_DB_NAME }}
+            DB_USER=${{ secrets.DEMO_DB_USER }}
+            DB_PASSWORD=${{ secrets.DEMO_DB_PASSWORD }}
+            S3_BUCKET_CONFIG=${{ secrets.S3_BUCKET_CONFIG }}
+            S3_ADDRESSES_KEY=${{ secrets.DEMO_S3_ADDRESSES_KEY }}
+            RPC_URL=${{ secrets.DEMO_RPC_URL }}
+            MAINNET_RPC_URL=${{ secrets.MAINNET_RPC_URL }}
+            NEW_RELIC_API_KEY=${{ secrets.NEW_RELIC_API_KEY }}
+            PRIVATE_KEY=${{ secrets.PRIVATE_KEY }}
+            ENVIRONMENT="demo"
             EOF
             pm2 kill                      # Stops all PM2-managed applications
             yarn install --production     # Install production dependencies
