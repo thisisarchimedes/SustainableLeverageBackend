@@ -89,6 +89,7 @@ jobs:
             [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
             cd /srv
             cat > .env << EOF
+            PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
             DB_HOST: ${{ secrets.DEMO_DB_HOST }}
             DB_PORT: ${{ secrets.DEMO_DB_PORT }}
             DB_NAME: ${{ secrets.DEMO_DB_NAME }}
