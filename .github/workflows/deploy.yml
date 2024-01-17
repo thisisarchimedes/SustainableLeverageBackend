@@ -7,8 +7,8 @@ on:
 
 env:
   AWS_REGION: us-east-1
-  EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}  # SSH private key stored in GitHub secrets
-  EC2_HOST: ${{ secrets.EC2_HOST }}        # EC2 instance IP or domain
+  EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }} # SSH private key stored in GitHub secrets
+  EC2_HOST: ${{ secrets.EC2_HOST }} # EC2 instance IP or domain
   EC2_USER: ubuntu
   PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
 
@@ -44,7 +44,7 @@ jobs:
           PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
         run: |
           yarn test
-  
+
   deploy-sustainable-leverage-liquidation-bot-demo-ec2:
     runs-on: ubuntu-latest
     needs: ["test"]
@@ -55,7 +55,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v2
         with:
-          node-version: '18'
+          node-version: "18"
 
       - name: Install dependencies
         run: |
@@ -89,7 +89,6 @@ jobs:
             [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
             cd /srv
             cat > .env << EOF
-            PAT_TOKEN=${{ secrets.PAT_TOKEN }}
             DB_HOST=${{ secrets.DEMO_DB_HOST }}
             DB_PORT=${{ secrets.DEMO_DB_PORT }}
             DB_NAME=${{ secrets.DEMO_DB_NAME }}
@@ -103,9 +102,10 @@ jobs:
             PRIVATE_KEY=${{ secrets.PRIVATE_KEY }}
             ENVIRONMENT="demo"
             EOF
-            pm2 kill                      # Stops all PM2-managed applications
-            yarn install --production     # Install production dependencies
-            pm2 start "yarn liquidator"   # Run the liquidator bot
+            pm2 kill                                    # Stops all PM2-managed applications
+            export PAT_TOKEN=${{ secrets.PAT_TOKEN }}   # GitHub personal access token for installing the Backend-SDK
+            yarn install --production                   # Install production dependencies
+            pm2 start "yarn liquidator"                 # Run the liquidator bot
 
   deploy-uniswap-sdk-layer:
     runs-on: ubuntu-latest
