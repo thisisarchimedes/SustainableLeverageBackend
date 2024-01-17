@@ -60,7 +60,6 @@ jobs:
         run: |
           yarn
           yarn add @uniswap/router-sdk @uniswap/sdk-core @uniswap/smart-order-router @uniswap/v3-sdk
-          yarn global add pm2
 
       - name: Build
         run: yarn build
