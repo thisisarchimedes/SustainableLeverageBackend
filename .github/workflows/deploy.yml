@@ -85,9 +85,7 @@ jobs:
           script: |
             export NVM_DIR="$HOME/.nvm"
             [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
-            [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion          
-            echo "Current PATH on EC2: $PATH"
-            echo "Current User on EC2: $(whoami)"
+            [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
             cd /srv
             cat > .env << EOF
             DB_HOST: ${{ secrets.DEMO_DB_HOST }}
