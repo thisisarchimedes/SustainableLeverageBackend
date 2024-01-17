@@ -7,8 +7,8 @@ on:
 
 env:
   AWS_REGION: us-east-1
-  EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }} # SSH private key stored in GitHub secrets
-  EC2_HOST: ${{ secrets.EC2_HOST }} # EC2 instance IP or domain
+  EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}  # SSH private key stored in GitHub secrets
+  EC2_HOST: ${{ secrets.EC2_HOST }}        # EC2 instance IP or domain
   EC2_USER: ubuntu
   PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
 
@@ -44,7 +44,7 @@ jobs:
           PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
         run: |
           yarn test
-
+  
   deploy-sustainable-leverage-liquidation-bot-demo-ec2:
     runs-on: ubuntu-latest
     steps:
@@ -54,11 +54,10 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v2
         with:
-          node-version: "18"
+          node-version: '18'
 
       - name: Install dependencies
         run: |
-          npm install -g yarn
           yarn
           yarn add @uniswap/router-sdk @uniswap/sdk-core @uniswap/smart-order-router @uniswap/v3-sdk
           yarn global add pm2
