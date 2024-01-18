@@ -78,3 +78,17 @@ jobs:
           echo "Time taken to run the tests: ${{ env.DURATION }} seconds"
           yarn add install axios dotenv
           node devops/metrics/src/cicd_script/report_devops_event.js ${{ github.repository }} "test_pass" '{"duration": ${{ env.DURATION }}}'
+    
+
+  create-deploy-trigger:
+    runs-on: ubuntu-latest
+    needs: [test] 
+    if: success()            
+    steps:
+      - name: Create Trigger File
+        run: echo "Tests passed" > deploy_trigger.txt
+      - name: Upload Trigger Artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: deploy-trigger
+          path: deploy_trigger.txt
