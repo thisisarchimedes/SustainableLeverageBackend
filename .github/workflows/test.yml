@@ -55,6 +55,10 @@ jobs:
         run: |
           echo "Time taken to run the tests: ${{ env.DURATION }} seconds"
           yarn add install axios dotenv
+          echo "pwd"
           pwd
-          ls devops/metrics/src/cicd_script
+          echo "ls"
+          ls
+          echo "ls devops"
+          ls devops/
           node devops/metrics/src/cicd_script/report_devops_event.js ${{ github.repository }} "test_pass" '{"duration": ${{ env.DURATION }}}'
