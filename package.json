@@ -9,7 +9,7 @@
     "lint": "eslint */**.ts --fix",
     "build": "tsc",
     "test": "hardhat test",
-    "liquidator": "ts-node-esm scripts/liquidator.ts"
+    "liquidator": "node --loader ts-node/esm scripts/liquidator.ts"
   },
   "devDependencies": {
     "@nomicfoundation/hardhat-ethers": "^3.0.5",
