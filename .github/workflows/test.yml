@@ -25,7 +25,7 @@ jobs:
       - name: Use Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "18"
+          node-version: "latest"
       - name: Install dependencies
         run: yarn
       - name: Test
@@ -50,9 +50,11 @@ jobs:
           duration=$((end-start))
           echo "DURATION=$duration" >> $GITHUB_ENV
           echo "Time taken to run the tests: $duration seconds"
+
       - name: Report test run time
         run: |
           echo "Time taken to run the tests: ${{ env.DURATION }} seconds"
           yarn add install axios dotenv
           pwd
+          ls devops/metrics/src/cicd_script
           node devops/metrics/src/cicd_script/report_devops_event.js ${{ github.repository }} "test_pass" '{"duration": ${{ env.DURATION }}}'
