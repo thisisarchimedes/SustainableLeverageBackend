@@ -108,7 +108,7 @@ jobs:
             pm2 kill                                    # Stops all PM2-managed applications
             export PAT_TOKEN=${{ secrets.PAT_TOKEN }}   # GitHub personal access token for installing the Backend-SDK
             yarn install                                # Install dependencies
-            pm2 --attach start 'yarn liquidator'        # Run the liquidator bot
+            pm2 start 'yarn liquidator'                 # Run the liquidator bot
 
   deploy-uniswap-sdk-layer:
     runs-on: ubuntu-latest
