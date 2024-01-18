@@ -24,6 +24,7 @@ if (dataSource === undefined) {
 
 // @ts-expect-error cold start
 if (logger === undefined) {
+	Logger.initialize("liquidator-bot");
 	logger = Logger.getInstance();
 }
 
