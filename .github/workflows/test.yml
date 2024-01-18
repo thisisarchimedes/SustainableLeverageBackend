@@ -47,14 +47,31 @@ jobs:
           NEW_RELIC_API_KEY: ${{ secrets.NEW_RELIC_API_KEY }}
           PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
         run: |
-          start=$(date +%s)
-          
+          echo "TEST_START=$(date +%s)" >> $GITHUB_ENV  
+          yarn test
+
+      - name: Test-Demo
+        env:
+          DB_HOST: ${{ secrets.DEMO_DB_HOST }}
+          DB_PORT: ${{ secrets.DEMO_DB_PORT }}
+          DB_NAME: ${{ secrets.DEMO_DB_NAME }}
+          DB_USER: ${{ secrets.DEMO_DB_USER }}
+          DB_PASSWORD: ${{ secrets.DEMO_DB_PASSWORD }}
+          S3_BUCKET_CONFIG: ${{ secrets.S3_BUCKET_CONFIG }}
+          S3_ADDRESSES_KEY: ${{ secrets.DEMO_S3_ADDRESSES_KEY }}
+          RPC_URL: ${{ secrets.DEMO_RPC_URL }}
+          MAINNET_RPC_URL: ${{ secrets.MAINNET_RPC_URL }}
+          NEW_RELIC_API_KEY: ${{ secrets.NEW_RELIC_API_KEY }}
+          PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
+        run: |
           yarn test
 
           end=$(date +%s)
-          duration=$((end-start))
+          duration=$((end-${{ env.TEST_START }}))
+
           echo "DURATION=$duration" >> $GITHUB_ENV
           echo "Time taken to run the tests: $duration seconds"
+
 
       - name: Report test run time
         run: |
