@@ -90,6 +90,8 @@ jobs:
             cd /srv
             cat > .env << EOF
             AWS_REGION=${{ secrets.AWS_REGION }}
+            AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}
+            AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}
             DB_HOST=${{ secrets.DEMO_DB_HOST }}
             DB_PORT=${{ secrets.DEMO_DB_PORT }}
             DB_NAME=${{ secrets.DEMO_DB_NAME }}
