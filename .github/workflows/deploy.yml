@@ -1,9 +1,12 @@
 name: Deploy
 
 on:
-  push:
-    branches:
-      - main
+  workflow_run:
+    workflows: ["Run Tests"]
+    branches: [main]
+    types:
+      - completed
+
 
 env:
   AWS_REGION: us-east-1
@@ -23,6 +26,7 @@ jobs:
           name: deploy-trigger
 
   deploy-sustainable-leverage-liquidation-bot-ec2:
+    if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.outputs.trigger-deploy == 'true' }}
     runs-on: ubuntu-latest
     needs: [download-trigger]
     steps:
@@ -88,6 +92,7 @@ jobs:
             pm2 start 'yarn liquidator'                 # Run the liquidator bot
 
   deploy-sustainable-leverage-liquidation-bot-demo-ec2:
+    if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.outputs.trigger-deploy == 'true' }}
     runs-on: ubuntu-latest
     needs: ["download-trigger"]
     steps:

@@ -21,6 +21,8 @@ env:
 jobs:
   test:
     runs-on: ubuntu-latest
+    outputs:
+      trigger-deploy: ${{ steps.set_output.outputs.trigger-deploy }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -72,12 +74,16 @@ jobs:
           echo "DURATION=$duration" >> $GITHUB_ENV
           echo "Time taken to run the tests: $duration seconds"
 
-
       - name: Report test run time
         run: |
           echo "Time taken to run the tests: ${{ env.DURATION }} seconds"
           yarn add install axios dotenv
           node devops/metrics/src/cicd_script/report_devops_event.js ${{ github.repository }} "test_pass" '{"duration": ${{ env.DURATION }}}'
+
+      - name: Set output for deploy
+        id: set_output
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: echo "::set-output name=trigger-deploy::true"
     
 
   create-deploy-trigger:
