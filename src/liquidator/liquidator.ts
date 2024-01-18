@@ -99,8 +99,8 @@ async function liquidator(dataSource: DataSource, logger: Logger) {
     }
 
     if(liquidatedCount === 0) {
-      console.log(`No positions liquidated`);
-      logger.info(`No positions liquidated`)
+      console.log(`No positions liquidated, sleeping for ${IDLE_DELAY}ms`);
+      logger.info(`No positions liquidated, sleeping for ${IDLE_DELAY}ms`)
       await sleep(IDLE_DELAY);
     } else {
       console.warn(`${liquidatedCount} out of ${res.rows.length} positions liquidated`);

@@ -63,8 +63,13 @@ Add **--network external** to each command to broadcast to external rpc
 configured in the hardhat config.
 
 ```
-yarn hardhat run scripts/liquidator.ts
 yarn hardhat run scripts/rebalance.ts
 yarn hardhat run scripts/unbalance.ts
 yarn hardhat run scripts/changeAdjustInInterval.ts
+```
+
+### Run Liquidator Bot
+
+```
+yarn liquidator
 ```
