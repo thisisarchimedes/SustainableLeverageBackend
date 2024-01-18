@@ -1,4 +1,4 @@
-import { Config } from '../lib/ConfigService';
+import { Config, loadConfig } from '../lib/ConfigService';
 import { Provider, ethers, getDefaultProvider } from 'ethers';
 import { WBTC, WBTC_DECIMALS } from '../constants';
 import { Contracts, EthereumAddress, Logger } from "@thisisarchimedes/backend-sdk";
@@ -6,11 +6,17 @@ import UniSwap from '../lib/UniSwap';
 import TransactionSimulator from '../lib/TransactionSimulator';
 import DataSource from '../lib/DataSource';
 
+const IDLE_DELAY = 10000;
 const GAS_PRICE_MULTIPLIER = 3n;
 const GAS_PRICE_DENOMINATOR = 2n;
 
 // TODO: increase gas for stucked transactions
 // TODO: etherscan api
+
+const dataSource = new DataSource();
+Logger.initialize("liquidator-bot");
+const logger = Logger.getInstance();
+liquidator(dataSource, logger);
 
 /**
  * Runs over the LIVE positions and simulates the liquidation tx
@@ -19,67 +25,86 @@ const GAS_PRICE_DENOMINATOR = 2n;
  * @param dataSource A data source to get the positions from
  * @param logger Logger library
  */
-export default async function liquidator(config: Config, dataSource: DataSource, logger: Logger) {
+async function liquidator(dataSource: DataSource, logger: Logger) {
+  const config = await loadConfig();
+
   const signer = new ethers.Wallet(process.env.PRIVATE_KEY!, getDefaultProvider(process.env.RPC_URL!));
   const txSimulator = new TransactionSimulator(signer);
 
   // const leveragedStrategy = LeveragedStrategy__factory.connect(config.leveragedStrategy, signer);
   const positionLiquidator = Contracts.leverage.positionLiquidator(config.positionLiquidator, signer);
 
-  // Query to get all nftIds
-  const res = await dataSource.getLivePositions();
+  // Infinite Loop
+  // eslint-disable-next-line no-constant-condition
+  while(true) {
+    // Query to get all nftIds
+    const res = await dataSource.getLivePositions();
 
-  for (const row of res.rows) {
-    const nftId: number = Number(row.nftId);
-    if(isNaN(nftId)) {
-      console.error(`Position nftId is not a number`);
-      logger.error(`Position nftId is not a number`);
-      continue;
-    }
+    let liquidatedCount = 0;
 
-    // TODO: add more conditions for liquidation
-
-    // Simulate the transaction
-    const payload = await getClosePositionSwapPayload(signer.provider!, config, nftId);
-
-    try {
-      const data = positionLiquidator.interface.encodeFunctionData('liquidatePosition', [{
-        nftId,
-        minWBTC: 0,
-        swapRoute: "0",
-        swapData: payload,
-        exchange: "0x0000000000000000000000000000000000000000",
-      }]);
-
-      // Configure gas price
-      let gasPrice = await (await signer.provider!.getFeeData()).gasPrice;
-      if (gasPrice && GAS_PRICE_MULTIPLIER && GAS_PRICE_DENOMINATOR) {
-        gasPrice = gasPrice * GAS_PRICE_MULTIPLIER / GAS_PRICE_DENOMINATOR;
+    for (const row of res.rows) {
+      const nftId: number = Number(row.nftId);
+      if(isNaN(nftId)) {
+        console.error(`Position nftId is not a number`);
+        logger.error(`Position nftId is not a number`);
+        continue;
       }
 
-      // Create a transaction object
-      const tx = {
-        to: config.positionLiquidator.toString(),
-        data,
-        gasPrice,
-      };
+      // TODO: add more conditions for liquidation
 
       // Simulate the transaction
-      const response = await txSimulator.simulateAndRunTransaction(tx);
+      const payload = await getClosePositionSwapPayload(signer.provider!, config, nftId);
 
-      // Wait for the transaction to be mined
-      await response.wait();
-      console.warn(`Position ${nftId} liquidated; tx hash - ${response.hash}`);
-      logger.warning(`Position ${nftId} liquidated; tx hash - ${response.hash}`);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
-      if (error.data === "0x5e6797f9") { // NotEligibleForLiquidation selector
-        console.log(`Position ${nftId} is not eligible for liquidation`);
-      } else {
-        console.error(`Position ${nftId} liquidation errored with:`, error);
-        logger.error(`Position ${nftId} liquidation errored with:`);
-        logger.error(error);
+      try {
+        const data = positionLiquidator.interface.encodeFunctionData('liquidatePosition', [{
+          nftId,
+          minWBTC: 0,
+          swapRoute: "0",
+          swapData: payload,
+          exchange: "0x0000000000000000000000000000000000000000",
+        }]);
+
+        // Configure gas price
+        let gasPrice = await (await signer.provider!.getFeeData()).gasPrice;
+        if (gasPrice && GAS_PRICE_MULTIPLIER && GAS_PRICE_DENOMINATOR) {
+          gasPrice = gasPrice * GAS_PRICE_MULTIPLIER / GAS_PRICE_DENOMINATOR;
+        }
+
+        // Create a transaction object
+        const tx = {
+          to: config.positionLiquidator.toString(),
+          data,
+          gasPrice,
+        };
+
+        // Simulate the transaction
+        const response = await txSimulator.simulateAndRunTransaction(tx);
+
+        // Wait for the transaction to be mined
+        await response.wait();
+        console.warn(`Position ${nftId} liquidated; tx hash - ${response.hash}`);
+        logger.warning(`Position ${nftId} liquidated; tx hash - ${response.hash}`);
+        liquidatedCount++;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } catch (error: any) {
+        if (error.data === "0x5e6797f9") { // NotEligibleForLiquidation selector
+          console.log(`Position ${nftId} is not eligible for liquidation`);
+          logger.info(`Position ${nftId} is not eligible for liquidation`);
+        } else {
+          console.error(`Position ${nftId} liquidation errored with:`, error);
+          logger.error(`Position ${nftId} liquidation errored with:`);
+          logger.error(error);
+        }
       }
+    }
+
+    if(liquidatedCount === 0) {
+      console.log(`No positions liquidated`);
+      logger.info(`No positions liquidated`)
+      await sleep(IDLE_DELAY);
+    } else {
+      console.warn(`${liquidatedCount} out of ${res.rows.length} positions liquidated`);
+      logger.warning(`${liquidatedCount} out of ${res.rows.length} positions liquidated`);
     }
   }
 }
@@ -112,4 +137,8 @@ const getClosePositionSwapPayload = async (provider: Provider, config: Config, n
   );
 
   return payload;
+}
+
+const sleep = (milliseconds: number) => {
+  return new Promise(resolve => setTimeout(resolve, milliseconds));
 }
