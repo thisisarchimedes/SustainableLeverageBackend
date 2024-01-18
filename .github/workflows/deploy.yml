@@ -32,6 +32,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          submodules: "recursive"
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -98,6 +100,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          submodules: "recursive"
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -156,3 +160,8 @@ jobs:
             export PAT_TOKEN=${{ secrets.PAT_TOKEN }}   # GitHub personal access token for installing the Backend-SDK
             yarn install                                # Install dependencies
             pm2 start 'yarn liquidator'                 # Run the liquidator bot
+            
+      - name: Report deploy event
+        run: |
+          yarn add install axios dotenv
+          node devops/metrics/src/cicd_script/report_devops_event.js ${{ github.repository }} "deploy"

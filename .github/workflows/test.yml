@@ -94,7 +94,7 @@ jobs:
       - name: Create Trigger File
         run: echo "Tests passed" > deploy_trigger.txt
       - name: Upload Trigger Artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: deploy-trigger
           path: deploy_trigger.txt
