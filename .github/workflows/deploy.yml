@@ -160,6 +160,11 @@ jobs:
             export PAT_TOKEN=${{ secrets.PAT_TOKEN }}   # GitHub personal access token for installing the Backend-SDK
             yarn install                                # Install dependencies
             pm2 start 'yarn liquidator'                 # Run the liquidator bot
+
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          SONAR_TOKEN: ${{ secrets.SONARCLOUD_TOKEN }}
             
       - name: Report deploy event
         run: |
