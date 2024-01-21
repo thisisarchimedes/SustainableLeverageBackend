@@ -40,6 +40,12 @@ export default class Liquidator {
       throw new Error("Liquidator is not initialized");
     }
 
+    // Configure gas price
+    let gasPrice = await (await signer.provider!.getFeeData()).gasPrice;
+    if (gasPrice && GAS_PRICE_MULTIPLIER && GAS_PRICE_DENOMINATOR) {
+      gasPrice = gasPrice * GAS_PRICE_MULTIPLIER / GAS_PRICE_DENOMINATOR;
+    }
+
     // Query to get all nftIds
     const res = await this.dataSource.getLivePositions();
 
@@ -66,12 +72,6 @@ export default class Liquidator {
           swapData: payload,
           exchange: "0x0000000000000000000000000000000000000000",
         }]);
-
-        // Configure gas price
-        let gasPrice = await (await signer.provider!.getFeeData()).gasPrice;
-        if (gasPrice && GAS_PRICE_MULTIPLIER && GAS_PRICE_DENOMINATOR) {
-          gasPrice = gasPrice * GAS_PRICE_MULTIPLIER / GAS_PRICE_DENOMINATOR;
-        }
 
         // Create a transaction object
         const tx = {
