@@ -80,6 +80,12 @@ jobs:
           yarn add install axios dotenv
           node devops/metrics/src/cicd_script/report_devops_event.js ${{ github.repository }} "test_pass" '{"duration": ${{ env.DURATION }}}'
 
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONARCLOUD_TOKEN }}
+          
       - name: Set output for deploy
         id: set_output
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
