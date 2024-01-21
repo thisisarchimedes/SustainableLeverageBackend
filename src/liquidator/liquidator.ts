@@ -1,89 +1,89 @@
 import { Config, loadConfig } from '../lib/ConfigService';
-import { Provider, ethers, getDefaultProvider } from 'ethers';
+import { Signer, ethers } from 'ethers';
 import { WBTC, WBTC_DECIMALS } from '../constants';
-import { Contracts, EthereumAddress, Logger } from "@thisisarchimedes/backend-sdk";
+import { Contracts, EthereumAddress, Logger, PositionLedger, PositionLiquidator } from "@thisisarchimedes/backend-sdk";
 import UniSwap from '../lib/UniSwap';
 import TransactionSimulator from '../lib/TransactionSimulator';
 import DataSource from '../lib/DataSource';
 
-const IDLE_DELAY = 10000;
 const GAS_PRICE_MULTIPLIER = 3n;
 const GAS_PRICE_DENOMINATOR = 2n;
 
 // TODO: increase gas for stucked transactions
 // TODO: etherscan api
 
-const dataSource = new DataSource();
-Logger.initialize("liquidator-bot");
-const logger = Logger.getInstance();
-liquidator(dataSource, logger);
-
 /**
- * Runs over the LIVE positions and simulates the liquidation tx
+ * Liquidator class
+ * Contains a function that runs over the LIVE positions and simulates the liquidation tx
  * on each of them, if it does not revert, executes the liquidation tx
- * @param config Contracts addresses
- * @param dataSource A data source to get the positions from
- * @param logger Logger library
  */
-async function liquidator(dataSource: DataSource, logger: Logger) {
-  const config = await loadConfig();
+export default class Liquidator {
+  private config!: Config;
+  private dataSource = new DataSource();
+  private txSimulator: TransactionSimulator;
+  private positionLiquidator!: PositionLiquidator;
+  private positionLedger!: PositionLedger;
 
-  const signer = new ethers.Wallet(process.env.PRIVATE_KEY!, getDefaultProvider(process.env.RPC_URL!));
-  const txSimulator = new TransactionSimulator(signer);
+  constructor(private signer: Signer, private logger: Logger) {
+    this.txSimulator = new TransactionSimulator(signer);
+  }
 
-  // const leveragedStrategy = LeveragedStrategy__factory.connect(config.leveragedStrategy, signer);
-  const positionLiquidator = Contracts.leverage.positionLiquidator(config.positionLiquidator, signer);
+  public initialize = async () => {
+    if (this.config !== undefined) {
+      throw new Error("Initialized already");
+    }
+    this.config = await loadConfig();
+    this.positionLiquidator = Contracts.leverage.positionLiquidator(this.config.positionLiquidator, this.signer);
+    this.positionLedger = Contracts.leverage.positionLedger(this.config.positionLedger, this.signer);
+  }
 
-  // Infinite Loop
-  // eslint-disable-next-line no-constant-condition
-  while(true) {
+  public run = async (signer: Signer, logger: Logger) => {
+    if (this.config === undefined) {
+      throw new Error("Liquidator is not initialized");
+    }
+
     // Query to get all nftIds
-    const res = await dataSource.getLivePositions();
+    const res = await this.dataSource.getLivePositions();
 
     let liquidatedCount = 0;
 
     for (const row of res.rows) {
       const nftId: number = Number(row.nftId);
-      if(isNaN(nftId)) {
+      if (isNaN(nftId)) {
         console.error(`Position nftId is not a number`);
         logger.error(`Position nftId is not a number`);
         continue;
       }
 
-      // TODO: add more conditions for liquidation
-
       // Simulate the transaction
-      const payload = await getClosePositionSwapPayload(signer.provider!, config, nftId);
+      // const payload = await this.getClosePositionSwapPayload(nftId);
+      const payload = "0x00";
+
+      const data = this.positionLiquidator.interface.encodeFunctionData('liquidatePosition', [{
+        nftId,
+        minWBTC: 0,
+        swapRoute: "0",
+        swapData: payload,
+        exchange: "0x0000000000000000000000000000000000000000",
+      }]);
+
+      // Configure gas price
+      let gasPrice = await (await signer.provider!.getFeeData()).gasPrice;
+      if (gasPrice && GAS_PRICE_MULTIPLIER && GAS_PRICE_DENOMINATOR) {
+        gasPrice = gasPrice * GAS_PRICE_MULTIPLIER / GAS_PRICE_DENOMINATOR;
+      }
+
+      // Create a transaction object
+      const tx = {
+        to: this.config.positionLiquidator.toString(),
+        data,
+        gasPrice,
+      };
 
       try {
-        const data = positionLiquidator.interface.encodeFunctionData('liquidatePosition', [{
-          nftId,
-          minWBTC: 0,
-          swapRoute: "0",
-          swapData: payload,
-          exchange: "0x0000000000000000000000000000000000000000",
-        }]);
-
-        // Configure gas price
-        let gasPrice = await (await signer.provider!.getFeeData()).gasPrice;
-        if (gasPrice && GAS_PRICE_MULTIPLIER && GAS_PRICE_DENOMINATOR) {
-          gasPrice = gasPrice * GAS_PRICE_MULTIPLIER / GAS_PRICE_DENOMINATOR;
-        }
-
-        // Create a transaction object
-        const tx = {
-          to: config.positionLiquidator.toString(),
-          data,
-          gasPrice,
-        };
-
         // Simulate the transaction
-        const response = await txSimulator.simulateAndRunTransaction(tx);
+        await this.txSimulator.simulateAndRunTransaction(tx);
 
-        // Wait for the transaction to be mined
-        await response.wait();
-        console.warn(`Position ${nftId} liquidated; tx hash - ${response.hash}`);
-        logger.warning(`Position ${nftId} liquidated; tx hash - ${response.hash}`);
         liquidatedCount++;
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (error: any) {
@@ -98,47 +98,41 @@ async function liquidator(dataSource: DataSource, logger: Logger) {
       }
     }
 
-    if(liquidatedCount === 0) {
-      console.log(`No positions liquidated, sleeping for ${IDLE_DELAY}ms`);
-      logger.info(`No positions liquidated, sleeping for ${IDLE_DELAY}ms`)
-      await sleep(IDLE_DELAY);
+    if (liquidatedCount === 0) {
+      console.log(`No positions liquidated`);
+      logger.info(`No positions liquidated`)
     } else {
       console.warn(`${liquidatedCount} out of ${res.rows.length} positions liquidated`);
       logger.warning(`${liquidatedCount} out of ${res.rows.length} positions liquidated`);
     }
   }
-}
 
-/**
- * Returns the swap payload to close the position
- * @param provider Ethers provider
- * @param config Contracts addresses
- * @param nftId The position nftId to get the swap payload for
- * @returns string - swap payload to close the position
- */
-const getClosePositionSwapPayload = async (provider: Provider, config: Config, nftId: number): Promise<string> => {
-  const positionLedger = Contracts.leverage.positionLedger(config.positionLedger, provider);
-  const ledgerEntry = await positionLedger.getPosition(nftId);
+  /**
+   * Returns the swap payload to close the position
+   * @param provider Ethers provider
+   * @param config Contracts addresses
+   * @param nftId The position nftId to get the swap payload for
+   * @returns string - swap payload to close the position
+   */
+  private getClosePositionSwapPayload = async (nftId: number): Promise<string> => {
+    // TODO: Consider implementing caching for the resources (not the function output)
+    const ledgerEntry = await this.positionLedger.getPosition(nftId);
 
-  const strategy = Contracts.general.multiPoolStrategy(new EthereumAddress(ledgerEntry.strategyAddress), provider);
-  const strategyAsset = await strategy.asset();
-  const minimumExpectedAssets = await strategy.convertToAssets(ledgerEntry.strategyShares);
+    const strategy = Contracts.general.multiPoolStrategy(new EthereumAddress(ledgerEntry.strategyAddress), this.signer);
+    const strategyAsset = await strategy.asset();
+    const minimumExpectedAssets = await strategy.convertToAssets(ledgerEntry.strategyShares);
+    const asset = Contracts.general.ERC20(new EthereumAddress(strategyAsset), this.signer);
+    const assetDecimals = await asset.decimals();
 
-  const asset = Contracts.general.ERC20(new EthereumAddress(strategyAsset), provider);
-  const assetDecimals = await asset.decimals();
+    const uniSwap = new UniSwap(process.env.MAINNET_RPC_URL!);
+    const { payload } = await uniSwap.buildPayload(
+      ethers.formatUnits(minimumExpectedAssets, assetDecimals),
+      new EthereumAddress(strategyAsset),
+      Number(assetDecimals),
+      new EthereumAddress(WBTC),
+      WBTC_DECIMALS,
+    );
 
-  const uniSwap = new UniSwap(process.env.MAINNET_RPC_URL!);
-  const { payload } = await uniSwap.buildPayload(
-    ethers.formatUnits(minimumExpectedAssets, assetDecimals),
-    new EthereumAddress(strategyAsset),
-    Number(assetDecimals),
-    new EthereumAddress(WBTC),
-    WBTC_DECIMALS,
-  );
-
-  return payload;
-}
-
-const sleep = (milliseconds: number) => {
-  return new Promise(resolve => setTimeout(resolve, milliseconds));
+    return payload;
+  }
 }
