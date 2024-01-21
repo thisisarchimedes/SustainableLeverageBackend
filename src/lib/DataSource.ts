@@ -22,7 +22,7 @@ export default class DataSource {
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public getLivePositions(): Promise<QueryResult<any>> {
-    const resp = this.client.query('SELECT "nftId" FROM "LeveragePosition" WHERE "positionState" = \'LIVE\'');
+    const resp = this.client.query('SELECT "nftId", "strategy", "strategyShares" FROM "LeveragePosition" WHERE "positionState" = \'LIVE\'');
     return resp;
   }
 }

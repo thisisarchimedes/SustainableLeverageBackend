@@ -1,7 +1,7 @@
 import { Config, loadConfig } from '../lib/ConfigService';
 import { Signer, ethers } from 'ethers';
 import { WBTC, WBTC_DECIMALS } from '../constants';
-import { Contracts, EthereumAddress, Logger, PositionLedger, PositionLiquidator } from "@thisisarchimedes/backend-sdk";
+import { Contracts, EthereumAddress, Logger, PositionLiquidator } from "@thisisarchimedes/backend-sdk";
 import UniSwap from '../lib/UniSwap';
 import TransactionSimulator from '../lib/TransactionSimulator';
 import DataSource from '../lib/DataSource';
@@ -22,7 +22,6 @@ export default class Liquidator {
   private dataSource = new DataSource();
   private txSimulator: TransactionSimulator;
   private positionLiquidator!: PositionLiquidator;
-  private positionLedger!: PositionLedger;
 
   constructor(private signer: Signer, private logger: Logger) {
     this.txSimulator = new TransactionSimulator(signer);
@@ -34,7 +33,6 @@ export default class Liquidator {
     }
     this.config = await loadConfig();
     this.positionLiquidator = Contracts.leverage.positionLiquidator(this.config.positionLiquidator, this.signer);
-    this.positionLedger = Contracts.leverage.positionLedger(this.config.positionLedger, this.signer);
   }
 
   public run = async (signer: Signer, logger: Logger) => {
@@ -48,53 +46,61 @@ export default class Liquidator {
     let liquidatedCount = 0;
 
     for (const row of res.rows) {
-      const nftId: number = Number(row.nftId);
-      if (isNaN(nftId)) {
-        console.error(`Position nftId is not a number`);
-        logger.error(`Position nftId is not a number`);
-        continue;
-      }
-
-      // Simulate the transaction
-      // const payload = await this.getClosePositionSwapPayload(nftId);
-      const payload = "0x00";
-
-      const data = this.positionLiquidator.interface.encodeFunctionData('liquidatePosition', [{
-        nftId,
-        minWBTC: 0,
-        swapRoute: "0",
-        swapData: payload,
-        exchange: "0x0000000000000000000000000000000000000000",
-      }]);
-
-      // Configure gas price
-      let gasPrice = await (await signer.provider!.getFeeData()).gasPrice;
-      if (gasPrice && GAS_PRICE_MULTIPLIER && GAS_PRICE_DENOMINATOR) {
-        gasPrice = gasPrice * GAS_PRICE_MULTIPLIER / GAS_PRICE_DENOMINATOR;
-      }
-
-      // Create a transaction object
-      const tx = {
-        to: this.config.positionLiquidator.toString(),
-        data,
-        gasPrice,
-      };
-
       try {
-        // Simulate the transaction
-        await this.txSimulator.simulateAndRunTransaction(tx);
+        const nftId: number = Number(row.nftId);
+        const strategyShares: number = Number(row.strategyShares);
+        const strategy = new EthereumAddress(row.strategy);
+        if (isNaN(nftId)) {
+          console.error(`Position nftId/strategyShares is not a number`);
+          logger.error(`Position nftId/strategyShares is not a number`);
+          continue;
+        }
 
-        liquidatedCount++;
+        // Simulate the transaction
+        const payload = await this.getClosePositionSwapPayload(strategy, strategyShares);
+
+        const data = this.positionLiquidator.interface.encodeFunctionData('liquidatePosition', [{
+          nftId,
+          minWBTC: 0,
+          swapRoute: "0",
+          swapData: payload,
+          exchange: "0x0000000000000000000000000000000000000000",
+        }]);
+
+        // Configure gas price
+        let gasPrice = await (await signer.provider!.getFeeData()).gasPrice;
+        if (gasPrice && GAS_PRICE_MULTIPLIER && GAS_PRICE_DENOMINATOR) {
+          gasPrice = gasPrice * GAS_PRICE_MULTIPLIER / GAS_PRICE_DENOMINATOR;
+        }
+
+        // Create a transaction object
+        const tx = {
+          to: this.config.positionLiquidator.toString(),
+          data,
+          gasPrice,
+        };
+
+        try {
+          // Simulate the transaction
+          await this.txSimulator.simulateAndRunTransaction(tx);
+
+          liquidatedCount++;
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } catch (error: any) {
+          if (error.data === "0x5e6797f9") { // NotEligibleForLiquidation selector
+            console.log(`Position ${nftId} is not eligible for liquidation`);
+            logger.info(`Position ${nftId} is not eligible for liquidation`);
+          } else {
+            console.error(`Position ${nftId} liquidation errored with:`, error);
+            logger.error(`Position ${nftId} liquidation errored with:`);
+            logger.error(error);
+          }
+        }
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (error: any) {
-        if (error.data === "0x5e6797f9") { // NotEligibleForLiquidation selector
-          console.log(`Position ${nftId} is not eligible for liquidation`);
-          logger.info(`Position ${nftId} is not eligible for liquidation`);
-        } else {
-          console.error(`Position ${nftId} liquidation errored with:`, error);
-          logger.error(`Position ${nftId} liquidation errored with:`);
-          logger.error(error);
-        }
+        console.error(`Position ${row.nftId} liquidation errored with:`, error);
+        logger.error(`Position ${row.nftId} liquidation errored with:`);
+        logger.error(error);
       }
     }
 
@@ -114,15 +120,13 @@ export default class Liquidator {
    * @param nftId The position nftId to get the swap payload for
    * @returns string - swap payload to close the position
    */
-  private getClosePositionSwapPayload = async (nftId: number): Promise<string> => {
-    // TODO: Consider implementing caching for the resources (not the function output)
-    const ledgerEntry = await this.positionLedger.getPosition(nftId);
-
-    const strategy = Contracts.general.multiPoolStrategy(new EthereumAddress(ledgerEntry.strategyAddress), this.signer);
-    const strategyAsset = await strategy.asset();
-    const minimumExpectedAssets = await strategy.convertToAssets(ledgerEntry.strategyShares);
+  private getClosePositionSwapPayload = async (strategy: EthereumAddress, strategyShares: number): Promise<string> => {
+    const strategyContract = Contracts.general.multiPoolStrategy(strategy, this.signer);
+    const strategyAsset = await strategyContract.asset(); // Optimization: can get from DB
     const asset = Contracts.general.ERC20(new EthereumAddress(strategyAsset), this.signer);
-    const assetDecimals = await asset.decimals();
+    const assetDecimals = await asset.decimals(); // Optimization: can get from DB
+    const strategySharesN = ethers.parseUnits(strategyShares.toFixed(Number(assetDecimals)), assetDecimals);
+    const minimumExpectedAssets = await strategyContract.convertToAssets(strategySharesN); // Must query live
 
     const uniSwap = new UniSwap(process.env.MAINNET_RPC_URL!);
     const { payload } = await uniSwap.buildPayload(

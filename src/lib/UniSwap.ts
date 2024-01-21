@@ -45,7 +45,7 @@ export default class Uniswap {
         TradeType.EXACT_INPUT,
         undefined,
         { protocols },
-      )
+        )
       const { pools, tokenPath, swapOutputAmount } = this.mapRouteData(route)
       const { dataTypes, dataValues } = this.buildPathFromUniswapRouteData(
         pools,
