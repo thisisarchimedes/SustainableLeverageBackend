@@ -12,9 +12,6 @@ import Liquidator from './liquidator';
   const liquidator = new Liquidator(signer, logger);
   await liquidator.initialize();
 
-  liquidator.measureTest();
-  return;
-
   let isRunning = false;
 
   console.log('Liquidator bot is listening for new blocks...');

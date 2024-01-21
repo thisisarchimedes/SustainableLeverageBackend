@@ -51,6 +51,7 @@ export default class Liquidator {
 
     let liquidatedCount = 0;
 
+    const promises = [];
     for (const row of res.rows) {
       try {
         const nftId: number = Number(row.nftId);
@@ -63,39 +64,45 @@ export default class Liquidator {
         }
 
         // Simulate the transaction
-        const payload = await this.getClosePositionSwapPayload(strategy, strategyShares);
+        // console.log('Building payload for:', nftId); // Debug
+        promises.push(this.getClosePositionSwapPayload(strategy, strategyShares).then((payload) => {
+          return new Promise<void>((resolve) => {
+            const data = this.positionLiquidator.interface.encodeFunctionData('liquidatePosition', [{
+              nftId,
+              minWBTC: 0,
+              swapRoute: "0",
+              swapData: payload,
+              exchange: "0x0000000000000000000000000000000000000000",
+            }]);
 
-        const data = this.positionLiquidator.interface.encodeFunctionData('liquidatePosition', [{
-          nftId,
-          minWBTC: 0,
-          swapRoute: "0",
-          swapData: payload,
-          exchange: "0x0000000000000000000000000000000000000000",
-        }]);
+            // Create a transaction object
+            const tx = {
+              to: this.config.positionLiquidator.toString(),
+              data,
+              gasPrice,
+            };
 
-        // Create a transaction object
-        const tx = {
-          to: this.config.positionLiquidator.toString(),
-          data,
-          gasPrice,
-        };
+            // console.log('Simulating transaction:', nftId); // Debug
 
-        try {
-          // Simulate the transaction
-          await this.txSimulator.simulateAndRunTransaction(tx);
-
-          liquidatedCount++;
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        } catch (error: any) {
-          if (error.data === "0x5e6797f9") { // NotEligibleForLiquidation selector
-            console.log(`Position ${nftId} is not eligible for liquidation`);
-            logger.info(`Position ${nftId} is not eligible for liquidation`);
-          } else {
-            console.error(`Position ${nftId} liquidation errored with:`, error);
-            logger.error(`Position ${nftId} liquidation errored with:`);
-            logger.error(error);
-          }
-        }
+            // Simulate the transaction
+            this.txSimulator.simulateAndRunTransaction(tx)
+              .then(() => {
+                liquidatedCount++;
+                resolve();
+              })
+              .catch((error) => {
+                if (error.data === "0x5e6797f9") { // NotEligibleForLiquidation selector
+                  console.log(`Position ${nftId} is not eligible for liquidation`);
+                  logger.info(`Position ${nftId} is not eligible for liquidation`);
+                } else {
+                  console.error(`Position ${nftId} liquidation errored with:`, error);
+                  logger.error(`Position ${nftId} liquidation errored with:`);
+                  logger.error(error);
+                }
+                resolve();
+              });
+          });
+        }));
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (error: any) {
         console.error(`Position ${row.nftId} liquidation errored with:`, error);
@@ -103,6 +110,9 @@ export default class Liquidator {
         logger.error(error);
       }
     }
+
+    // Await for the processes to finish
+    await Promise.allSettled(promises);
 
     if (liquidatedCount === 0) {
       console.log(`No positions liquidated`);
