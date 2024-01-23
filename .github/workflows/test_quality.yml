@@ -70,6 +70,7 @@ jobs:
       - name: Calculating test coverage
         run: |
           npx hardhat coverage > tmp_report
+          cat tmp_report
           echo "COVERAGE_FUNC=`grep "Total" tmp_report | awk '{print $(NF-2)}'`" >> $GITHUB_ENV
 
       - name: Report test run time
