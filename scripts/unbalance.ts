@@ -13,8 +13,13 @@ import { ethers } from 'hardhat';
   const alUSDMemSlot = getTokenBalancesSlot(ALUSD.toString());
   await evmStorage.setERC20Balance(ALUSD, alUSDMemSlot.slot, new EthereumAddress(signer.address), curvePool.dumpTokenBalance, alUSDMemSlot.isVyper);
 
+  console.log("FRAXBP", curvePool.valueTokenBalance.toString());
+  console.log("ALUSD", curvePool.dumpTokenBalance.toString());
+  console.log("1 ALUSD = ", await (curvePool.getDumpTokenPriceInValueToken()), "FRAXBP");
+  console.log('Unbalancing...');
+
   // Unbalance the pool
-  await curvePool.unbalance(75);
+  await curvePool.unbalance(30);
 
   console.log("FRAXBP", curvePool.valueTokenBalance.toString());
   console.log("ALUSD", curvePool.dumpTokenBalance.toString());
