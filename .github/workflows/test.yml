@@ -80,8 +80,13 @@ jobs:
           yarn add install axios dotenv
           node devops/metrics/src/cicd_script/report_devops_event.js ${{ github.repository }} "test_run" '{"pass": true, "time": ${{ env.DURATION }}, "coverage.functions": "NA"}' 
           
-
+      - name: Check for changes in src/
+        id: check_changes
+        run: |
+          echo "::set-output name=src_changed::$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep '^src/' && echo 'true' || echo 'false')"
+      
       - name: SonarCloud Scan
+        if: steps.check_changes.outputs.src_changed == 'true'
         uses: SonarSource/sonarcloud-github-action@master
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

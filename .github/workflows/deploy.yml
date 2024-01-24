@@ -158,7 +158,13 @@ jobs:
             yarn install                                # Install dependencies
             pm2 start 'yarn liquidator'                 # Run the liquidator bot
 
+      - name: Check for changes in src/
+        id: check_changes
+        run: |
+          echo "::set-output name=src_changed::$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep '^src/' && echo 'true' || echo 'false')"
+        
       - name: SonarCloud Scan
+        if: steps.check_changes.outputs.src_changed == 'true'
         uses: SonarSource/sonarcloud-github-action@master
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
