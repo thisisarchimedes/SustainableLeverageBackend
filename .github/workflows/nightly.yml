@@ -67,6 +67,17 @@ jobs:
             echo "TEST_PASS=false" >> $GITHUB_ENV
           fi
 
+      - name: Run lint on tests
+        continue-on-error: true
+        run: |
+          LINT_OUTPUT=`yarn eslint -c .eslintrc.js test/**/*.ts | grep "problem" | awk '{print $2}'`
+            
+          if [ -z "$LINT_OUTPUT" ]; then
+            LINT_OUTPUT=0
+          fi
+            
+          echo "LINT_PROBLEMS=$LINT_OUTPUT" >> $GITHUB_ENV
+
       - name: Calculating test coverage
         run: |
           npx hardhat coverage > tmp_report
@@ -76,4 +87,6 @@ jobs:
         run: |
           echo "Time taken to run the tests: ${{ env.DURATION }} seconds"
           yarn add install axios dotenv
-          node devops/metrics/src/cicd_script/report_devops_event.js ${{ github.repository }} "test_run" '{"pass": ${{ env.TEST_PASS }}, "time": ${{ env.DURATION }}, "coverage.functions": "${{ env.COVERAGE_FUNC }}"}' 
+          node devops/metrics/src/cicd_script/report_devops_event.js ${{ github.repository }} test_run '{"pass": "${{ env.TEST_PASS }}", "time": "${{ env.DURATION }}" ,"coverage": {"functions": "${{ env.COVERAGE_FUNC }}"}, "linter_issues": {"tests": "${{ env. LINT_PROBLEMS }}"}}'
+
+         

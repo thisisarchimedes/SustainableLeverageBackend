@@ -6,7 +6,7 @@
   "author": "Archimedes",
   "private": true,
   "scripts": {
-    "lint": "eslint */**.ts --fix",
+    "lint": "eslint -c .eslintrc.js src/**/*.ts",
     "build": "tsc",
     "test": "hardhat test",
     "liquidator": "node --loader ts-node/esm src/liquidator/liquidator.ts"
@@ -34,6 +34,7 @@
   "dependencies": {
     "@thisisarchimedes/backend-sdk": "^1.0.49",
     "dotenv": "^16.3.1",
+    "eslint-plugin-mocha": "^10.2.0",
     "ethers": "^6.9.1",
     "nyc": "^15.1.0",
     "pg": "^8.11.3",

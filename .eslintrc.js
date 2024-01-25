@@ -5,7 +5,8 @@ module.exports = {
     },
     "extends": [
         "eslint:recommended",
-        "plugin:@typescript-eslint/recommended"
+        "plugin:@typescript-eslint/recommended",
+        "plugin:mocha/recommended",
     ],
     "overrides": [
         {
@@ -27,7 +28,8 @@ module.exports = {
     },
     "plugins": [
         "@typescript-eslint",
-        "promise"
+        "promise",
+        "mocha"
     ],
     "rules": {
         "require-await": "error"
