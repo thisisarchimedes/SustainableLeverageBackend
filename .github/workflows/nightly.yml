@@ -1,4 +1,4 @@
-name: Run Tests Quality Check
+name: Run Nightly Check
 
 on:
   schedule:
