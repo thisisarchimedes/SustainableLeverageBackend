@@ -16,7 +16,8 @@ const config: HardhatUserConfig = {
 		},
 		external: {
 			url: process.env.RPC_URL!,
-			chainId: 31337
+			chainId: 31337,
+			accounts: [process.env.PRIVATE_KEY!]
 		},
 		localhost: {
 			url: "http://127.0.0.1:8545"

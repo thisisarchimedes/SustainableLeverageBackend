@@ -69,6 +69,14 @@ export default class CurvePool {
     }
   }
 
+  public async rebalanceToState(valueTokenBalance: bigint, dumpTokenBalance: bigint): Promise<void> {
+    const balances: bigint[] = [];
+    balances[this.valueTokenIndex] = valueTokenBalance - this.valueTokenBalance;
+    balances[this.dumpTokenIndex] = dumpTokenBalance - this.dumpTokenBalance;
+    console.log(valueTokenBalance, this.valueTokenBalance, dumpTokenBalance, this.dumpTokenBalance);
+    await this.contractPool['add_liquidity(uint256[2],uint256)'](balances as [bigint, bigint], 0n);
+  }
+
   public async unbalance(percentToUnbalance: number): Promise<void> {
     assert.ok(percentToUnbalance <= 100, 'Percentage can\'t be higher than 100');
 
