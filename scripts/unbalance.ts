@@ -16,7 +16,7 @@ import { ethers } from 'hardhat';
 
   const evmStorage = new EVMStorageManipulator(signer.provider as JsonRpcProvider);
   const alUSDMemSlot = getTokenBalancesSlot(ALUSD.toString());
-  await evmStorage.setERC20Balance(ALUSD, alUSDMemSlot.slot, new EthereumAddress(signer.address), curvePool.dumpTokenBalance, alUSDMemSlot.isVyper);
+  await evmStorage.setERC20Balance(ALUSD, alUSDMemSlot.slot, new EthereumAddress(signer.address), 10n ** 36n, alUSDMemSlot.isVyper);
 
   console.log("FRAXBP", curvePool.valueTokenBalance.toString());
   console.log("ALUSD", curvePool.dumpTokenBalance.toString());

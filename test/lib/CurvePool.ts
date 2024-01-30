@@ -1,14 +1,15 @@
 import { type HardhatEthersSigner } from '@nomicfoundation/hardhat-ethers/signers';
-import { CURVE_POOL } from './addresses';
+import { CURVE_POOL, CURVE_POOL_ADAPTER } from './addresses';
 import { assert } from 'chai';
 import { ethers } from 'hardhat';
-import { Contracts, EthereumAddress, CurvePool as CurvePoolContract } from '@thisisarchimedes/backend-sdk';
+import { Contracts, EthereumAddress, CurvePool as CurvePoolContract, ConvexPoolAdapter } from '@thisisarchimedes/backend-sdk';
 
 export default class CurvePool {
   //* Public methods *//
 
   static async createInstance(signer: HardhatEthersSigner, poolAddress: EthereumAddress, dumpToken: EthereumAddress, valueToken: EthereumAddress): Promise<CurvePool> {
     const pool = Contracts.general.curvePool(poolAddress, signer);
+    const adapter = Contracts.general.convexPoolAdapter(CURVE_POOL_ADAPTER, signer);
     const valueTokenContract = Contracts.general.ERC20(valueToken, signer);
     const dumpTokenContract = Contracts.general.ERC20(dumpToken, signer);
     const valueTokenDecimals = Number(await valueTokenContract.decimals());
@@ -23,11 +24,12 @@ export default class CurvePool {
     await valueTokenContract.approve(CURVE_POOL.toString(), ethers.MaxUint256);
     await dumpTokenContract.approve(CURVE_POOL.toString(), ethers.MaxUint256);
 
-    return new CurvePool(pool, valueTokenIndex, dumpTokenIndex, valuetokenBalance, dumpTokenBalance, dumpTokenDecimals, valueTokenDecimals);
+    return new CurvePool(pool, adapter, valueTokenIndex, dumpTokenIndex, valuetokenBalance, dumpTokenBalance, dumpTokenDecimals, valueTokenDecimals);
   }
 
   constructor(
     public readonly contractPool: CurvePoolContract,
+    public readonly adapter: ConvexPoolAdapter,
     public readonly valueTokenIndex: number,
     public readonly dumpTokenIndex: number,
     public readonly valueTokenBalance: bigint,
@@ -57,24 +59,14 @@ export default class CurvePool {
     const amountToSwap = this.valueTokenBalance * 5n / 100n;
 
     for (let i = 0; i < 1000; i++) {
-      // eslint-disable-next-line no-await-in-loop
-      await this.exchangeValueTokenForDumpToken(amountToSwap);
-
-      // eslint-disable-next-line no-await-in-loop
-      const alUSDPriceInFRAXBPAfter = await this.getDumpTokenPriceInValueToken();
-      // console.log("alUSDPriceInFRAXBPAfter", i, helper.removeDecimals(alUSDPriceInFRAXBPAfter, this.valueTokenDecimals)) // Debug
-      if (Number(ethers.formatUnits(alUSDPriceInFRAXBPAfter, this.valueTokenDecimals)) >= 0.99 && Number(ethers.formatUnits(alUSDPriceInFRAXBPAfter, this.valueTokenDecimals)) <= 1.01) {
+      console.log(await this.adapter.underlyingBalance(), await this.adapter.storedUnderlyingBalance()) // Debug
+      if (await this.adapter.underlyingBalance() > await this.adapter.storedUnderlyingBalance()) {
         break;
       }
-    }
-  }
 
-  public async rebalanceToState(valueTokenBalance: bigint, dumpTokenBalance: bigint): Promise<void> {
-    const balances: bigint[] = [];
-    balances[this.valueTokenIndex] = valueTokenBalance - this.valueTokenBalance;
-    balances[this.dumpTokenIndex] = dumpTokenBalance - this.dumpTokenBalance;
-    console.log(valueTokenBalance, this.valueTokenBalance, dumpTokenBalance, this.dumpTokenBalance);
-    await this.contractPool['add_liquidity(uint256[2],uint256)'](balances as [bigint, bigint], 0n);
+      // eslint-disable-next-line no-await-in-loop
+      await this.exchangeValueTokenForDumpToken(amountToSwap);
+    }
   }
 
   public async unbalance(percentToUnbalance: number): Promise<void> {
