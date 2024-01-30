@@ -1,13 +1,15 @@
-import { type HardhatEthersSigner } from '@nomicfoundation/hardhat-ethers/signers';
-import { CURVE_POOL } from './addresses';
-import { assert } from 'chai';
-import { ethers } from 'hardhat';
-import { Contracts, EthereumAddress, CurvePool as CurvePoolContract } from '@thisisarchimedes/backend-sdk';
+/* eslint-disable new-cap */
+import {type HardhatEthersSigner} from '@nomicfoundation/hardhat-ethers/signers';
+import {CURVE_POOL} from './addresses';
+import {assert} from 'chai';
+import {ethers} from 'hardhat';
+import {Contracts, EthereumAddress, CurvePool as CurvePoolContract} from '@thisisarchimedes/backend-sdk';
 
 export default class CurvePool {
   //* Public methods *//
 
-  static async createInstance(signer: HardhatEthersSigner, poolAddress: EthereumAddress, dumpToken: EthereumAddress, valueToken: EthereumAddress): Promise<CurvePool> {
+  static async createInstance(signer: HardhatEthersSigner, poolAddress: EthereumAddress, dumpToken: EthereumAddress,
+      valueToken: EthereumAddress): Promise<CurvePool> {
     const pool = Contracts.general.curvePool(poolAddress, signer);
     const valueTokenContract = Contracts.general.ERC20(valueToken, signer);
     const dumpTokenContract = Contracts.general.ERC20(dumpToken, signer);
@@ -63,7 +65,8 @@ export default class CurvePool {
       // eslint-disable-next-line no-await-in-loop
       const alUSDPriceInFRAXBPAfter = await this.getDumpTokenPriceInValueToken();
       // console.log("alUSDPriceInFRAXBPAfter", i, helper.removeDecimals(alUSDPriceInFRAXBPAfter, this.valueTokenDecimals)) // Debug
-      if (Number(ethers.formatUnits(alUSDPriceInFRAXBPAfter, this.valueTokenDecimals)) >= 0.99 && Number(ethers.formatUnits(alUSDPriceInFRAXBPAfter, this.valueTokenDecimals)) <= 1.01) {
+      if (Number(ethers.formatUnits(alUSDPriceInFRAXBPAfter, this.valueTokenDecimals)) >= 0.99 &&
+       Number(ethers.formatUnits(alUSDPriceInFRAXBPAfter, this.valueTokenDecimals)) <= 1.01) {
         break;
       }
     }

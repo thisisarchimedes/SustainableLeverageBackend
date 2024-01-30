@@ -1,7 +1,7 @@
-import { Config, loadConfig } from '../lib/ConfigService';
-import { Provider, ethers, getDefaultProvider } from 'ethers';
-import { WBTC, WBTC_DECIMALS } from '../constants';
-import { Contracts, EthereumAddress, Logger } from "@thisisarchimedes/backend-sdk";
+import {Config, loadConfig} from '../lib/ConfigService';
+import {Provider, ethers, getDefaultProvider} from 'ethers';
+import {WBTC, WBTC_DECIMALS} from '../constants';
+import {Contracts, EthereumAddress, Logger} from '@thisisarchimedes/backend-sdk';
 import UniSwap from '../lib/UniSwap';
 import TransactionSimulator from '../lib/TransactionSimulator';
 import DataSource from '../lib/DataSource';
@@ -14,11 +14,11 @@ const GAS_PRICE_DENOMINATOR = 2n;
 // TODO: etherscan api
 
 const dataSource = new DataSource();
-Logger.initialize("liquidator-bot");
+Logger.initialize('liquidator-bot');
 const logger = Logger.getInstance();
 liquidator(dataSource, logger);
 
-/**
+/*
  * Runs over the LIVE positions and simulates the liquidation tx
  * on each of them, if it does not revert, executes the liquidation tx
  * @param config Contracts addresses
@@ -36,7 +36,7 @@ async function liquidator(dataSource: DataSource, logger: Logger) {
 
   // Infinite Loop
   // eslint-disable-next-line no-constant-condition
-  while(true) {
+  while (true) {
     // Query to get all nftIds
     const res = await dataSource.getLivePositions();
 
@@ -44,7 +44,7 @@ async function liquidator(dataSource: DataSource, logger: Logger) {
 
     for (const row of res.rows) {
       const nftId: number = Number(row.nftId);
-      if(isNaN(nftId)) {
+      if (isNaN(nftId)) {
         console.error(`Position nftId is not a number`);
         logger.error(`Position nftId is not a number`);
         continue;
@@ -59,9 +59,9 @@ async function liquidator(dataSource: DataSource, logger: Logger) {
         const data = positionLiquidator.interface.encodeFunctionData('liquidatePosition', [{
           nftId,
           minWBTC: 0,
-          swapRoute: "0",
+          swapRoute: '0',
           swapData: payload,
-          exchange: "0x0000000000000000000000000000000000000000",
+          exchange: '0x0000000000000000000000000000000000000000',
         }]);
 
         // Configure gas price
@@ -87,7 +87,7 @@ async function liquidator(dataSource: DataSource, logger: Logger) {
         liquidatedCount++;
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (error: any) {
-        if (error.data === "0x5e6797f9") { // NotEligibleForLiquidation selector
+        if (error.data === '0x5e6797f9') { // NotEligibleForLiquidation selector
           console.log(`Position ${nftId} is not eligible for liquidation`);
           logger.info(`Position ${nftId} is not eligible for liquidation`);
         } else {
@@ -98,9 +98,9 @@ async function liquidator(dataSource: DataSource, logger: Logger) {
       }
     }
 
-    if(liquidatedCount === 0) {
+    if (liquidatedCount === 0) {
       console.log(`No positions liquidated, sleeping for ${IDLE_DELAY}ms`);
-      logger.info(`No positions liquidated, sleeping for ${IDLE_DELAY}ms`)
+      logger.info(`No positions liquidated, sleeping for ${IDLE_DELAY}ms`);
       await sleep(IDLE_DELAY);
     } else {
       console.warn(`${liquidatedCount} out of ${res.rows.length} positions liquidated`);
@@ -109,12 +109,12 @@ async function liquidator(dataSource: DataSource, logger: Logger) {
   }
 }
 
-/**
+/*
  * Returns the swap payload to close the position
  * @param provider Ethers provider
  * @param config Contracts addresses
  * @param nftId The position nftId to get the swap payload for
- * @returns string - swap payload to close the position
+ * @return string - swap payload to close the position
  */
 const getClosePositionSwapPayload = async (provider: Provider, config: Config, nftId: number): Promise<string> => {
   const positionLedger = Contracts.leverage.positionLedger(config.positionLedger, provider);
@@ -124,21 +124,22 @@ const getClosePositionSwapPayload = async (provider: Provider, config: Config, n
   const strategyAsset = await strategy.asset();
   const minimumExpectedAssets = await strategy.convertToAssets(ledgerEntry.strategyShares);
 
+  // eslint-disable-next-line new-cap
   const asset = Contracts.general.ERC20(new EthereumAddress(strategyAsset), provider);
   const assetDecimals = await asset.decimals();
 
   const uniSwap = new UniSwap(process.env.MAINNET_RPC_URL!);
-  const { payload } = await uniSwap.buildPayload(
-    ethers.formatUnits(minimumExpectedAssets, assetDecimals),
-    new EthereumAddress(strategyAsset),
-    Number(assetDecimals),
-    new EthereumAddress(WBTC),
-    WBTC_DECIMALS,
+  const {payload} = await uniSwap.buildPayload(
+      ethers.formatUnits(minimumExpectedAssets, assetDecimals),
+      new EthereumAddress(strategyAsset),
+      Number(assetDecimals),
+      new EthereumAddress(WBTC),
+      WBTC_DECIMALS,
   );
 
   return payload;
-}
+};
 
 const sleep = (milliseconds: number) => {
-  return new Promise(resolve => setTimeout(resolve, milliseconds));
-}
+  return new Promise((resolve) => setTimeout(resolve, milliseconds));
+};
