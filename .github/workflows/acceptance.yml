@@ -16,7 +16,7 @@ env:
   DEVOPS_EVENTS_SECRET_TOKEN: ${{ secrets.DEVOPS_EVENTS_SECRET_TOKEN }}
 
 jobs:
-  test:
+  acceptance-test:
     runs-on: ubuntu-latest
     steps:
       - name: Acceptance Test
