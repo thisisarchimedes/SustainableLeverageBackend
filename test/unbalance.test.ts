@@ -42,6 +42,7 @@ describe('Unbalance pool', function() {
 
     // Assert for unbalanced pool
     const alUSDPriceInFRAXBPAfter = await curvePool.getDumpTokenPriceInValueToken();
-    assert(Number(ethers.formatUnits(alUSDPriceInFRAXBPAfter, curvePool.valueTokenDecimals)) < 0.75, 'Pool is not unbalanced enough');
+    assert(Number(ethers.formatUnits(alUSDPriceInFRAXBPAfter,
+        curvePool.valueTokenDecimals)) < 0.75, 'Pool is not unbalanced enough');
   });
 });

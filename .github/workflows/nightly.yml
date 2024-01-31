@@ -1,0 +1,103 @@
+name: Nightly Check
+
+on:
+  schedule:
+    - cron: '0 0 * * *'
+  workflow_dispatch:
+
+env:
+  AWS_REGION: us-east-1
+  EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }} 
+  EC2_HOST: ${{ secrets.EC2_HOST }} 
+  DEMO_EC2_HOST: ${{ secrets.DEMO_EC2_HOST }} 
+  EC2_USER: ubuntu
+  PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
+  API_DEVOPS_EVENT_CATCHER: ${{ vars.API_DEVOPS_EVENT_CATCHER }}
+  DEVOPS_EVENTS_SECRET_TOKEN: ${{ secrets.DEVOPS_EVENTS_SECRET_TOKEN }}
+  DB_HOST: ${{ secrets.DB_HOST }}
+  DB_PORT: ${{ secrets.DB_PORT }}
+  DB_NAME: ${{ secrets.DB_NAME }}
+  DB_USER: ${{ secrets.DB_USER }}
+  DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+  S3_BUCKET_CONFIG: ${{ secrets.S3_BUCKET_CONFIG }}
+  S3_ADDRESSES_KEY: ${{ secrets.S3_ADDRESSES_KEY }}
+  RPC_URL: ${{ secrets.RPC_URL }}
+  MAINNET_RPC_URL: ${{ secrets.MAINNET_RPC_URL }}
+  NEW_RELIC_API_KEY: ${{ secrets.NEW_RELIC_API_KEY }}
+  PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
+
+jobs:
+  test_quality:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          submodules: "recursive"
+          fetch-depth: 0
+  
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "latest"
+
+      - name: Install dependencies
+        run: yarn install
+
+      - name: Run Test Suite
+        id: test_suite
+        continue-on-error: true
+        run: |
+          echo "TEST_START=$(date +%s)" >> $GITHUB_ENV  
+
+          yarn test > test_coverage.txt
+
+          end=$(date +%s)
+          duration=$((end-${{ env.TEST_START }}))
+
+          echo "DURATION=$duration" >> $GITHUB_ENV
+          echo "Time taken to run the tests: $duration seconds"
+
+          echo "::set-output name=passed::$?"
+
+          cat test_coverage.txt
+          echo "COVERAGE_FUNC=`grep "All files" test_coverage.txt | awk -F '|' '{print $4}' | sed 's/^[ \t]*//;s/[ \t]*$//'`" >> $GITHUB_ENV
+          
+
+      - name: Set Test Result Env Variable
+        run: |
+          if [ ${{ steps.test_suite.outputs.passed }} -eq 0 ]; then
+            echo "TEST_PASS=true" >> $GITHUB_ENV
+          else
+            echo "TEST_PASS=false" >> $GITHUB_ENV
+          fi
+
+      - name: Runnig Stryker Mutator JS
+        id: mutation_testing
+        run : |  
+          yarn stryker run > stryker_log.txt
+          cat stryker_log.txt
+          echo "COVERAGE_STRYKER_FUNC=`awk '/^All files/{print $4}' stryker_log.txt`" >> $GITHUB_ENV
+          echo Stryker Mutator score: ${{ env.COVERAGE_STRYKER_FUNC}}
+  
+
+      - name: Run lint on tests
+        continue-on-error: true
+        run: |
+          LINT_OUTPUT=`yarn eslint -c .eslintrc.js test/**/*.ts | grep "problem" | awk '{print $2}'`
+            
+          if [ -z "$LINT_OUTPUT" ]; then
+            LINT_OUTPUT=0
+          fi
+            
+          echo "LINT_PROBLEMS=$LINT_OUTPUT" >> $GITHUB_ENV
+
+
+      - name: Report test run time
+        run: |
+            echo "Time taken to run the script: ${{ env.DURATION }} seconds"
+  
+            yarn add axios dotenv
+            node devops/metrics/src/cicd_script/report_devops_event.js ${{ github.repository }} test_run '{"pass": "${{ env.TEST_PASS }}", "time": "${{ env.DURATION }}" ,"coverage": {"functions": "${{ env.COVERAGE_FUNC }}"}, "functions_stryker": "${{ env.COVERAGE_STRYKER_FUNC }}", "linter_issues": {"tests": "${{ env. LINT_PROBLEMS }}"}}'
+  
+  

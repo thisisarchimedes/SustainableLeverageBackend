@@ -33,8 +33,10 @@ module.exports = {
     'mocha',
   ],
   'rules': {
+    'complexity': ['error', 8],
     'require-await': 'error',
     'max-len': ['error', {'code': 140}],
     'require-jsdoc': 'off',
+    'valid-jsdoc': 'off',
   },
 };
