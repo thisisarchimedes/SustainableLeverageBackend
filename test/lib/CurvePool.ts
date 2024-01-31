@@ -1,15 +1,18 @@
-import { type HardhatEthersSigner } from '@nomicfoundation/hardhat-ethers/signers';
-import { CURVE_POOL } from './addresses';
-import { assert } from 'chai';
-import { ethers } from 'hardhat';
-import { Contracts, EthereumAddress, CurvePool as CurvePoolContract } from '@thisisarchimedes/backend-sdk';
+import {type HardhatEthersSigner} from '@nomicfoundation/hardhat-ethers/signers';
+import {CURVE_POOL} from './addresses';
+import {assert} from 'chai';
+import {ethers} from 'hardhat';
+import {Contracts, EthereumAddress, CurvePool as CurvePoolContract} from '@thisisarchimedes/backend-sdk';
 
 export default class CurvePool {
   //* Public methods *//
 
-  static async createInstance(signer: HardhatEthersSigner, poolAddress: EthereumAddress, dumpToken: EthereumAddress, valueToken: EthereumAddress): Promise<CurvePool> {
+  static async createInstance(signer: HardhatEthersSigner,
+      poolAddress: EthereumAddress, dumpToken: EthereumAddress, valueToken: EthereumAddress): Promise<CurvePool> {
     const pool = Contracts.general.curvePool(poolAddress, signer);
+    // eslint-disable-next-line new-cap
     const valueTokenContract = Contracts.general.ERC20(valueToken, signer);
+    // eslint-disable-next-line new-cap
     const dumpTokenContract = Contracts.general.ERC20(dumpToken, signer);
     const valueTokenDecimals = Number(await valueTokenContract.decimals());
     const dumpTokenDecimals = Number(await dumpTokenContract.decimals());
@@ -23,7 +26,8 @@ export default class CurvePool {
     await valueTokenContract.approve(CURVE_POOL.toString(), ethers.MaxUint256);
     await dumpTokenContract.approve(CURVE_POOL.toString(), ethers.MaxUint256);
 
-    return new CurvePool(pool, valueTokenIndex, dumpTokenIndex, valuetokenBalance, dumpTokenBalance, dumpTokenDecimals, valueTokenDecimals);
+    return new CurvePool(pool, valueTokenIndex, dumpTokenIndex,
+        valuetokenBalance, dumpTokenBalance, dumpTokenDecimals, valueTokenDecimals);
   }
 
   constructor(
@@ -37,18 +41,21 @@ export default class CurvePool {
   ) { }
 
   public async exchangeDumpTokenForValueToken(amount: bigint): Promise<void> {
-    await this.contractPool['exchange_underlying(int128,int128,uint256,uint256)'](this.dumpTokenIndex, this.valueTokenIndex, amount, 0);
+    await this.contractPool['exchange_underlying(int128,int128,uint256,uint256)'](this.dumpTokenIndex,
+        this.valueTokenIndex, amount, 0);
   }
 
   public async exchangeValueTokenForDumpToken(amount: bigint): Promise<void> {
-    await this.contractPool['exchange(int128,int128,uint256,uint256)'](this.valueTokenIndex, this.dumpTokenIndex, amount, 0);
+    await this.contractPool['exchange(int128,int128,uint256,uint256)'](this.valueTokenIndex,
+        this.dumpTokenIndex, amount, 0);
   }
 
   public async getDumpTokenPriceInValueToken(dumpPercentage = 10): Promise<bigint> {
     assert.ok(dumpPercentage <= 100, 'Percentage can\'t be higher than 100');
     // Take a significant amount of dump token otherwise get a skewed price
     const priceReferenceAmount = this.dumpTokenBalance * BigInt(dumpPercentage) / 10000n; // 0.1%
-    const dumpTokenPriceInValueToken = await this.contractPool.get_dy(this.dumpTokenIndex, this.valueTokenIndex, priceReferenceAmount);
+    const dumpTokenPriceInValueToken = await this.contractPool.get_dy(this.dumpTokenIndex,
+        this.valueTokenIndex, priceReferenceAmount);
 
     return dumpTokenPriceInValueToken * (10n ** BigInt(this.dumpTokenDecimals)) / priceReferenceAmount;
   }
@@ -62,8 +69,8 @@ export default class CurvePool {
 
       // eslint-disable-next-line no-await-in-loop
       const alUSDPriceInFRAXBPAfter = await this.getDumpTokenPriceInValueToken();
-      // console.log("alUSDPriceInFRAXBPAfter", i, helper.removeDecimals(alUSDPriceInFRAXBPAfter, this.valueTokenDecimals)) // Debug
-      if (Number(ethers.formatUnits(alUSDPriceInFRAXBPAfter, this.valueTokenDecimals)) >= 0.99 && Number(ethers.formatUnits(alUSDPriceInFRAXBPAfter, this.valueTokenDecimals)) <= 1.01) {
+      if (Number(ethers.formatUnits(alUSDPriceInFRAXBPAfter, this.valueTokenDecimals)) >= 0.99 &&
+          Number(ethers.formatUnits(alUSDPriceInFRAXBPAfter, this.valueTokenDecimals)) <= 1.01) {
         break;
       }
     }
@@ -80,8 +87,7 @@ export default class CurvePool {
 
       // eslint-disable-next-line no-await-in-loop
       const alUSDPriceInFRAXBPAfter = await this.getDumpTokenPriceInValueToken();
-      // Console.log("alUSDPriceInFRAXBPAfter", helper.removeDecimals(alUSDPriceInFRAXBPAfter, this.valueTokenDecimals)) // Debug
-      if (Number(ethers.formatUnits(alUSDPriceInFRAXBPAfter, this.valueTokenDecimals)) < 1 - (percentToUnbalance / 100)) {
+      if (Number(ethers.formatUnits(alUSDPriceInFRAXBPAfter, this.valueTokenDecimals))<1 - (percentToUnbalance / 100)) {
         break;
       }
     }

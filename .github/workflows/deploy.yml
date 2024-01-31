@@ -1,9 +1,13 @@
-name: Deploy
+name: Deploy to Prod Stage
 
 on:
   push:
     branches:
       - main
+    paths:
+      - 'src/**'
+      - 'scripts/**'
+
 
 env:
   AWS_REGION: us-east-1
@@ -16,22 +20,14 @@ env:
   DEVOPS_EVENTS_SECRET_TOKEN: ${{ secrets.DEVOPS_EVENTS_SECRET_TOKEN }}
   
 jobs:
-  download-trigger:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Download Trigger Artifact
-        uses: actions/download-artifact@v2
-        with:
-          name: deploy-trigger
-
   deploy-sustainable-leverage-liquidation-bot-ec2:
     runs-on: ubuntu-latest
-    needs: [download-trigger]
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           submodules: "recursive"
+          fetch-depth: 0
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -93,7 +89,6 @@ jobs:
 
   deploy-sustainable-leverage-liquidation-bot-demo-ec2:
     runs-on: ubuntu-latest
-    needs: ["download-trigger"]
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -158,19 +153,9 @@ jobs:
             yarn install                                # Install dependencies
             pm2 start 'yarn liquidator'                 # Run the liquidator bot
 
-      - name: Check for changes in src/
-        id: check_changes
-        run: |
-          echo "::set-output name=src_changed::$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep '^src/' && echo 'true' || echo 'false')"
-        
-      - name: SonarCloud Scan
-        if: steps.check_changes.outputs.src_changed == 'true'
-        uses: SonarSource/sonarcloud-github-action@master
+      - name: Slack Notification
+        if: always()
+        uses: rtCamp/action-slack-notify@v2
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SONAR_TOKEN: ${{ secrets.SONARCLOUD_TOKEN }}
-            
-      - name: Report deploy event
-        run: |
-          yarn add install axios dotenv
-          node devops/metrics/src/cicd_script/report_devops_event.js ${{ github.repository }} "deploy"
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+    

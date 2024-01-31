@@ -1,12 +1,10 @@
-name: Run Tests
+name: Commit Stage
 
 on:
   push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
+    branches-ignore:
+      - 'main' 
+  
 
 env:
   AWS_REGION: us-east-1
@@ -21,13 +19,17 @@ env:
 jobs:
   test:
     runs-on: ubuntu-latest
-    outputs:
-      trigger-deploy: ${{ steps.set_output.outputs.trigger-deploy }}
     steps:
+      - name: Set env variables
+        run: |
+          echo "TEST_PASS=true" >> $GITHUB_ENV
+          echo "REPORT_URL=https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"  >> $GITHUB_ENV
+
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           submodules: "recursive"
+          fetch-depth: 0
   
       - name: Use Node.js
         uses: actions/setup-node@v4
@@ -48,8 +50,7 @@ jobs:
           MAINNET_RPC_URL: ${{ secrets.MAINNET_RPC_URL }}
           NEW_RELIC_API_KEY: ${{ secrets.NEW_RELIC_API_KEY }}
           PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
-        run: |
-          echo "TEST_START=$(date +%s)" >> $GITHUB_ENV  
+        run: |  
           yarn test
 
       - name: Test-Demo
@@ -68,45 +69,19 @@ jobs:
         run: |
           yarn test
 
-          end=$(date +%s)
-          duration=$((end-${{ env.TEST_START }}))
-
-          echo "DURATION=$duration" >> $GITHUB_ENV
-          echo "Time taken to run the tests: $duration seconds"
-
-      - name: Report test run time
-        run: |
-          echo "Time taken to run the tests: ${{ env.DURATION }} seconds"
-          yarn add install axios dotenv
-          node devops/metrics/src/cicd_script/report_devops_event.js ${{ github.repository }} "test_run" '{"pass": true, "time": ${{ env.DURATION }}, "coverage.functions": "NA"}' 
-          
-      - name: Check for changes in src/
-        id: check_changes
-        run: |
-          echo "::set-output name=src_changed::$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep '^src/' && echo 'true' || echo 'false')"
-      
       - name: SonarCloud Scan
-        if: steps.check_changes.outputs.src_changed == 'true'
         uses: SonarSource/sonarcloud-github-action@master
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONARCLOUD_TOKEN }}
-          
-      - name: Set output for deploy
-        id: set_output
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        run: echo "::set-output name=trigger-deploy::true"
-    
 
-  create-deploy-trigger:
-    runs-on: ubuntu-latest
-    needs: [test] 
-    if: success()            
-    steps:
-      - name: Create Trigger File
-        run: echo "Tests passed" > deploy_trigger.txt
-      - name: Upload Trigger Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: deploy-trigger
-          path: deploy_trigger.txt
+      - name: Update TEST_PASS on failure
+        if: failure()
+        run: echo "TEST_PASS=false" >> $GITHUB_ENV
+      
+      - name: Report stage result
+        if: always()
+        run: |
+              yarn add axios dotenv
+              node devops/metrics/src/cicd_script/report_devops_event.js ${{ github.repository }} push '{"pass": "${{ env.TEST_PASS }}", "commit_id": "${{ github.sha }}" ,"report_url": "${{ env.REPORT_URL }}"}'
+        

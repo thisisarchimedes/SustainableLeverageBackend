@@ -1,4 +1,4 @@
-name: Run Nightly Check
+name: Nightly Check
 
 on:
   schedule:
@@ -34,6 +34,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           submodules: "recursive"
+          fetch-depth: 0
   
       - name: Use Node.js
         uses: actions/setup-node@v4
@@ -67,6 +68,15 @@ jobs:
             echo "TEST_PASS=false" >> $GITHUB_ENV
           fi
 
+      - name: Runnig Stryker Mutator JS
+        id: mutation_testing
+        run : |  
+          yarn stryker run > stryker_log.txt
+          cat stryker_log.txt
+          echo "COVERAGE_STRYKER_FUNC=`awk '/^All files/{print $8}' stryker_log.txt`" >> $GITHUB_ENV
+          echo Stryker Mutator score: ${{ env.COVERAGE_STRYKER_FUNC}}
+  
+
       - name: Run lint on tests
         continue-on-error: true
         run: |
@@ -80,13 +90,14 @@ jobs:
 
       - name: Calculating test coverage
         run: |
-          npx hardhat coverage > tmp_report
+          yarn test > tmp_report
+          cat tmp_report
           echo "COVERAGE_FUNC=`grep "Total" tmp_report | awk '{print $(NF-2)}'`" >> $GITHUB_ENV
 
       - name: Report test run time
         run: |
           echo "Time taken to run the tests: ${{ env.DURATION }} seconds"
           yarn add install axios dotenv
-          node devops/metrics/src/cicd_script/report_devops_event.js ${{ github.repository }} test_run '{"pass": "${{ env.TEST_PASS }}", "time": "${{ env.DURATION }}" ,"coverage": {"functions": "${{ env.COVERAGE_FUNC }}"}, "linter_issues": {"tests": "${{ env. LINT_PROBLEMS }}"}}'
+          node devops/metrics/src/cicd_script/report_devops_event.js ${{ github.repository }} test_run '{"pass": "${{ env.TEST_PASS }}", "time": "${{ env.DURATION }}" ,"coverage": {"functions": "${{ env.COVERAGE_FUNC }}"}, "functions_stryker": "${{ env.COVERAGE_STRYKER_FUNC }}", "linter_issues": {"tests": "${{ env. LINT_PROBLEMS }}"}}'
 
          
