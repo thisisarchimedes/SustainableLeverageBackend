@@ -1,14 +1,14 @@
-import { assert } from 'chai';
+import {assert} from 'chai';
 import DataSource from '../src/lib/DataSource';
 
-describe('DataSource Test', function () {
+describe('DataSource Test', function() {
   let dataSource: DataSource;
 
-  before(() => {
+  before(function() {
     dataSource = new DataSource();
   });
 
-  it('Check get live positions', async function () {
+  it('Check get live positions', async function() {
     const res = await dataSource.getLivePositions();
 
     for (const row of res.rows) {

@@ -1,0 +1,87 @@
+name: Commit Stage
+
+on:
+  push:
+    branches-ignore:
+      - 'main' 
+  
+
+env:
+  AWS_REGION: us-east-1
+  EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }} 
+  EC2_HOST: ${{ secrets.EC2_HOST }} 
+  DEMO_EC2_HOST: ${{ secrets.DEMO_EC2_HOST }} 
+  EC2_USER: ubuntu
+  PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
+  API_DEVOPS_EVENT_CATCHER: ${{ vars.API_DEVOPS_EVENT_CATCHER }}
+  DEVOPS_EVENTS_SECRET_TOKEN: ${{ secrets.DEVOPS_EVENTS_SECRET_TOKEN }}
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set env variables
+        run: |
+          echo "TEST_PASS=true" >> $GITHUB_ENV
+          echo "REPORT_URL=https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"  >> $GITHUB_ENV
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          submodules: "recursive"
+          fetch-depth: 0
+  
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "latest"
+      - name: Install dependencies
+        run: yarn
+      - name: Test
+        env:
+          DB_HOST: ${{ secrets.DB_HOST }}
+          DB_PORT: ${{ secrets.DB_PORT }}
+          DB_NAME: ${{ secrets.DB_NAME }}
+          DB_USER: ${{ secrets.DB_USER }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          S3_BUCKET_CONFIG: ${{ secrets.S3_BUCKET_CONFIG }}
+          S3_ADDRESSES_KEY: ${{ secrets.S3_ADDRESSES_KEY }}
+          RPC_URL: ${{ secrets.RPC_URL }}
+          MAINNET_RPC_URL: ${{ secrets.MAINNET_RPC_URL }}
+          NEW_RELIC_API_KEY: ${{ secrets.NEW_RELIC_API_KEY }}
+          PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
+        run: |  
+          yarn test
+
+      - name: Test-Demo
+        env:
+          DB_HOST: ${{ secrets.DEMO_DB_HOST }}
+          DB_PORT: ${{ secrets.DEMO_DB_PORT }}
+          DB_NAME: ${{ secrets.DEMO_DB_NAME }}
+          DB_USER: ${{ secrets.DEMO_DB_USER }}
+          DB_PASSWORD: ${{ secrets.DEMO_DB_PASSWORD }}
+          S3_BUCKET_CONFIG: ${{ secrets.S3_BUCKET_CONFIG }}
+          S3_ADDRESSES_KEY: ${{ secrets.DEMO_S3_ADDRESSES_KEY }}
+          RPC_URL: ${{ secrets.DEMO_RPC_URL }}
+          MAINNET_RPC_URL: ${{ secrets.MAINNET_RPC_URL }}
+          NEW_RELIC_API_KEY: ${{ secrets.NEW_RELIC_API_KEY }}
+          PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
+        run: |
+          yarn test
+
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONARCLOUD_TOKEN }}
+
+      - name: Update TEST_PASS on failure
+        if: failure()
+        run: echo "TEST_PASS=false" >> $GITHUB_ENV
+      
+      - name: Report stage result
+        if: always()
+        run: |
+              yarn add axios dotenv
+              node devops/metrics/src/cicd_script/report_devops_event.js ${{ github.repository }} push '{"pass": "${{ env.TEST_PASS }}", "commit_id": "${{ github.sha }}" ,"report_url": "${{ env.REPORT_URL }}"}'
+        
