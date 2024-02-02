@@ -72,29 +72,32 @@ export default class Liquidator {
             if (error.data === "0x5e6797f9") { // NotEligibleForLiquidation selector
               this.logger.info(`Position ${nftId} is not eligible for liquidation`);
             } else {
-              this.logger.error(`Position ${nftId} liquidation errored with:`);
+              this.logger.error(`Position ${nftId} liquidation errored with [1]:`);
               this.logger.error(error);
             }
+            return Promise.reject(error);
           });
         promises.push(promise);
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (error: any) {
-        this.logger.error(`Position ${row.nftId} liquidation errored with:`);
+        this.logger.error(`Position ${row.nftId} liquidation errored with [2]:`);
         this.logger.error(error);
       }
     }
 
     // Await for the processes to finish
-    await Promise.allSettled(promises);
+    const answers = await Promise.allSettled(promises);
 
     if (liquidatedCount === 0) {
       this.logger.info(`No positions liquidated`)
     } else {
       this.logger.warning(`${liquidatedCount} out of ${res.rows.length} positions liquidated`);
     }
+
+    return { liquidatedCount, answers };
   }
 
-  private prepareTransaction = (nftId: number, gasPrice: bigint | null, payload: string):TransactionRequest => {
+  private prepareTransaction = (nftId: number, gasPrice: bigint | null, payload: string): TransactionRequest => {
     const data = this.positionLiquidator.interface.encodeFunctionData('liquidatePosition', [{
       nftId,
       minWBTC: 0,
