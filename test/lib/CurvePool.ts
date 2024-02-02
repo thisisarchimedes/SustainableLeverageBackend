@@ -1,13 +1,14 @@
 import { type HardhatEthersSigner } from '@nomicfoundation/hardhat-ethers/signers';
-import { CURVE_POOL, CURVE_POOL_ADAPTER } from './addresses';
+import { CURVE_POOL, CURVE_POOL_ADAPTER, LEVERAGED_STRATEGY } from './addresses';
 import { assert } from 'chai';
 import { ethers } from 'hardhat';
-import { Contracts, EthereumAddress, CurvePool as CurvePoolContract, ConvexPoolAdapter } from '@thisisarchimedes/backend-sdk';
+import { Contracts, EthereumAddress, CurvePool as CurvePoolContract, ConvexPoolAdapter, LeveragedStrategy } from '@thisisarchimedes/backend-sdk';
 
 export default class CurvePool {
   //* Public methods *//
 
   static async createInstance(signer: HardhatEthersSigner, poolAddress: EthereumAddress, dumpToken: EthereumAddress, valueToken: EthereumAddress): Promise<CurvePool> {
+    const leveragedStrategy = Contracts.leverage.leveragedStrategy(LEVERAGED_STRATEGY, signer);
     const pool = Contracts.general.curvePool(poolAddress, signer);
     const adapter = Contracts.general.convexPoolAdapter(CURVE_POOL_ADAPTER, signer);
     const valueTokenContract = Contracts.general.ERC20(valueToken, signer);
@@ -24,10 +25,11 @@ export default class CurvePool {
     await valueTokenContract.approve(CURVE_POOL.toString(), ethers.MaxUint256);
     await dumpTokenContract.approve(CURVE_POOL.toString(), ethers.MaxUint256);
 
-    return new CurvePool(pool, adapter, valueTokenIndex, dumpTokenIndex, valuetokenBalance, dumpTokenBalance, dumpTokenDecimals, valueTokenDecimals);
+    return new CurvePool(leveragedStrategy, pool, adapter, valueTokenIndex, dumpTokenIndex, valuetokenBalance, dumpTokenBalance, dumpTokenDecimals, valueTokenDecimals);
   }
 
   constructor(
+    public readonly leveragedStrategy: LeveragedStrategy,
     public readonly contractPool: CurvePoolContract,
     public readonly adapter: ConvexPoolAdapter,
     public readonly valueTokenIndex: number,
@@ -56,7 +58,7 @@ export default class CurvePool {
   }
 
   public async rebalance(): Promise<void> {
-    const amountToSwap = this.valueTokenBalance * 5n / 100n;
+    const amountToSwap = this.valueTokenBalance * 20n / 100n;
 
     for (let i = 0; i < 1000; i++) {
       console.log(await this.adapter.underlyingBalance(), await this.adapter.storedUnderlyingBalance()) // Debug
@@ -66,6 +68,32 @@ export default class CurvePool {
 
       // eslint-disable-next-line no-await-in-loop
       await this.exchangeValueTokenForDumpToken(amountToSwap);
+    }
+  }
+
+  public async unbalancePosition(nftId: number): Promise<void> {
+    const amountToSwap = this.dumpTokenBalance / 100n;
+
+    for (let i = 0; i < 100; i++) {
+      try {
+        if (await this.leveragedStrategy.isPositionLiquidatableEstimation(nftId)) {
+          console.log(`Position ${nftId} is liquidatable`);
+          break;
+        }
+
+        // eslint-disable-next-line no-await-in-loop
+        await this.exchangeDumpTokenForValueToken(amountToSwap);
+        console.log(await this.contractPool.balances(this.valueTokenIndex), await this.contractPool.balances(this.dumpTokenIndex)); // Debug
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } catch (error: any) {
+        if (error.data.data === "0x5117a49b") { // PositionNotLive
+          console.error(`Position ${nftId} is not live`);
+          return;
+        } else if (error.data !== "0x5e6797f9") { // NotEligibleForLiquidation - skip
+          console.error(`Position ${nftId} isPositionLiquidatableEstimation errored with:`, error);
+          return;
+        }
+      }
     }
   }
 
@@ -80,7 +108,7 @@ export default class CurvePool {
 
       // eslint-disable-next-line no-await-in-loop
       const alUSDPriceInFRAXBPAfter = await this.getDumpTokenPriceInValueToken();
-      // Console.log("alUSDPriceInFRAXBPAfter", helper.removeDecimals(alUSDPriceInFRAXBPAfter, this.valueTokenDecimals)) // Debug
+      console.log(await this.contractPool.balances(this.valueTokenIndex), await this.contractPool.balances(this.dumpTokenIndex)); // Debug
       if (Number(ethers.formatUnits(alUSDPriceInFRAXBPAfter, this.valueTokenDecimals)) < 1 - (percentToUnbalance / 100)) {
         break;
       }

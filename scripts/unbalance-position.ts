@@ -5,6 +5,9 @@ import { JsonRpcProvider } from 'ethers';
 import '@nomicfoundation/hardhat-ethers';
 import { ethers } from 'hardhat';
 
+// ! FILL IN THE POSITION TO UNBALANCE
+const NFT_ID = 1;
+
 (async () => {
   const [signer] = await ethers.getSigners();
   let curvePool = await CurvePool.createInstance(signer, CURVE_POOL, ALUSD, FRAXBP);
@@ -18,7 +21,8 @@ import { ethers } from 'hardhat';
   console.log("1 ALUSD = ", await (curvePool.getDumpTokenPriceInValueToken()), "FRAXBP");
   console.log('Unbalancing...');
 
-  await curvePool.unbalance(30);
+  // Unbalance the pool
+  await curvePool.unbalancePosition(NFT_ID);
 
   curvePool = await CurvePool.createInstance(signer, CURVE_POOL, ALUSD, FRAXBP);
   console.log("FRAXBP", curvePool.valueTokenBalance.toString());
