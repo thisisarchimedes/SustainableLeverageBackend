@@ -13,6 +13,9 @@ describe('Unbalance pool', () => {
 
 	before(async () => {
 		[signer] = await ethers.getSigners();
+	});
+
+	beforeEach(async () => {
 		curvePool = await CurvePool.createInstance(signer, CURVE_POOL, ALUSD, FRAXBP);
 	});
 

@@ -7,15 +7,19 @@ import Liquidator from '../src/liquidator/liquidator';
 import DataSource from '../src/lib/DataSource';
 
 describe('Liquidator Test', function () {
+  let logger: Logger;
   let dataSource: DataSource;
-  Logger.initialize("liquidator-bot");
-  const logger = Logger.getInstance();
   let signer: HardhatEthersSigner;
   let liquidator: Liquidator;
 
   before(async () => {
-    dataSource = new DataSource(logger);
+    Logger.initialize("liquidator-bot");
+    logger = Logger.getInstance();
     [signer] = await ethers.getSigners();
+  });
+
+  beforeEach(async () => {
+    dataSource = new DataSource(logger);
     liquidator = new Liquidator(signer, logger);
     await liquidator.initialize();
   });

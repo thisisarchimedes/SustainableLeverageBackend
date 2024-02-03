@@ -4,12 +4,16 @@ import { EthereumAddress, Logger } from '@thisisarchimedes/backend-sdk';
 
 describe('DataSource Test', function () {
   let dataSource: DataSource;
+  let logger: Logger;
 
   before(() => {
     Logger.initialize("liquidator-bot");
-    const logger = Logger.getInstance();
-    dataSource = new DataSource(logger);
+    logger = Logger.getInstance();
   });
+
+  beforeEach(() => {
+    dataSource = new DataSource(logger);
+  })
 
   it('Check get live positions', async function () {
     const res = await dataSource.getLivePositions();
