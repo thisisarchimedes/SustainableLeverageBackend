@@ -18,6 +18,7 @@ import { ethers } from 'hardhat';
   console.log("1 ALUSD = ", await (curvePool.getDumpTokenPriceInValueToken()), "FRAXBP");
   console.log('Unbalancing...');
 
+  // Unbalance the pool
   await curvePool.unbalance(30);
 
   curvePool = await CurvePool.createInstance(signer, CURVE_POOL, ALUSD, FRAXBP);
