@@ -48,7 +48,6 @@ import Liquidator from './liquidator';
     } finally {
       // Mark as not running
       isRunning = false;
-      process.exit(0); // TODO: remove
     }
   });
 })();
