@@ -20,11 +20,12 @@ const limit = pLimit(MAX_CONCURRENCY);
  */
 export default class Liquidator {
   private config!: Config;
-  private dataSource = new DataSource();
+  private dataSource: DataSource;
   private txSimulator: TransactionSimulator;
   private positionLiquidator!: PositionLiquidator;
 
   constructor(private signer: Signer, private logger: Logger) {
+    this.dataSource = new DataSource(logger);
     this.txSimulator = new TransactionSimulator(signer);
   }
 

@@ -14,7 +14,7 @@ describe('Liquidator Test', function () {
   let liquidator: Liquidator;
 
   before(async () => {
-    dataSource = new DataSource();
+    dataSource = new DataSource(logger);
     [signer] = await ethers.getSigners();
     liquidator = new Liquidator(signer, logger);
     await liquidator.initialize();
