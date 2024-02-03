@@ -11,9 +11,6 @@ const MAX_CONCURRENCY = 20;
 const GAS_PRICE_MULTIPLIER = 3n;
 const GAS_PRICE_DENOMINATOR = 2n;
 
-// TODO: increase gas for stucked transactions
-// TODO: etherscan api
-
 const limit = pLimit(MAX_CONCURRENCY);
 
 /**
