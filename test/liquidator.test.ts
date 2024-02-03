@@ -25,7 +25,7 @@ describe('Liquidator Test', function () {
 
     const { liquidatedCount, answers } = await liquidator.run();
 
-    console.log(liquidatedCount, answers); // Debug
+    // console.log(liquidatedCount, answers); // Debug
 
     assert(answers.length === res.rows.length, 'Answers length is not equal to live positions amount');
 

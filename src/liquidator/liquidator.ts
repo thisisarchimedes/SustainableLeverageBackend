@@ -1,16 +1,20 @@
 import { Config, loadConfig } from '../lib/ConfigService';
 import { Signer, TransactionRequest, ethers } from 'ethers';
+import pLimit from 'p-limit';
 import { WBTC, WBTC_DECIMALS } from '../constants';
 import { Contracts, EthereumAddress, Logger, PositionLiquidator } from "@thisisarchimedes/backend-sdk";
 import UniSwap from '../lib/UniSwap';
 import TransactionSimulator from '../lib/TransactionSimulator';
 import DataSource from '../lib/DataSource';
 
+const MAX_CONCURRENCY = 20;
 const GAS_PRICE_MULTIPLIER = 3n;
 const GAS_PRICE_DENOMINATOR = 2n;
 
 // TODO: increase gas for stucked transactions
 // TODO: etherscan api
+
+const limit = pLimit(MAX_CONCURRENCY);
 
 /**
  * Liquidator class
@@ -64,19 +68,21 @@ export default class Liquidator {
         }
 
         // Simulate the transaction
-        const promise = this.getClosePositionSwapPayload(strategy, strategyShares)
-          .then((payload) => this.prepareTransaction(nftId, gasPrice, payload))
-          .then((tx) => this.txSimulator.simulateAndRunTransaction(tx))
-          .then(() => liquidatedCount++)
-          .catch((error) => {
-            if (error.data === "0x5e6797f9") { // NotEligibleForLiquidation selector
-              this.logger.info(`Position ${nftId} is not eligible for liquidation`);
-            } else {
-              this.logger.error(`Position ${nftId} liquidation errored with [1]:`);
-              this.logger.error(error);
-            }
-            return Promise.reject(error);
-          });
+        const promise = limit(() =>
+          this.getClosePositionSwapPayload(strategy, strategyShares)
+            .then((payload) => this.prepareTransaction(nftId, gasPrice, payload))
+            .then((tx) => this.txSimulator.simulateAndRunTransaction(tx))
+            .then(() => liquidatedCount++)
+            .catch((error) => {
+              if (error.data === "0x5e6797f9") { // NotEligibleForLiquidation selector
+                this.logger.info(`Position ${nftId} is not eligible for liquidation`);
+              } else {
+                this.logger.error(`Position ${nftId} liquidation errored with [1]:`);
+                this.logger.error(error);
+              }
+              return Promise.reject(error);
+            })
+        );
         promises.push(promise);
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (error: any) {
