@@ -9,7 +9,7 @@
     "lint": "eslint --ext .ts,.tsx -c .eslintrc.cjs .",
     "build": "tsc",
     "test": "nyc hardhat test",
-    "liquidator": "node --loader ts-node/esm src/liquidator/liquidator.ts"
+    "liquidator": "node --loader ts-node/esm src/liquidator/runner.ts"
   },
   "nyc": {
     "extension": [

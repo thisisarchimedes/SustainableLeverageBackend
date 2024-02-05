@@ -1,5 +1,6 @@
 import {assert} from 'chai';
 import DataSource from '../src/lib/DataSource';
+import {EthereumAddress} from '@thisisarchimedes/backend-sdk';
 
 describe('DataSource Test', function() {
   let dataSource: DataSource;
@@ -13,8 +14,14 @@ describe('DataSource Test', function() {
 
     for (const row of res.rows) {
       const nftId: number = Number(row.nftId);
-      assert(nftId >= 0, 'nftId should be greater than 0');
+      const strategyShares: number = Number(row.strategyShares);
+      new EthereumAddress(row.strategy); // Throws on invalid address
+
+      assert(nftId >= 0, 'nftId should be greater or equal 0');
       assert(!isNaN(nftId), 'nftId is not a number');
+
+      assert(strategyShares > 0, 'strategyShares should be greater than 0');
+      assert(!isNaN(strategyShares), 'strategyShares is not a number');
     }
   });
 });
