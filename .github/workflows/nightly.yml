@@ -48,12 +48,12 @@ jobs:
         id: test_suite
         continue-on-error: true
         run: |
-          echo "TEST_START=$(date +%s)" >> $GITHUB_ENV  
+          start=$(date +%s)
 
           yarn test > test_coverage.txt
 
           end=$(date +%s)
-          duration=$((end-${{ env.TEST_START }}))
+          duration=$((end-start))
 
           echo "DURATION=$duration" >> $GITHUB_ENV
           echo "Time taken to run the tests: $duration seconds"

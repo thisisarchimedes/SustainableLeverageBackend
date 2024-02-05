@@ -1,3 +1,4 @@
+/* eslint-disable new-cap */
 import {type HardhatEthersSigner} from '@nomicfoundation/hardhat-ethers/signers';
 import {CURVE_POOL} from './addresses';
 import {assert} from 'chai';
