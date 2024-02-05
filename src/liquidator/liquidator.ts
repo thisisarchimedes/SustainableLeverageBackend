@@ -45,7 +45,6 @@ export default class Liquidator {
     if (gasPrice && GAS_PRICE_MULTIPLIER && GAS_PRICE_DENOMINATOR) {
       gasPrice = gasPrice * GAS_PRICE_MULTIPLIER / GAS_PRICE_DENOMINATOR;
     }
-
     // Query to get all nftIds
     const res = await this.dataSource.getLivePositions();
 
@@ -103,6 +102,7 @@ export default class Liquidator {
               });
           });
         }));
+        break; // TODO: remove
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (error: any) {
         console.error(`Position ${row.nftId} liquidation errored with:`, error);
