@@ -45,7 +45,6 @@ export default class Liquidator {
     if (gasPrice && GAS_PRICE_MULTIPLIER && GAS_PRICE_DENOMINATOR) {
       gasPrice = gasPrice * GAS_PRICE_MULTIPLIER / GAS_PRICE_DENOMINATOR;
     }
-
     // Query to get all nftIds
     const res = await this.dataSource.getLivePositions();
 

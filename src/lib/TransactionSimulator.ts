@@ -1,4 +1,4 @@
-import { Signer, TransactionRequest } from "ethers";
+import {Signer, TransactionRequest} from 'ethers';
 
 export default class TransactionSimulator {
   constructor(private signer: Signer) { }
