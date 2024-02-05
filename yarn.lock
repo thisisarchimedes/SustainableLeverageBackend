@@ -2501,6 +2501,11 @@
   "resolved" "https://registry.npmjs.org/@types/mocha/-/mocha-10.0.6.tgz"
   "version" "10.0.6"
 
+"@types/node-cron@^3.0.11":
+  "integrity" "sha512-0ikrnug3/IyneSHqCBeslAhlK2aBfYek1fGo4bP4QnZPmiqSGRK+Oy7ZMisLWkesffJvQ1cqAcBnJC+8+nxIAg=="
+  "resolved" "https://registry.npmjs.org/@types/node-cron/-/node-cron-3.0.11.tgz"
+  "version" "3.0.11"
+
 "@types/node@*", "@types/node@^20.10.3":
   "integrity" "sha512-D08YG6rr8X90YB56tSIuBaddy/UXAA9RKJoFvrsnogAum/0pmjkgi4+2nx96A330FmioegBWmEYQ+syqCFaveg=="
   "resolved" "https://registry.npmjs.org/@types/node/-/node-20.10.4.tgz"
@@ -5693,6 +5698,13 @@
   dependencies:
     "clone" "2.x"
 
+"node-cron@^3.0.3":
+  "integrity" "sha512-dOal67//nohNgYWb+nWmg5dkFdIwDm8EpeGYMekPMrngV3637lqnX0lbUcCtgibHTz6SEz7DAIjKvKDFYCnO1A=="
+  "resolved" "https://registry.npmjs.org/node-cron/-/node-cron-3.0.3.tgz"
+  "version" "3.0.3"
+  dependencies:
+    "uuid" "8.3.2"
+
 "node-emoji@^1.10.0":
   "integrity" "sha512-wo2DpQkQp7Sjm2A0cq+sN7EHKO6Sl0ctXeBdFZrL9T9+UywORbufTcTZxom8YqpLQt/FqNMUkOpkZrJVYSKD3A=="
   "resolved" "https://registry.npmjs.org/node-emoji/-/node-emoji-1.11.0.tgz"
@@ -7079,7 +7091,7 @@
   "resolved" "https://registry.npmjs.org/util-deprecate/-/util-deprecate-1.0.2.tgz"
   "version" "1.0.2"
 
-"uuid@^8.3.2":
+"uuid@^8.3.2", "uuid@8.3.2":
   "integrity" "sha512-+NYs2QeMWy+GWFOEm9xnn6HCDp0l7QBD7ml8zLUmJ+93Q5NF0NocErnwkTkXVFNiX3/fpC6afS8Dhb/gz7R7eg=="
   "resolved" "https://registry.npmjs.org/uuid/-/uuid-8.3.2.tgz"
   "version" "8.3.2"

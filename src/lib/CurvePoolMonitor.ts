@@ -1,20 +1,24 @@
-import {ethers} from 'ethers';
-
+import { CurvePool, Logger } from '@thisisarchimedes/backend-sdk';
+import {TokenIndexes} from '../types/TokenIndexes';
 class CurvePoolMonitor {
-  private provider: ethers.JsonRpcProvider;
-  private curvePoolContract: ethers.Contract;
+  private curvePool: CurvePool;
+  private tokenIndexes:TokenIndexes;
 
-  constructor(rpcUrl: string, poolAddress: string, abi: string[]) {
-    this.provider = new ethers.JsonRpcProvider(rpcUrl);
-    this.curvePoolContract = new ethers.Contract(poolAddress, abi, this.provider);
+  constructor(curvePool: CurvePool, tokenIndexes :TokenIndexes) {
+    this.curvePool = curvePool;
+    this.tokenIndexes = tokenIndexes;
   }
 
   async getPoolBalances(): Promise<bigint[]> {
     try {
-      const balances: bigint[] = await this.curvePoolContract.get_balances();
-      return balances;
+      const wbtcIndex = this.tokenIndexes['WBTC'];
+      const wbtcBalance: bigint = await this.curvePool.balances(wbtcIndex);
+      const lvBTCBalance: bigint = await this.curvePool.balances(this.tokenIndexes['lvBTC']);
+
+
+      return [wbtcBalance, lvBTCBalance];
     } catch (error) {
-      console.error('Error fetching pool balances:', error);
+      Logger.getInstance().error(`Error fetching pool balances: ${(error as Error).message}`) ;
       throw error;
     }
   }
