@@ -43,44 +43,20 @@ export default class Liquidator {
     }
 
     // Configure gas price
-    let gasPrice = await (await this.signer.provider!.getFeeData()).gasPrice;
-    if (gasPrice && GAS_PRICE_MULTIPLIER && GAS_PRICE_DENOMINATOR) {
-      gasPrice = gasPrice * GAS_PRICE_MULTIPLIER / GAS_PRICE_DENOMINATOR;
-    }
+    const gasPrice = await this.configureGasPrice();
 
-    // Query to get all nftIds
+    // Query to get all live positions data
     const res = await this.dataSource.getLivePositions();
 
     let liquidatedCount = 0;
 
-    // Looping through the positions and simulating the liquidation tx for each
+    // Looping through the positions and preparing the semaphore with the liquidation process
     const promises = [];
     for (const row of res.rows) {
       try {
-        const nftId: number = Number(row.nftId);
-        const strategyShares: number = Number(row.strategyShares);
-        const strategy = new EthereumAddress(row.strategy);
-        if (isNaN(nftId)) {
-          this.logger.error(`Position nftId/strategyShares is not a number`);
-          continue;
-        }
+        const { nftId, strategy, strategyShares } = this.retrievePositionData(row); // Throws
 
-        // Simulate the transaction
-        const promise = limit(() =>
-          this.getClosePositionSwapPayload(strategy, strategyShares)
-            .then((payload) => this.prepareTransaction(nftId, gasPrice, payload))
-            .then((tx) => this.txSimulator.simulateAndRunTransaction(tx))
-            .then(() => liquidatedCount++)
-            .catch((error) => {
-              if (error.data === "0x5e6797f9") { // NotEligibleForLiquidation selector
-                this.logger.info(`Position ${nftId} is not eligible for liquidation`);
-              } else {
-                this.logger.error(`Position ${nftId} liquidation errored with [1]:`);
-                this.logger.error(error);
-              }
-              return Promise.reject(error);
-            })
-        );
+        const promise = this.pushToSemaphore(nftId, gasPrice, strategy, strategyShares, () => { liquidatedCount++ });
         promises.push(promise);
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (error: any) {
@@ -89,16 +65,57 @@ export default class Liquidator {
       }
     }
 
-    // Await for the processes to finish
+    // Await for all the processes to finish
     const answers = await Promise.allSettled(promises);
 
-    if (liquidatedCount === 0) {
-      this.logger.info(`No positions liquidated`)
-    } else {
-      this.logger.warning(`${liquidatedCount} out of ${res.rows.length} positions liquidated`);
-    }
+    this.logRunResult(liquidatedCount, res.rows.length);
 
     return { liquidatedCount, answers };
+  }
+
+  private configureGasPrice = async (): Promise<bigint | null> => {
+    let gasPrice = (await this.signer.provider!.getFeeData()).gasPrice;
+    if (gasPrice && GAS_PRICE_MULTIPLIER && GAS_PRICE_DENOMINATOR) {
+      gasPrice = gasPrice * GAS_PRICE_MULTIPLIER / GAS_PRICE_DENOMINATOR;
+    }
+    return gasPrice;
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private retrievePositionData = (row: any) => {
+    const nftId: number = Number(row.nftId);
+    const strategyShares: number = Number(row.strategyShares);
+    const strategy = new EthereumAddress(row.strategy);
+    if (isNaN(nftId)) {
+      throw new Error(`Position nftId is not a number`);
+    }
+
+    if (isNaN(strategyShares)) {
+      throw new Error(`Position strategyShares is not a number`);
+    }
+
+    return {
+      nftId,
+      strategy,
+      strategyShares,
+    }
+  }
+
+  private pushToSemaphore = (nftId: number, gasPrice: bigint | null, strategy: EthereumAddress, strategyShares: number, cb: () => void) => {
+    const promise = limit(() => this.tryLiquidate(nftId, gasPrice, strategy, strategyShares).then(cb));
+    return promise;
+  }
+
+  private tryLiquidate = async (nftId: number, gasPrice: bigint | null, strategy: EthereumAddress, strategyShares: number) => {
+    try {
+      const payload = await this.getClosePositionSwapPayload(strategy, strategyShares);
+      const tx = this.prepareTransaction(nftId, gasPrice, payload);
+      await this.txSimulator.simulateAndRunTransaction(tx);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
+      this.errorLogger(nftId, error);
+      return Promise.reject(error);
+    }
   }
 
   private prepareTransaction = (nftId: number, gasPrice: bigint | null, payload: string): TransactionRequest => {
@@ -132,7 +149,7 @@ export default class Liquidator {
     const strategyAsset = await strategyContract.asset(); // Optimization: can get from DB
     const asset = Contracts.general.ERC20(new EthereumAddress(strategyAsset), this.signer);
     const assetDecimals = await asset.decimals(); // Optimization: can get from DB
-    const strategySharesN = ethers.parseUnits(strategyShares.toFixed(Number(assetDecimals)), assetDecimals);
+    const strategySharesN = ethers.parseUnits(strategyShares.toFixed(Number(assetDecimals)), assetDecimals); // Converting float to bigint
     const minimumExpectedAssets = await strategyContract.convertToAssets(strategySharesN); // Must query live
 
     const uniSwap = new UniSwap(process.env.MAINNET_RPC_URL!);
@@ -145,5 +162,23 @@ export default class Liquidator {
     );
 
     return payload;
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private errorLogger = (nftId: number, error: any) => {
+    if (error.data === "0x5e6797f9") { // NotEligibleForLiquidation selector
+      this.logger.info(`Position ${nftId} is not eligible for liquidation`);
+    } else {
+      this.logger.error(`Position ${nftId} liquidation errored with [1]:`);
+      this.logger.error(error);
+    }
+  }
+
+  private logRunResult = (liquidatedCount: number, total: number) => {
+    if (liquidatedCount === 0) {
+      this.logger.info(`No positions liquidated`)
+    } else {
+      this.logger.warning(`${liquidatedCount} out of ${total} positions liquidated`);
+    }
   }
 }
