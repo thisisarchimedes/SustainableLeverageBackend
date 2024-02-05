@@ -1,12 +1,12 @@
-import { ethers, getDefaultProvider } from 'ethers';
-import { Logger } from '@thisisarchimedes/backend-sdk';
+import {ethers, getDefaultProvider} from 'ethers';
+import {Logger} from '@thisisarchimedes/backend-sdk';
 import Liquidator from './liquidator';
 
 (async () => {
   // Initialize
   const signer = new ethers.Wallet(process.env.PRIVATE_KEY!, getDefaultProvider(process.env.RPC_URL!));
 
-  Logger.initialize("liquidator-bot");
+  Logger.initialize('liquidator-bot');
   const logger = Logger.getInstance();
 
   const liquidator = new Liquidator(signer, logger);

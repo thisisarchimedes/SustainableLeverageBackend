@@ -1,6 +1,6 @@
 import {assert} from 'chai';
 import DataSource from '../src/lib/DataSource';
-import { EthereumAddress } from '@thisisarchimedes/backend-sdk';
+import {EthereumAddress} from '@thisisarchimedes/backend-sdk';
 
 describe('DataSource Test', function() {
   let dataSource: DataSource;
