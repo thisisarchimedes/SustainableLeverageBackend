@@ -11,8 +11,8 @@ import {ethers} from 'hardhat';
 
   const evmStorage = new EVMStorageManipulator(signer.provider as JsonRpcProvider);
   const alUSDMemSlot = getTokenBalancesSlot(ALUSD.toString());
-  await evmStorage.setERC20Balance(ALUSD, alUSDMemSlot.slot,
-      new EthereumAddress(signer.address), curvePool.dumpTokenBalance, alUSDMemSlot.isVyper);
+  await evmStorage.setERC20Balance(ALUSD, alUSDMemSlot.slot, new EthereumAddress(signer.address),
+      curvePool.dumpTokenBalance, alUSDMemSlot.isVyper);
 
   // Unbalance the pool
   await curvePool.unbalance(75);
