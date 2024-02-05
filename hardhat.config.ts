@@ -1,6 +1,7 @@
-import { type HardhatUserConfig } from 'hardhat/config';
+import {type HardhatUserConfig} from 'hardhat/config';
 import '@nomicfoundation/hardhat-ethers';
 import 'dotenv/config';
+import 'solidity-coverage';
 
 const config: HardhatUserConfig = {
 	solidity: '0.8.21',

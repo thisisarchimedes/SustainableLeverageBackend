@@ -1,9 +1,9 @@
 import CurvePool from '../test/lib/CurvePool';
-import { ALUSD, CURVE_POOL, FRAXBP, getTokenBalancesSlot } from '../test/lib/addresses';
-import { EVMStorageManipulator, EthereumAddress } from '@thisisarchimedes/backend-sdk';
-import { JsonRpcProvider } from 'ethers';
+import {ALUSD, CURVE_POOL, FRAXBP, getTokenBalancesSlot} from '../test/lib/addresses';
+import {EVMStorageManipulator, EthereumAddress} from '@thisisarchimedes/backend-sdk';
+import {JsonRpcProvider} from 'ethers';
 import '@nomicfoundation/hardhat-ethers';
-import { ethers } from 'hardhat';
+import {ethers} from 'hardhat';
 
 (async () => {
   const [signer] = await ethers.getSigners();
@@ -13,9 +13,9 @@ import { ethers } from 'hardhat';
   const alUSDMemSlot = getTokenBalancesSlot(ALUSD.toString());
   await evmStorage.setERC20Balance(ALUSD, alUSDMemSlot.slot, new EthereumAddress(signer.address), 10n ** 36n, alUSDMemSlot.isVyper);
 
-  console.log("FRAXBP", curvePool.valueTokenBalance.toString());
-  console.log("ALUSD", curvePool.dumpTokenBalance.toString());
-  console.log("1 ALUSD = ", await (curvePool.getDumpTokenPriceInValueToken()), "FRAXBP");
+  console.log('FRAXBP', curvePool.valueTokenBalance.toString());
+  console.log('ALUSD', curvePool.dumpTokenBalance.toString());
+  console.log('1 ALUSD = ', await (curvePool.getDumpTokenPriceInValueToken()), 'FRAXBP');
   console.log('Unbalancing...');
 
   // Unbalance the pool

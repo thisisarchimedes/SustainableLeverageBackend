@@ -12,6 +12,7 @@ export default class CurvePool {
     const pool = Contracts.general.curvePool(poolAddress, signer);
     const adapter = Contracts.general.convexPoolAdapter(CURVE_POOL_ADAPTER, signer);
     const valueTokenContract = Contracts.general.ERC20(valueToken, signer);
+    // eslint-disable-next-line new-cap
     const dumpTokenContract = Contracts.general.ERC20(dumpToken, signer);
     const valueTokenDecimals = Number(await valueTokenContract.decimals());
     const dumpTokenDecimals = Number(await dumpTokenContract.decimals());
@@ -41,18 +42,21 @@ export default class CurvePool {
   ) { }
 
   public async exchangeDumpTokenForValueToken(amount: bigint): Promise<void> {
-    await this.contractPool['exchange_underlying(int128,int128,uint256,uint256)'](this.dumpTokenIndex, this.valueTokenIndex, amount, 0);
+    await this.contractPool['exchange_underlying(int128,int128,uint256,uint256)'](this.dumpTokenIndex,
+        this.valueTokenIndex, amount, 0);
   }
 
   public async exchangeValueTokenForDumpToken(amount: bigint): Promise<void> {
-    await this.contractPool['exchange(int128,int128,uint256,uint256)'](this.valueTokenIndex, this.dumpTokenIndex, amount, 0);
+    await this.contractPool['exchange(int128,int128,uint256,uint256)'](this.valueTokenIndex,
+        this.dumpTokenIndex, amount, 0);
   }
 
   public async getDumpTokenPriceInValueToken(dumpPercentage = 10): Promise<bigint> {
     assert.ok(dumpPercentage <= 100, 'Percentage can\'t be higher than 100');
     // Take a significant amount of dump token otherwise get a skewed price
     const priceReferenceAmount = this.dumpTokenBalance * BigInt(dumpPercentage) / 10000n; // 0.1%
-    const dumpTokenPriceInValueToken = await this.contractPool.get_dy(this.dumpTokenIndex, this.valueTokenIndex, priceReferenceAmount);
+    const dumpTokenPriceInValueToken = await this.contractPool.get_dy(this.dumpTokenIndex,
+        this.valueTokenIndex, priceReferenceAmount);
 
     return dumpTokenPriceInValueToken * (10n ** BigInt(this.dumpTokenDecimals)) / priceReferenceAmount;
   }

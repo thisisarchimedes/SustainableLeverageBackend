@@ -1,4 +1,4 @@
-import { Client, ClientConfig, QueryResult } from "pg";
+import {Client, ClientConfig, QueryResult} from 'pg';
 
 // RDS database configuration
 const dbConfig: ClientConfig = {
@@ -17,7 +17,7 @@ export default class DataSource {
   constructor() {
     this.client = new Client(dbConfig);
     this.client.connect().catch(console.error);
-    //TODO: logger.error on connection error
+    // TODO: logger.error on connection error
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

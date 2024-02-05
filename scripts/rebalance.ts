@@ -1,9 +1,9 @@
 import CurvePool from '../test/lib/CurvePool';
-import { ALUSD, CURVE_POOL, FRAXBP, getTokenBalancesSlot } from '../test/lib/addresses';
-import { EVMStorageManipulator, EthereumAddress } from '@thisisarchimedes/backend-sdk';
-import { JsonRpcProvider } from 'ethers';
+import {ALUSD, CURVE_POOL, FRAXBP, getTokenBalancesSlot} from '../test/lib/addresses';
+import {EVMStorageManipulator, EthereumAddress} from '@thisisarchimedes/backend-sdk';
+import {JsonRpcProvider} from 'ethers';
 import '@nomicfoundation/hardhat-ethers';
-import { ethers } from 'hardhat';
+import {ethers} from 'hardhat';
 
 (async () => {
   const [signer] = await ethers.getSigners();

@@ -1,7 +1,7 @@
-import { Config, loadConfig } from '../lib/ConfigService';
-import { Signer, ethers } from 'ethers';
-import { WBTC, WBTC_DECIMALS } from '../constants';
-import { Contracts, EthereumAddress, Logger, PositionLiquidator } from "@thisisarchimedes/backend-sdk";
+import {Config, loadConfig} from '../lib/ConfigService';
+import {Signer, ethers} from 'ethers';
+import {WBTC, WBTC_DECIMALS} from '../constants';
+import {Contracts, EthereumAddress, Logger, PositionLiquidator} from '@thisisarchimedes/backend-sdk';
 import UniSwap from '../lib/UniSwap';
 import TransactionSimulator from '../lib/TransactionSimulator';
 import DataSource from '../lib/DataSource';
@@ -29,15 +29,15 @@ export default class Liquidator {
 
   public initialize = async () => {
     if (this.config !== undefined) {
-      throw new Error("Initialized already");
+      throw new Error('Initialized already');
     }
     this.config = await loadConfig();
     this.positionLiquidator = Contracts.leverage.positionLiquidator(this.config.positionLiquidator, this.signer);
-  }
+  };
 
   public run = async (signer: Signer, logger: Logger) => {
     if (this.config === undefined) {
-      throw new Error("Liquidator is not initialized");
+      throw new Error('Liquidator is not initialized');
     }
 
     // Configure gas price
@@ -45,7 +45,6 @@ export default class Liquidator {
     if (gasPrice && GAS_PRICE_MULTIPLIER && GAS_PRICE_DENOMINATOR) {
       gasPrice = gasPrice * GAS_PRICE_MULTIPLIER / GAS_PRICE_DENOMINATOR;
     }
-
     // Query to get all nftIds
     const res = await this.dataSource.getLivePositions();
 
@@ -70,9 +69,9 @@ export default class Liquidator {
             const data = this.positionLiquidator.interface.encodeFunctionData('liquidatePosition', [{
               nftId,
               minWBTC: 0,
-              swapRoute: "0",
+              swapRoute: '0',
               swapData: payload,
-              exchange: "0x0000000000000000000000000000000000000000",
+              exchange: '0x0000000000000000000000000000000000000000',
             }]);
 
             // Create a transaction object
@@ -86,21 +85,21 @@ export default class Liquidator {
 
             // Simulate the transaction
             this.txSimulator.simulateAndRunTransaction(tx)
-              .then(() => {
-                liquidatedCount++;
-                resolve();
-              })
-              .catch((error) => {
-                if (error.data === "0x5e6797f9") { // NotEligibleForLiquidation selector
-                  console.log(`Position ${nftId} is not eligible for liquidation`);
-                  logger.info(`Position ${nftId} is not eligible for liquidation`);
-                } else {
-                  console.error(`Position ${nftId} liquidation errored with:`, error);
-                  logger.error(`Position ${nftId} liquidation errored with:`);
-                  logger.error(error);
-                }
-                resolve();
-              });
+                .then(() => {
+                  liquidatedCount++;
+                  resolve();
+                })
+                .catch((error) => {
+                  if (error.data === '0x5e6797f9') { // NotEligibleForLiquidation selector
+                    console.log(`Position ${nftId} is not eligible for liquidation`);
+                    logger.info(`Position ${nftId} is not eligible for liquidation`);
+                  } else {
+                    console.error(`Position ${nftId} liquidation errored with:`, error);
+                    logger.error(`Position ${nftId} liquidation errored with:`);
+                    logger.error(error);
+                  }
+                  resolve();
+                });
           });
         }));
         break; // TODO: remove
@@ -117,12 +116,12 @@ export default class Liquidator {
 
     if (liquidatedCount === 0) {
       console.log(`No positions liquidated`);
-      logger.info(`No positions liquidated`)
+      logger.info(`No positions liquidated`);
     } else {
       console.warn(`${liquidatedCount} out of ${res.rows.length} positions liquidated`);
       logger.warning(`${liquidatedCount} out of ${res.rows.length} positions liquidated`);
     }
-  }
+  };
 
   /**
    * Returns the swap payload to close the position
@@ -140,14 +139,14 @@ export default class Liquidator {
     const minimumExpectedAssets = await strategyContract.convertToAssets(strategySharesN); // Must query live
 
     const uniSwap = new UniSwap(process.env.MAINNET_RPC_URL!);
-    const { payload } = await uniSwap.buildPayload(
-      ethers.formatUnits(minimumExpectedAssets, assetDecimals),
-      new EthereumAddress(strategyAsset),
-      Number(assetDecimals),
-      new EthereumAddress(WBTC),
-      WBTC_DECIMALS,
+    const {payload} = await uniSwap.buildPayload(
+        ethers.formatUnits(minimumExpectedAssets, assetDecimals),
+        new EthereumAddress(strategyAsset),
+        Number(assetDecimals),
+        new EthereumAddress(WBTC),
+        WBTC_DECIMALS,
     );
 
     return payload;
-  }
+  };
 }

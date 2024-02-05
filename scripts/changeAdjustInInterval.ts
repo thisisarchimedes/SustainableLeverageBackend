@@ -1,7 +1,7 @@
-import { ethers, network } from "hardhat";
+import {ethers, network} from 'hardhat';
 import '@nomicfoundation/hardhat-ethers';
-import { FRAXBPALUSD_STRATEGY } from "../test/lib/addresses";
-import { Contracts } from "@thisisarchimedes/backend-sdk";
+import {FRAXBPALUSD_STRATEGY} from '../test/lib/addresses';
+import {Contracts} from '@thisisarchimedes/backend-sdk';
 
 async function main() {
   // Get a signer for the impersonated account
@@ -12,8 +12,8 @@ async function main() {
 
   // Get Impersonated Account
   await network.provider.request({
-    method: "hardhat_impersonateAccount",
-    params: [strategyOwner]
+    method: 'hardhat_impersonateAccount',
+    params: [strategyOwner],
   });
   await network.provider.request({
     method: "hardhat_setBalance",
