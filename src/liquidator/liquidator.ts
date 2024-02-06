@@ -26,11 +26,9 @@ liquidator(dataSource, logger);
  * @param logger Logger library
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function liquidatePosition(row: any, config: Config, signer: ethers.Wallet, positionLiquidator: any,
+async function liquidatePosition(nftId: number, config: Config, signer: ethers.Wallet, positionLiquidator: any,
     txSimulator: TransactionSimulator, logger: Logger) {
-  const nftId: number = Number(row.nftId);
   if (isNaN(nftId)) {
-    console.error(`Position nftId is not a number`);
     logger.error(`Position nftId is not a number`);
     return false;
   }
@@ -59,16 +57,13 @@ async function liquidatePosition(row: any, config: Config, signer: ethers.Wallet
 
     const response = await txSimulator.simulateAndRunTransaction(tx);
     await response.wait();
-    console.warn(`Position ${nftId} liquidated; tx hash - ${response.hash}`);
     logger.warning(`Position ${nftId} liquidated; tx hash - ${response.hash}`);
     return true;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     if (error.data === '0x5e6797f9') {
-      console.log(`Position ${nftId} is not eligible for liquidation`);
       logger.info(`Position ${nftId} is not eligible for liquidation`);
     } else {
-      console.error(`Position ${nftId} liquidation errored with:`, error);
       logger.error(`Position ${nftId} liquidation errored with:`);
       logger.error(error);
     }
@@ -84,23 +79,21 @@ async function liquidator(dataSource: DataSource, logger: Logger) {
 
   // eslint-disable-next-line no-constant-condition
   while (true) {
-    const res = await dataSource.getLivePositions();
+    const nftIds = await dataSource.getLivePositions();
     let liquidatedCount = 0;
 
-    for (const row of res.rows) {
-      const wasLiquidated = await liquidatePosition(row, config, signer, positionLiquidator, txSimulator, logger);
+    for (const nftId of nftIds) {
+      const wasLiquidated = await liquidatePosition(nftId, config, signer, positionLiquidator, txSimulator, logger);
       if (wasLiquidated) {
         liquidatedCount++;
       }
     }
 
     if (liquidatedCount === 0) {
-      console.log(`No positions liquidated, sleeping for ${IDLE_DELAY}ms`);
       logger.info(`No positions liquidated, sleeping for ${IDLE_DELAY}ms`);
       await sleep(IDLE_DELAY);
     } else {
-      console.warn(`${liquidatedCount} out of ${res.rows.length} positions liquidated`);
-      logger.warning(`${liquidatedCount} out of ${res.rows.length} positions liquidated`);
+      logger.warning(`${liquidatedCount} out of ${nftIds.length} positions liquidated`);
     }
   }
 }
