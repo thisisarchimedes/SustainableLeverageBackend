@@ -9,6 +9,7 @@
     "lint": "eslint --ext .ts,.tsx -c .eslintrc.cjs .",
     "build": "tsc",
     "test": "nyc hardhat test",
+    "test_expiration": "npx mocha --require ts-node/register ./test/expirationEngine.ts",
     "liquidator": "node --loader ts-node/esm src/liquidator/liquidator.ts"
   },
   "nyc": {
@@ -33,6 +34,7 @@
     "@types/node": "^20.10.3",
     "@types/node-cron": "^3.0.11",
     "@types/pg": "^8.10.9",
+    "@types/sinon": "^17.0.3",
     "@typescript-eslint/eslint-plugin": "^6.13.2",
     "@typescript-eslint/parser": "^6.13.2",
     "@uniswap/router-sdk": "^1.7.1",
