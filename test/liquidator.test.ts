@@ -1,48 +1,48 @@
-import { assert } from 'chai';
+import {assert} from 'chai';
 import '@nomicfoundation/hardhat-ethers';
-import { ethers } from 'hardhat';
-import { HardhatEthersSigner } from '@nomicfoundation/hardhat-ethers/signers';
-import { Logger } from '@thisisarchimedes/backend-sdk';
+import {ethers} from 'hardhat';
+import {HardhatEthersSigner} from '@nomicfoundation/hardhat-ethers/signers';
+import {Logger} from '@thisisarchimedes/backend-sdk';
 import Liquidator from '../src/liquidator/liquidator';
 import DataSource from '../src/lib/DataSource';
 
-describe('Liquidator Test', function () {
+describe('Liquidator Test', function() {
   let logger: Logger;
   let dataSource: DataSource;
   let signer: HardhatEthersSigner;
   let liquidator: Liquidator;
 
-  before(async () => {
-    Logger.initialize("liquidator-bot");
+  before(async function() {
+    Logger.initialize('liquidator-bot');
     logger = Logger.getInstance();
     [signer] = await ethers.getSigners();
   });
 
-  beforeEach(async () => {
+  beforeEach(async function() {
     dataSource = new DataSource(logger);
     liquidator = new Liquidator(signer, logger);
     await liquidator.initialize();
   });
 
-  it('Check liquidator answers', async function () {
+  it('Check liquidator answers', async function() {
     const res = await dataSource.getLivePositions();
 
-    const { liquidatedCount, answers } = await liquidator.run();
+    const {liquidatedCount, answers} = await liquidator.run();
 
     // console.log(liquidatedCount, answers); // Debug
 
     assert(answers.length === res.rows.length, 'Answers length is not equal to live positions amount');
 
     const result = answers.reduce(
-      (acc, result) => {
-        if (result.status === 'fulfilled') {
-          acc.fulfilledCount++;
-        } else if (result.status === 'rejected') {
-          acc.rejectedCount++;
-        }
-        return acc;
-      },
-      { fulfilledCount: 0, rejectedCount: 0 }
+        (acc, result) => {
+          if (result.status === 'fulfilled') {
+            acc.fulfilledCount++;
+          } else if (result.status === 'rejected') {
+            acc.rejectedCount++;
+          }
+          return acc;
+        },
+        {fulfilledCount: 0, rejectedCount: 0},
     );
     assert(liquidatedCount === result.fulfilledCount, 'Liquidated count is not equal to liquidated answers amount');
   });

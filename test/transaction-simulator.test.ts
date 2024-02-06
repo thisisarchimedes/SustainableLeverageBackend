@@ -12,11 +12,11 @@ describe('Transaction Simulator Test', function() {
     [signer, receiver] = await ethers.getSigners();
   });
 
-  beforeEach(() => {
+  beforeEach(function() {
     txSimulator = new TransactionSimulator(signer);
-	});
+  });
 
-  it('Should succeed and be mined', async function () {
+  it('Should succeed and be mined', async function() {
     // Amount to send
     const amount = ethers.parseEther('0.1'); // 0.1 ETH
 

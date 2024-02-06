@@ -1,23 +1,23 @@
 import {assert} from 'chai';
 import '@nomicfoundation/hardhat-ethers';
-import { ethers } from 'hardhat';
-import { JsonRpcProvider } from 'ethers';
-import { type HardhatEthersSigner } from '@nomicfoundation/hardhat-ethers/signers';
-import { EVMStorageManipulator, EthereumAddress } from '@thisisarchimedes/backend-sdk';
-import { ALUSD, CURVE_POOL, FRAXBP, getTokenBalancesSlot } from './lib/addresses';
+import {ethers} from 'hardhat';
+import {JsonRpcProvider} from 'ethers';
+import {type HardhatEthersSigner} from '@nomicfoundation/hardhat-ethers/signers';
+import {EVMStorageManipulator, EthereumAddress} from '@thisisarchimedes/backend-sdk';
+import {ALUSD, CURVE_POOL, FRAXBP, getTokenBalancesSlot} from './lib/addresses';
 import CurvePool from './lib/CurvePool';
 
 describe('Unbalance pool', function() {
   let signer: HardhatEthersSigner;
   let curvePool: CurvePool;
 
-	before(async () => {
-		[signer] = await ethers.getSigners();
-	});
+  before(async function() {
+    [signer] = await ethers.getSigners();
+  });
 
-	beforeEach(async () => {
-		curvePool = await CurvePool.createInstance(signer, CURVE_POOL, ALUSD, FRAXBP);
-	});
+  beforeEach(async function() {
+    curvePool = await CurvePool.createInstance(signer, CURVE_POOL, ALUSD, FRAXBP);
+  });
 
   it('Unbalance pegged curve pool', async function() {
     const evmStorage = new EVMStorageManipulator(signer.provider as JsonRpcProvider);
