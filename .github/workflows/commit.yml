@@ -8,9 +8,11 @@ on:
 
 env:
   AWS_REGION: us-east-1
-  EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }} 
-  EC2_HOST: ${{ secrets.EC2_HOST }} 
-  DEMO_EC2_HOST: ${{ secrets.DEMO_EC2_HOST }} 
+  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
+  EC2_HOST: ${{ secrets.EC2_HOST }}
+  DEMO_EC2_HOST: ${{ secrets.DEMO_EC2_HOST }}
   EC2_USER: ubuntu
   PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
   API_DEVOPS_EVENT_CATCHER: ${{ vars.API_DEVOPS_EVENT_CATCHER }}
