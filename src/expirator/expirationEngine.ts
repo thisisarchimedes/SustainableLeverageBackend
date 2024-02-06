@@ -17,9 +17,10 @@ export class PositionExpiratorEngine {
     private readonly curvePool: CurvePool;
     private readonly WBTC_INDEX: number;
     private readonly LVBTC_INDEX: number;
+    private readonly poolRektThreshold: number;
     private readonly DB: DataSource;
 
-    constructor(logger: Logger, positionLedger: PositionLedger, positionExpirator: PositionExpirator, curvePool: CurvePool, tokenIndexes: TokenIndexes) {
+    constructor(logger: Logger, positionLedger: PositionLedger, positionExpirator: PositionExpirator, curvePool: CurvePool, tokenIndexes: TokenIndexes, poolRektThreshold: number) {
         this.logger = logger;
         this.positionLedger = positionLedger;
         this.positionExpirator = positionExpirator;
@@ -27,6 +28,7 @@ export class PositionExpiratorEngine {
         this.curvePool = curvePool;
         this.WBTC_INDEX = tokenIndexes['WBTC'];
         this.LVBTC_INDEX = tokenIndexes['LVBTC'];
+        this.poolRektThreshold = poolRektThreshold;
     }
 
     public async previewClosePosition(position: LeveragePosition) {
@@ -88,7 +90,7 @@ export class PositionExpiratorEngine {
         const poolBalances = await this.getPoolBalances();
         const wbtcRatio = await this.getPoolWBTCRatio(poolBalances);
 
-        if (wbtcRatio >= 0.2) {
+        if (wbtcRatio < this.poolRektThreshold) {
             let btcToAquire = this.calculateBtcToAcquire(poolBalances);
             const currentBlock = await this.getCurrentBlock();
 
@@ -101,22 +103,22 @@ export class PositionExpiratorEngine {
         }
     }
 
-    private calculateBtcToAcquire(poolBalances: bigint[]): bigint {
+    public calculateBtcToAcquire(poolBalances: bigint[]): bigint {
         return poolBalances[this.LVBTC_INDEX] - poolBalances[this.WBTC_INDEX];
     }
 
-    private async getCurrentBlock(): Promise<number> {
+    public async getCurrentBlock(): Promise<number> {
         const currentBlock = await this.positionLedger.runner?.provider?.getBlockNumber();
         return currentBlock || 0;
     }
 
-    private async getSortedExpirationPositions(currentBlock: number): Promise<any[]> {
+    public async getSortedExpirationPositions(currentBlock: number): Promise<any[]> {
         const livePositions = await this.DB.getLivePositions();
         let eligibleForExpiration = livePositions.filter(position => position.positionExpireBlock > currentBlock);
         return eligibleForExpiration.sort((a, b) => a.positionExpireBlock - b.positionExpireBlock);
     }
 
-    private async expirePositionsUntilBtcAcquired(sortedExpirationPositions: any[], btcToAquire: bigint): Promise<bigint> {
+    public async expirePositionsUntilBtcAcquired(sortedExpirationPositions: any[], btcToAquire: bigint): Promise<bigint> {
         for (const position of sortedExpirationPositions) {
             this.logger.info(`Expiring position with ID: ${position.id}`);
 
