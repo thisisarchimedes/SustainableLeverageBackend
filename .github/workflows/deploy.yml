@@ -158,7 +158,6 @@ jobs:
 
   report-devops-event-deploy:
       runs-on: ubuntu-latest
-      needs: [deploy-sustainable-leverage-liquidation-bot-ec2, deploy-sustainable-leverage-liquidation-bot-demo-ec2]
       steps:
         - name: Checkout code
           uses: actions/checkout@v4
