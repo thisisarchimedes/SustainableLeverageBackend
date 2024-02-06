@@ -1,8 +1,8 @@
-import {Config, loadConfig} from '../lib/ConfigService';
-import {Provider, ethers, getDefaultProvider} from 'ethers';
-import {WBTC, WBTC_DECIMALS} from '../constants';
-import {Contracts, EthereumAddress, Logger} from '@thisisarchimedes/backend-sdk';
-import UniSwap from '../lib/UniSwap';
+import { Config, loadConfig } from '../lib/ConfigService';
+import { Provider, ethers, getDefaultProvider } from 'ethers';
+import { WBTC, WBTC_DECIMALS } from '../constants';
+import { Contracts, EthereumAddress, Logger } from '@thisisarchimedes/backend-sdk';
+import Uniswap from '../lib/Uniswap';
 import TransactionSimulator from '../lib/TransactionSimulator';
 import DataSource from '../lib/DataSource';
 
@@ -27,7 +27,7 @@ liquidator(dataSource, logger);
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function liquidatePosition(nftId: number, config: Config, signer: ethers.Wallet, positionLiquidator: any,
-    txSimulator: TransactionSimulator, logger: Logger) {
+  txSimulator: TransactionSimulator, logger: Logger) {
   if (isNaN(nftId)) {
     logger.error(`Position nftId is not a number`);
     return false;
@@ -59,7 +59,7 @@ async function liquidatePosition(nftId: number, config: Config, signer: ethers.W
     await response.wait();
     logger.warning(`Position ${nftId} liquidated; tx hash - ${response.hash}`);
     return true;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     if (error.data === '0x5e6797f9') {
       logger.info(`Position ${nftId} is not eligible for liquidation`);
@@ -114,16 +114,16 @@ const getClosePositionSwapPayload = async (provider: Provider, config: Config, n
   const minimumExpectedAssets = await strategy.convertToAssets(ledgerEntry.strategyShares);
 
   // eslint-disable-next-line new-cap
-  const asset = Contracts.general.ERC20(new EthereumAddress(strategyAsset), provider);
+  const asset = Contracts.general.erc20(new EthereumAddress(strategyAsset), provider);
   const assetDecimals = await asset.decimals();
 
-  const uniSwap = new UniSwap(process.env.MAINNET_RPC_URL!);
-  const {payload} = await uniSwap.buildPayload(
-      ethers.formatUnits(minimumExpectedAssets, assetDecimals),
-      new EthereumAddress(strategyAsset),
-      Number(assetDecimals),
-      new EthereumAddress(WBTC),
-      WBTC_DECIMALS,
+  const UniswapInstance = new Uniswap(process.env.MAINNET_RPC_URL!);
+  const { payload } = await UniswapInstance.buildPayload(
+    ethers.formatUnits(minimumExpectedAssets, assetDecimals),
+    new EthereumAddress(strategyAsset),
+    Number(assetDecimals),
+    new EthereumAddress(WBTC),
+    WBTC_DECIMALS,
   );
 
   return payload;

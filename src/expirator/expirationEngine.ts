@@ -1,9 +1,13 @@
 import cron from 'node-cron';
 import CurvePoolMonitor from '../lib/CurvePoolMonitor';
-import { Logger, PositionExpirator, PositionLedger, ClosePositionParamsStruct } from "@thisisarchimedes/backend-sdk"
+import { Logger, PositionExpirator, PositionLedger, ClosePositionParamsStruct, MultiPoolStrategy, Contracts, EthereumAddress } from "@thisisarchimedes/backend-sdk"
 import { BigNumber } from 'bignumber.js';
 import DataSource from '../lib/DataSource';
 import LeveragePosition from '../types/LeveragePosition';
+import { ethers } from 'ethers';
+import Uniswap from '../lib/Uniswap';
+import { WBTC, WBTC_DECIMALS } from '../constants';
+
 
 export class PositionExpiratorEngine {
 
@@ -12,11 +16,35 @@ export class PositionExpiratorEngine {
     private readonly positionLedger: PositionLedger;
     private readonly positionExpirator: PositionExpirator;
 
-    constructor(logger: Logger, positionLedger: PositionLedger, positionExpirator: PositionExpirator, curvePoolMonitor: CurvePoolMonitor, rpcURL: string, lvWBTCPoolAddress: string) {
+    constructor(logger: Logger, positionLedger: PositionLedger, positionExpirator: PositionExpirator, curvePoolMonitor: CurvePoolMonitor) {
         this.logger = logger;
         this.curvePoolMonitor = curvePoolMonitor;
         this.positionLedger = positionLedger;
         this.positionExpirator = positionExpirator;
+
+    }
+
+    public async previewClosePosition(position: LeveragePosition, slippagePct = '50') {
+
+        const strategyInstance = Contracts.general.multiPoolStrategy(new EthereumAddress(position.strategy), null);
+
+        const minimumExpectedAssets = await strategyInstance.convertToAssets(position.strategyShares);
+        const strategyAsset = await strategyInstance.asset();
+        const assetDecimals = await strategyInstance.decimals();
+
+        const uniswapInstance = new Uniswap(process.env.MAINNET_RPC_URL!);
+        const { payload, swapOutputAmount } = await uniswapInstance.buildPayload(
+            ethers.formatUnits(minimumExpectedAssets, assetDecimals),
+            new EthereumAddress(strategyAsset),
+            Number(assetDecimals),
+            new EthereumAddress(WBTC),
+            WBTC_DECIMALS,
+        );
+
+        return {
+            minimumWBTC: ethers.formatUnits(swapOutputAmount, WBTC_DECIMALS),
+            payload,
+        };
     }
 
 
