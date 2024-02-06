@@ -46,4 +46,3 @@ import Liquidator from './liquidator';
     }
   });
 })();
-
