@@ -1,8 +1,8 @@
-import { Config, loadConfig } from '../lib/ConfigService';
-import { Signer, TransactionRequest, ethers } from 'ethers';
+import {Config, loadConfig} from '../lib/ConfigService';
+import {Signer, TransactionRequest, ethers} from 'ethers';
 import pLimit from 'p-limit';
-import { WBTC, WBTC_DECIMALS } from '../constants';
-import { Contracts, EthereumAddress, Logger, PositionLiquidator } from "@thisisarchimedes/backend-sdk";
+import {WBTC, WBTC_DECIMALS} from '../constants';
+import {Contracts, EthereumAddress, Logger, PositionLiquidator} from '@thisisarchimedes/backend-sdk';
 import UniSwap from '../lib/UniSwap';
 import TransactionSimulator from '../lib/TransactionSimulator';
 import DataSource from '../lib/DataSource';
@@ -31,15 +31,15 @@ export default class Liquidator {
 
   public initialize = async () => {
     if (this.config !== undefined) {
-      throw new Error("Initialized already");
+      throw new Error('Initialized already');
     }
     this.config = await loadConfig();
     this.positionLiquidator = Contracts.leverage.positionLiquidator(this.config.positionLiquidator, this.signer);
-  }
+  };
 
   public run = async () => {
     if (this.config === undefined) {
-      throw new Error("Liquidator is not initialized");
+      throw new Error('Liquidator is not initialized');
     }
 
     // Configure gas price
@@ -54,9 +54,11 @@ export default class Liquidator {
     const promises = [];
     for (const row of res.rows) {
       try {
-        const { nftId, strategy, strategyShares } = this.retrievePositionData(row); // Throws
+        const {nftId, strategy, strategyShares} = this.retrievePositionData(row); // Throws
 
-        const promise = this.pushToSemaphore(nftId, gasPrice, strategy, strategyShares, () => { liquidatedCount++ });
+        const promise = this.pushToSemaphore(nftId, gasPrice, strategy, strategyShares, () => {
+          liquidatedCount++;
+        });
         promises.push(promise);
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (error: any) {
@@ -70,8 +72,8 @@ export default class Liquidator {
 
     this.logRunResult(liquidatedCount, res.rows.length);
 
-    return { liquidatedCount, answers };
-  }
+    return {liquidatedCount, answers};
+  };
 
   private configureGasPrice = async (): Promise<bigint | null> => {
     let gasPrice = (await this.signer.provider!.getFeeData()).gasPrice;
@@ -79,7 +81,7 @@ export default class Liquidator {
       gasPrice = gasPrice * GAS_PRICE_MULTIPLIER / GAS_PRICE_DENOMINATOR;
     }
     return gasPrice;
-  }
+  };
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private retrievePositionData = (row: any) => {
@@ -98,13 +100,13 @@ export default class Liquidator {
       nftId,
       strategy,
       strategyShares,
-    }
-  }
+    };
+  };
 
   private pushToSemaphore = (nftId: number, gasPrice: bigint | null, strategy: EthereumAddress, strategyShares: number, cb: () => void) => {
     const promise = limit(() => this.tryLiquidate(nftId, gasPrice, strategy, strategyShares).then(cb));
     return promise;
-  }
+  };
 
   private tryLiquidate = async (nftId: number, gasPrice: bigint | null, strategy: EthereumAddress, strategyShares: number) => {
     try {
@@ -116,15 +118,15 @@ export default class Liquidator {
       this.errorLogger(nftId, error);
       return Promise.reject(error);
     }
-  }
+  };
 
   private prepareTransaction = (nftId: number, gasPrice: bigint | null, payload: string): TransactionRequest => {
     const data = this.positionLiquidator.interface.encodeFunctionData('liquidatePosition', [{
       nftId,
       minWBTC: 0,
-      swapRoute: "0",
+      swapRoute: '0',
       swapData: payload,
-      exchange: "0x0000000000000000000000000000000000000000",
+      exchange: '0x0000000000000000000000000000000000000000',
     }]);
 
     // Create a transaction object
@@ -135,7 +137,7 @@ export default class Liquidator {
     };
 
     return tx;
-  }
+  };
 
   /**
    * Returns the swap payload to close the position
@@ -147,38 +149,38 @@ export default class Liquidator {
     // console.log('Building payload for:', nftId); // Debug
     const strategyContract = Contracts.general.multiPoolStrategy(strategy, this.signer);
     const strategyAsset = await strategyContract.asset(); // Optimization: can get from DB
-    const asset = Contracts.general.ERC20(new EthereumAddress(strategyAsset), this.signer);
+    const asset = Contracts.general.erc20(new EthereumAddress(strategyAsset), this.signer);
     const assetDecimals = await asset.decimals(); // Optimization: can get from DB
     const strategySharesN = ethers.parseUnits(strategyShares.toFixed(Number(assetDecimals)), assetDecimals); // Converting float to bigint
     const minimumExpectedAssets = await strategyContract.convertToAssets(strategySharesN); // Must query live
 
     const uniSwap = new UniSwap(process.env.MAINNET_RPC_URL!);
-    const { payload } = await uniSwap.buildPayload(
-      ethers.formatUnits(minimumExpectedAssets, assetDecimals),
-      new EthereumAddress(strategyAsset),
-      Number(assetDecimals),
-      new EthereumAddress(WBTC),
-      WBTC_DECIMALS,
+    const {payload} = await uniSwap.buildPayload(
+        ethers.formatUnits(minimumExpectedAssets, assetDecimals),
+        new EthereumAddress(strategyAsset),
+        Number(assetDecimals),
+        new EthereumAddress(WBTC),
+        WBTC_DECIMALS,
     );
 
     return payload;
-  }
+  };
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private errorLogger = (nftId: number, error: any) => {
-    if (error.data === "0x5e6797f9") { // NotEligibleForLiquidation selector
+    if (error.data === '0x5e6797f9') { // NotEligibleForLiquidation selector
       this.logger.info(`Position ${nftId} is not eligible for liquidation`);
     } else {
       this.logger.error(`Position ${nftId} liquidation errored with [1]:`);
       this.logger.error(error);
     }
-  }
+  };
 
   private logRunResult = (liquidatedCount: number, total: number) => {
     if (liquidatedCount === 0) {
-      this.logger.info(`No positions liquidated`)
+      this.logger.info(`No positions liquidated`);
     } else {
       this.logger.warning(`${liquidatedCount} out of ${total} positions liquidated`);
     }
-  }
+  };
 }

@@ -1,9 +1,13 @@
-name: Deploy
+name: Deploy to Prod Stage
 
 on:
   push:
     branches:
       - main
+    paths:
+      - 'src/**'
+      - 'scripts/**'
+
 
 env:
   AWS_REGION: us-east-1
@@ -12,81 +16,21 @@ env:
   DEMO_EC2_HOST: ${{ secrets.DEMO_EC2_HOST }} # EC2 Demo instance IP or domain
   EC2_USER: ubuntu
   PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
-
+  API_DEVOPS_EVENT_CATCHER: ${{ vars.API_DEVOPS_EVENT_CATCHER }}
+  DEVOPS_EVENTS_SECRET_TOKEN: ${{ secrets.DEVOPS_EVENTS_SECRET_TOKEN }}
+  
 jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-      - name: Use Node.js
-        uses: actions/setup-node@v2
-        with:
-          node-version: "18"
-      - name: Install dependencies
-        run: yarn
-      - name: Build
-        env:
-          MAINNET_RPC_URL: ${{ secrets.MAINNET_RPC_URL }}
-          RPC_URL: ${{ secrets.RPC_URL }}
-        run: yarn build
-      - name: Test
-        env:
-          DB_HOST: ${{ secrets.DB_HOST }}
-          DB_PORT: ${{ secrets.DB_PORT }}
-          DB_NAME: ${{ secrets.DB_NAME }}
-          DB_USER: ${{ secrets.DB_USER }}
-          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-          S3_BUCKET_CONFIG: ${{ secrets.S3_BUCKET_CONFIG }}
-          S3_ADDRESSES_KEY: ${{ secrets.S3_ADDRESSES_KEY }}
-          RPC_URL: ${{ secrets.RPC_URL }}
-          MAINNET_RPC_URL: ${{ secrets.MAINNET_RPC_URL }}
-          NEW_RELIC_API_KEY: ${{ secrets.NEW_RELIC_API_KEY }}
-          PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
-        run: |
-          yarn test
-
-  test-demo:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-      - name: Use Node.js
-        uses: actions/setup-node@v2
-        with:
-          node-version: "18"
-      - name: Install dependencies
-        run: yarn
-      - name: Build
-        env:
-          MAINNET_RPC_URL: ${{ secrets.MAINNET_RPC_URL }}
-          RPC_URL: ${{ secrets.RPC_URL }}
-        run: yarn build
-      - name: Test
-        env:
-          DB_HOST: ${{ secrets.DEMO_DB_HOST }}
-          DB_PORT: ${{ secrets.DEMO_DB_PORT }}
-          DB_NAME: ${{ secrets.DEMO_DB_NAME }}
-          DB_USER: ${{ secrets.DEMO_DB_USER }}
-          DB_PASSWORD: ${{ secrets.DEMO_DB_PASSWORD }}
-          S3_BUCKET_CONFIG: ${{ secrets.S3_BUCKET_CONFIG }}
-          S3_ADDRESSES_KEY: ${{ secrets.DEMO_S3_ADDRESSES_KEY }}
-          RPC_URL: ${{ secrets.DEMO_RPC_URL }}
-          MAINNET_RPC_URL: ${{ secrets.MAINNET_RPC_URL }}
-          NEW_RELIC_API_KEY: ${{ secrets.NEW_RELIC_API_KEY }}
-          PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
-        run: |
-          yarn test
-
   deploy-sustainable-leverage-liquidation-bot-ec2:
     runs-on: ubuntu-latest
-    needs: ["test"]
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
+        with:
+          submodules: "recursive"
+          fetch-depth: 0
 
       - name: Set up Node.js
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v4
         with:
           node-version: "18"
 
@@ -145,13 +89,14 @@ jobs:
 
   deploy-sustainable-leverage-liquidation-bot-demo-ec2:
     runs-on: ubuntu-latest
-    needs: ["test-demo"]
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
+        with:
+          submodules: "recursive"
 
       - name: Set up Node.js
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v4
         with:
           node-version: "18"
 
@@ -162,6 +107,9 @@ jobs:
 
       - name: Build
         run: yarn build
+
+      - name: Lint Code
+        run: npx eslint src/**/*.ts --ext .js,.jsx,.ts,.tsx --ignore-pattern /devops/  
 
       - name: Copy files to EC2
         uses: appleboy/scp-action@master
@@ -207,3 +155,47 @@ jobs:
             export PAT_TOKEN=${{ secrets.PAT_TOKEN }}   # GitHub personal access token for installing the Backend-SDK
             yarn install                                # Install dependencies
             pm2 start 'yarn liquidator'                 # Run the liquidator bot
+
+  report-devops-event-deploy:
+      runs-on: ubuntu-latest
+      needs: [deploy-sustainable-leverage-liquidation-bot-ec2, deploy-sustainable-leverage-liquidation-bot-demo-ec2]
+      steps:
+        - name: Checkout code
+          uses: actions/checkout@v4
+          with:
+            submodules: 'recursive'
+            fetch-depth: 0
+        
+        - name: Set up Node.js
+          uses: actions/setup-node@v4
+          with:
+            node-version: '20.x'
+            cache: 'yarn'
+  
+        - name: List all commit SHAs involved in the push
+          id: format_commits
+          shell: bash
+          run: |
+            ./devops/github_actions_templates/get_commit_shas.sh ${{ github.event.before }} ${{ github.event.after }} > commit_shas.txt
+            COMMIT_SHAS_JSON=$(cat commit_shas.txt)
+            echo "::set-output name=commit_shas::$COMMIT_SHAS_JSON"
+  
+        - name: Report DevOps Event
+          run: |
+            yarn add axios dotenv
+            node devops/metrics/src/cicd_script/report_devops_event.js ${{ github.repository }} deploy '{"commit_ids": ${{ steps.format_commits.outputs.commit_shas }} }'          
+          env:
+            API_DEVOPS_EVENT_CATCHER: ${{ vars.API_DEVOPS_EVENT_CATCHER }}
+            DEVOPS_EVENTS_SECRET_TOKEN: ${{ secrets.DEVOPS_EVENTS_SECRET_TOKEN }}
+  
+        - name: Slack Notification
+          if: always()
+          uses: rtCamp/action-slack-notify@v2
+          env:
+            SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+  
+        - name: SonarCloud Scan
+          uses: SonarSource/sonarcloud-github-action@master
+          env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+            SONAR_TOKEN: ${{ secrets.SONARCLOUD_TOKEN }}

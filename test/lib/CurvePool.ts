@@ -1,18 +1,29 @@
-import { type HardhatEthersSigner } from '@nomicfoundation/hardhat-ethers/signers';
-import { CURVE_POOL, CURVE_POOL_ADAPTER, LEVERAGED_STRATEGY } from './addresses';
-import { assert } from 'chai';
-import { ethers } from 'hardhat';
-import { Contracts, EthereumAddress, CurvePool as CurvePoolContract, ConvexPoolAdapter, LeveragedStrategy } from '@thisisarchimedes/backend-sdk';
+import {type HardhatEthersSigner} from '@nomicfoundation/hardhat-ethers/signers';
+import {CURVE_POOL, CURVE_POOL_ADAPTER, LEVERAGED_STRATEGY} from './addresses';
+import {assert} from 'chai';
+import {ethers} from 'hardhat';
+import {Contracts,
+  EthereumAddress,
+  CurvePool as CurvePoolContract,
+  ConvexPoolAdapter,
+  LeveragedStrategy,
+} from '@thisisarchimedes/backend-sdk';
 
 export default class CurvePool {
   //* Public methods *//
 
-  static async createInstance(signer: HardhatEthersSigner, poolAddress: EthereumAddress, dumpToken: EthereumAddress, valueToken: EthereumAddress): Promise<CurvePool> {
+  static async createInstance(
+      signer: HardhatEthersSigner,
+      poolAddress: EthereumAddress,
+      dumpToken: EthereumAddress,
+      valueToken: EthereumAddress,
+  ): Promise<CurvePool> {
     const leveragedStrategy = Contracts.leverage.leveragedStrategy(LEVERAGED_STRATEGY, signer);
     const pool = Contracts.general.curvePool(poolAddress, signer);
     const adapter = Contracts.general.convexPoolAdapter(CURVE_POOL_ADAPTER, signer);
-    const valueTokenContract = Contracts.general.ERC20(valueToken, signer);
-    const dumpTokenContract = Contracts.general.ERC20(dumpToken, signer);
+    const valueTokenContract = Contracts.general.erc20(valueToken, signer);
+    // eslint-disable-next-line new-cap
+    const dumpTokenContract = Contracts.general.erc20(dumpToken, signer);
     const valueTokenDecimals = Number(await valueTokenContract.decimals());
     const dumpTokenDecimals = Number(await dumpTokenContract.decimals());
 
@@ -25,7 +36,17 @@ export default class CurvePool {
     await valueTokenContract.approve(CURVE_POOL.toString(), ethers.MaxUint256);
     await dumpTokenContract.approve(CURVE_POOL.toString(), ethers.MaxUint256);
 
-    return new CurvePool(leveragedStrategy, pool, adapter, valueTokenIndex, dumpTokenIndex, valuetokenBalance, dumpTokenBalance, dumpTokenDecimals, valueTokenDecimals);
+    return new CurvePool(
+        leveragedStrategy,
+        pool,
+        adapter,
+        valueTokenIndex,
+        dumpTokenIndex,
+        valuetokenBalance,
+        dumpTokenBalance,
+        dumpTokenDecimals,
+        valueTokenDecimals,
+    );
   }
 
   constructor(
@@ -41,18 +62,21 @@ export default class CurvePool {
   ) { }
 
   public async exchangeDumpTokenForValueToken(amount: bigint): Promise<void> {
-    await this.contractPool['exchange_underlying(int128,int128,uint256,uint256)'](this.dumpTokenIndex, this.valueTokenIndex, amount, 0);
+    await this.contractPool['exchange_underlying(int128,int128,uint256,uint256)'](this.dumpTokenIndex,
+        this.valueTokenIndex, amount, 0);
   }
 
   public async exchangeValueTokenForDumpToken(amount: bigint): Promise<void> {
-    await this.contractPool['exchange(int128,int128,uint256,uint256)'](this.valueTokenIndex, this.dumpTokenIndex, amount, 0);
+    await this.contractPool['exchange(int128,int128,uint256,uint256)'](this.valueTokenIndex,
+        this.dumpTokenIndex, amount, 0);
   }
 
   public async getDumpTokenPriceInValueToken(dumpPercentage = 10): Promise<bigint> {
     assert.ok(dumpPercentage <= 100, 'Percentage can\'t be higher than 100');
     // Take a significant amount of dump token otherwise get a skewed price
     const priceReferenceAmount = this.dumpTokenBalance * BigInt(dumpPercentage) / 10000n; // 0.1%
-    const dumpTokenPriceInValueToken = await this.contractPool.get_dy(this.dumpTokenIndex, this.valueTokenIndex, priceReferenceAmount);
+    const dumpTokenPriceInValueToken = await this.contractPool.get_dy(this.dumpTokenIndex,
+        this.valueTokenIndex, priceReferenceAmount);
 
     return dumpTokenPriceInValueToken * (10n ** BigInt(this.dumpTokenDecimals)) / priceReferenceAmount;
   }
@@ -61,7 +85,7 @@ export default class CurvePool {
     const amountToSwap = this.valueTokenBalance * 20n / 100n;
 
     for (let i = 0; i < 1000; i++) {
-      console.log(await this.adapter.underlyingBalance(), await this.adapter.storedUnderlyingBalance()) // Debug
+      console.log(await this.adapter.underlyingBalance(), await this.adapter.storedUnderlyingBalance()); // Debug
       if (await this.adapter.underlyingBalance() > await this.adapter.storedUnderlyingBalance()) {
         break;
       }
@@ -86,10 +110,10 @@ export default class CurvePool {
         console.log(await this.contractPool.balances(this.valueTokenIndex), await this.contractPool.balances(this.dumpTokenIndex)); // Debug
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (error: any) {
-        if (error.data.data === "0x5117a49b") { // PositionNotLive
+        if (error.data.data === '0x5117a49b') { // PositionNotLive
           console.error(`Position ${nftId} is not live`);
           return;
-        } else if (error.data !== "0x5e6797f9") { // NotEligibleForLiquidation - skip
+        } else if (error.data !== '0x5e6797f9') { // NotEligibleForLiquidation - skip
           console.error(`Position ${nftId} isPositionLiquidatableEstimation errored with:`, error);
           return;
         }

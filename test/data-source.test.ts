@@ -1,8 +1,8 @@
-import { assert } from 'chai';
+import {assert} from 'chai';
 import DataSource from '../src/lib/DataSource';
 import { EthereumAddress, Logger } from '@thisisarchimedes/backend-sdk';
 
-describe('DataSource Test', function () {
+describe('DataSource Test', function() {
   let dataSource: DataSource;
   let logger: Logger;
 

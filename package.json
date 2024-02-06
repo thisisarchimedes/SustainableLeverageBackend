@@ -6,10 +6,25 @@
   "author": "Archimedes",
   "private": true,
   "scripts": {
-    "lint": "eslint */**.ts --fix",
+    "lint": "eslint --ext .ts,.tsx -c .eslintrc.cjs .",
     "build": "tsc",
-    "test": "hardhat test",
+    "test": "nyc hardhat test",
     "liquidator": "node --loader ts-node/esm src/liquidator/runner.ts"
+  },
+  "nyc": {
+    "extension": [
+      ".ts",
+      ".tsx"
+    ],
+    "include": [
+      "src/**/*.ts"
+    ],
+    "reporter": [
+      "text",
+      "lcov"
+    ],
+    "all": true,
+    "cache": false
   },
   "devDependencies": {
     "@nomicfoundation/hardhat-ethers": "^3.0.5",
@@ -24,18 +39,25 @@
     "@uniswap/smart-order-router": "^3.20.0",
     "@uniswap/v3-sdk": "^3.10.0",
     "chai": "^4.3.10",
-    "eslint": "^8.55.0",
+    "eslint": "^8.56.0",
+    "eslint-config-google": "^0.14.0",
     "eslint-plugin-promise": "^6.1.1",
+    "eslint-plugin-mocha": "^10.2.0",
     "hardhat": "^2.19.2",
     "mocha": "^10.2.0",
     "ts-node": "^10.9.1",
     "typescript": "^5.3.2"
   },
   "dependencies": {
-    "@thisisarchimedes/backend-sdk": "^1.0.65",
+    "@thisisarchimedes/backend-sdk": "^1.0.77",
+    "@stryker-mutator/core": "^8.2.2",
     "dotenv": "^16.3.1",
+    "eslint-config-google": "^0.14.0",
+    "eslint-plugin-mocha": "^10.2.0",
     "ethers": "^6.9.1",
     "p-limit": "3",
-    "pg": "^8.11.3"
+    "nyc": "^15.1.0",
+    "pg": "^8.11.3",
+    "solidity-coverage": "^0.8.5"
   }
 }
