@@ -10,6 +10,9 @@ describe('Transaction Simulator Test', function() {
 
   before(async function() {
     [signer, receiver] = await ethers.getSigners();
+  });
+
+  beforeEach(function() {
     txSimulator = new TransactionSimulator(signer);
   });
 

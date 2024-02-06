@@ -1,3 +1,4 @@
+import {Logger} from '@thisisarchimedes/backend-sdk';
 import {Client, ClientConfig, QueryResult} from 'pg';
 
 // RDS database configuration
@@ -14,10 +15,9 @@ const dbConfig: ClientConfig = {
 
 export default class DataSource {
   private client: Client;
-  constructor() {
+  constructor(logger: Logger) {
     this.client = new Client(dbConfig);
-    this.client.connect().catch(console.error);
-    // TODO: logger.error on connection error
+    this.client.connect().catch((error) => logger.error(JSON.stringify(error)));
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

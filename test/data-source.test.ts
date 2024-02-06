@@ -1,12 +1,18 @@
 import {assert} from 'chai';
 import DataSource from '../src/lib/DataSource';
-import {EthereumAddress} from '@thisisarchimedes/backend-sdk';
+import {EthereumAddress, Logger} from '@thisisarchimedes/backend-sdk';
 
 describe('DataSource Test', function() {
   let dataSource: DataSource;
+  let logger: Logger;
 
   before(function() {
-    dataSource = new DataSource();
+    Logger.initialize('liquidator-bot');
+    logger = Logger.getInstance();
+  });
+
+  beforeEach(function() {
+    dataSource = new DataSource(logger);
   });
 
   it('Check get live positions', async function() {

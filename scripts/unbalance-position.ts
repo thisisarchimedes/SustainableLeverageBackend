@@ -5,6 +5,13 @@ import {JsonRpcProvider} from 'ethers';
 import '@nomicfoundation/hardhat-ethers';
 import {ethers} from 'hardhat';
 
+/**
+ * Runs unbalancing until by small steps
+ * the specified position is eligible for liquidation
+ * ensuring the specified position will have some claimable amount
+ * after it is liquidated
+ */
+
 // ! FILL IN THE POSITION TO UNBALANCE
 const NFT_ID = 1;
 

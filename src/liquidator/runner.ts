@@ -2,6 +2,12 @@ import {ethers, getDefaultProvider} from 'ethers';
 import {Logger} from '@thisisarchimedes/backend-sdk';
 import Liquidator from './liquidator';
 
+/**
+ * Runs the liquidator for all the live positions
+ * Runs for each mined block
+ * Locks the execution if it's already running
+ */
+
 (async () => {
   // Initialize
   const signer = new ethers.Wallet(process.env.PRIVATE_KEY!, getDefaultProvider(process.env.RPC_URL!));
@@ -33,7 +39,7 @@ import Liquidator from './liquidator';
 
     try {
       // Perform actions here
-      await liquidator.run(signer, logger);
+      await liquidator.run();
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       console.error('Error running liquidator:', error);
@@ -42,7 +48,6 @@ import Liquidator from './liquidator';
     } finally {
       // Mark as not running
       isRunning = false;
-      process.exit(0); // TODO: remove
     }
   });
 })();

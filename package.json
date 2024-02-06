@@ -55,6 +55,7 @@
     "eslint-config-google": "^0.14.0",
     "eslint-plugin-mocha": "^10.2.0",
     "ethers": "^6.9.1",
+    "p-limit": "3",
     "nyc": "^15.1.0",
     "pg": "^8.11.3",
     "solidity-coverage": "^0.8.5"
