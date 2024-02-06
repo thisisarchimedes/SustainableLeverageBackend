@@ -133,7 +133,7 @@ export default class Liquidator {
   private getClosePositionSwapPayload = async (strategy: EthereumAddress, strategyShares: number): Promise<string> => {
     const strategyContract = Contracts.general.multiPoolStrategy(strategy, this.signer);
     const strategyAsset = await strategyContract.asset(); // Optimization: can get from DB
-    const asset = Contracts.general.ERC20(new EthereumAddress(strategyAsset), this.signer);
+    const asset = Contracts.general.erc20(new EthereumAddress(strategyAsset), this.signer);
     const assetDecimals = await asset.decimals(); // Optimization: can get from DB
     const strategySharesN = ethers.parseUnits(strategyShares.toFixed(Number(assetDecimals)), assetDecimals);
     const minimumExpectedAssets = await strategyContract.convertToAssets(strategySharesN); // Must query live

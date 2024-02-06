@@ -19,19 +19,23 @@ describe('Unbalance pool', function() {
   it('Unbalance pegged curve pool', async function() {
     const evmStorage = new EVMStorageManipulator(signer.provider as JsonRpcProvider);
 
-		const fraxbpMemSlot = getTokenBalancesSlot(FRAXBP.toString());
-		await evmStorage.setERC20Balance(FRAXBP, fraxbpMemSlot.slot, new EthereumAddress(signer.address), 10n ** 36n, fraxbpMemSlot.isVyper);
+    const fraxbpMemSlot = getTokenBalancesSlot(FRAXBP.toString());
+    await evmStorage.setERC20Balance(FRAXBP, fraxbpMemSlot.slot, new EthereumAddress(signer.address), 10n ** 36n, fraxbpMemSlot.isVyper);
 
     // Rebalance the pool
     await curvePool.rebalance();
 
-		// Reinit pool balances
-		curvePool = await CurvePool.createInstance(signer, CURVE_POOL, ALUSD, FRAXBP);
-		const alUSDMemSlot = getTokenBalancesSlot(ALUSD.toString());
-		await evmStorage.setERC20Balance(ALUSD, alUSDMemSlot.slot, new EthereumAddress(signer.address), 10n ** 36n, alUSDMemSlot.isVyper);
+    // Reinit pool balances
+    curvePool = await CurvePool.createInstance(signer, CURVE_POOL, ALUSD, FRAXBP);
+    const alUSDMemSlot = getTokenBalancesSlot(ALUSD.toString());
+    await evmStorage.setERC20Balance(ALUSD, alUSDMemSlot.slot, new EthereumAddress(signer.address), 10n ** 36n, alUSDMemSlot.isVyper);
 
-		// Assert the pool is roughly balanced
-		assert.isTrue(await curvePool.adapter.underlyingBalance() > await curvePool.adapter.storedUnderlyingBalance(), 'Pool is not balanced at start');
+    // Assert the pool is roughly balanced
+    assert.isTrue(
+        await curvePool.adapter.underlyingBalance() >
+      await curvePool.adapter.storedUnderlyingBalance(),
+        'Pool is not balanced at start',
+    );
 
     // Unbalance the pool
     await curvePool.unbalance(25);

@@ -16,8 +16,8 @@ async function main() {
     params: [strategyOwner],
   });
   await network.provider.request({
-    method: "hardhat_setBalance",
-    params: [strategyOwner, '0xDE0B6B3A76400000']
+    method: 'hardhat_setBalance',
+    params: [strategyOwner, '0xDE0B6B3A76400000'],
   });
   const impersonatedSigner = await ethers.getSigner(strategyOwner);
   strategy = Contracts.general.multiPoolStrategy(FRAXBPALUSD_STRATEGY, impersonatedSigner);

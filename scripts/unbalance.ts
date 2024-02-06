@@ -22,7 +22,7 @@ import {ethers} from 'hardhat';
   await curvePool.unbalance(30);
 
   curvePool = await CurvePool.createInstance(signer, CURVE_POOL, ALUSD, FRAXBP);
-  console.log("FRAXBP", curvePool.valueTokenBalance.toString());
-  console.log("ALUSD", curvePool.dumpTokenBalance.toString());
-  console.log("1 ALUSD = ", await (curvePool.getDumpTokenPriceInValueToken()), "FRAXBP");
+  console.log('FRAXBP', curvePool.valueTokenBalance.toString());
+  console.log('ALUSD', curvePool.dumpTokenBalance.toString());
+  console.log('1 ALUSD = ', await (curvePool.getDumpTokenPriceInValueToken()), 'FRAXBP');
 })();
