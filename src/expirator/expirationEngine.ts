@@ -1,5 +1,5 @@
 import cron from 'node-cron';
-import { Logger, PositionExpirator, PositionLedger, ClosePositionParamsStruct, Contracts, EthereumAddress, CurvePool } from "@thisisarchimedes/backend-sdk"
+import { Logger, PositionExpirator, ClosePositionParamsStruct, Contracts, EthereumAddress, CurvePool } from "@thisisarchimedes/backend-sdk"
 import { BigNumber } from 'bignumber.js';
 import DataSource from '../lib/DataSource';
 import LeveragePosition from '../types/LeveragePosition';
@@ -12,7 +12,6 @@ import { TokenIndexes } from '../types/TokenIndexes';
 export class PositionExpiratorEngine {
 
     private readonly logger: Logger;
-    private readonly positionLedger: PositionLedger;
     private readonly positionExpirator: PositionExpirator;
     private readonly curvePool: CurvePool;
     private readonly WBTC_INDEX: number;
@@ -20,9 +19,8 @@ export class PositionExpiratorEngine {
     private readonly poolRektThreshold: number;
     private readonly DB: DataSource;
 
-    constructor(logger: Logger, positionLedger: PositionLedger, positionExpirator: PositionExpirator, curvePool: CurvePool, tokenIndexes: TokenIndexes, poolRektThreshold: number) {
+    constructor(logger: Logger, positionExpirator: PositionExpirator, curvePool: CurvePool, tokenIndexes: TokenIndexes, poolRektThreshold: number) {
         this.logger = logger;
-        this.positionLedger = positionLedger;
         this.positionExpirator = positionExpirator;
         this.DB = new DataSource();
         this.curvePool = curvePool;
@@ -31,7 +29,7 @@ export class PositionExpiratorEngine {
         this.poolRektThreshold = poolRektThreshold;
     }
 
-    public async previewClosePosition(position: LeveragePosition) {
+    public async previewExpirePosition(position: LeveragePosition) {
         const strategyInstance = Contracts.general.multiPoolStrategy(new EthereumAddress(position.strategy), this.positionExpirator.runner ?? undefined);
 
         const minimumExpectedAssets = await strategyInstance.convertToAssets(position.strategyShares);
@@ -108,7 +106,7 @@ export class PositionExpiratorEngine {
     }
 
     public async getCurrentBlock(): Promise<number> {
-        const currentBlock = await this.positionLedger.runner?.provider?.getBlockNumber();
+        const currentBlock = await this.positionExpirator.runner?.provider?.getBlockNumber();
         return currentBlock || 0;
     }
 
@@ -122,7 +120,7 @@ export class PositionExpiratorEngine {
         for (const position of sortedExpirationPositions) {
             this.logger.info(`Expiring position with ID: ${position.id}`);
 
-            const { minimumWBTC, payload } = await this.previewClosePosition(position)
+            const { minimumWBTC, payload } = await this.previewExpirePosition(position)
 
             let closeParams: ClosePositionParamsStruct = {
                 nftId: position.nftId,

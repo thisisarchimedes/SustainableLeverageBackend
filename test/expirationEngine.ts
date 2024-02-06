@@ -1,7 +1,9 @@
 import { expect } from 'chai';
 import sinon from 'sinon';
 import { PositionExpiratorEngine } from '../src/expirator/expirationEngine';
-import { Logger, PositionLedger, PositionExpirator, CurvePool, Contracts } from "@thisisarchimedes/backend-sdk"
+import { Logger } from "@thisisarchimedes/backend-sdk"
+import PositionExpirator from './mocks/PositionExpirator';
+import CurvePool from './mocks/CurvePool';
 import DataSource from '../src/lib/DataSource';
 import { TokenIndexes } from '../src/types/TokenIndexes';
 
@@ -9,7 +11,6 @@ describe('PositionExpiratorEngine', () => {
     let sandbox: sinon.SinonSandbox;
     let engine: PositionExpiratorEngine;
     let loggerStub: sinon.SinonStubbedInstance<Logger>;
-    let positionLedgerStub: sinon.SinonStubbedInstance<PositionLedger>;
     let positionExpiratorStub: sinon.SinonStubbedInstance<PositionExpirator>;
     let curvePoolStub: sinon.SinonStubbedInstance<CurvePool>;
     let dataSourceStub: sinon.SinonStubbedInstance<DataSource>;
@@ -18,13 +19,12 @@ describe('PositionExpiratorEngine', () => {
     beforeEach(() => {
         sandbox = sinon.createSandbox();
         loggerStub = sandbox.createStubInstance(Logger);
-        positionLedgerStub = sandbox.createStubInstance(Contracts.leverage.positionLedger);
-        positionExpiratorStub = sandbox.createStubInstance(Contracts.leverage.positionExpirator);
-        curvePoolStub = sandbox.createStubInstance(Contracts.general.curvePool);
+        positionExpiratorStub = sandbox.createStubInstance(PositionExpirator);
+        curvePoolStub = sandbox.createStubInstance(CurvePool);
         dataSourceStub = sandbox.createStubInstance(DataSource);
         tokenIndexes = { 'WBTC': 0, 'LVBTC': 1 };
 
-        engine = new PositionExpiratorEngine(loggerStub, positionLedgerStub, positionExpiratorStub, curvePoolStub, tokenIndexes, 0.5);
+        engine = new PositionExpiratorEngine(loggerStub, positionExpiratorStub, curvePoolStub, tokenIndexes, 0.5);
     });
 
     afterEach(() => {
