@@ -1,6 +1,6 @@
-import {Client, ClientConfig, QueryResult} from 'pg';
+import { Client, ClientConfig, QueryResult } from 'pg';
 import LeveragePosition from '../types/LeveragePosition'
-import {Logger} from '@thisisarchimedes/backend-sdk';
+import { Logger } from '@thisisarchimedes/backend-sdk';
 
 // RDS database configuration
 const dbConfig: ClientConfig = {
@@ -16,41 +16,44 @@ const dbConfig: ClientConfig = {
 
 export default class DataSource {
   private client: Client;
-  private logger:Logger;
+  private logger: Logger;
   constructor() {
     this.logger = Logger.getInstance();
     this.client = new Client(dbConfig);
-    this.client.connect().catch((e)=>{
+    this.client.connect().catch((e) => {
       this.logger.error((e as Error).message);
     });
   }
 
-  // Add this function to your DataSource class
-
-public async getPositionsByNftIds(nftIds: number[]): Promise<LeveragePosition[]> {
-  try {
-    const query = {
-      text: 'SELECT * FROM "LeveragePosition" WHERE "nftId" = ANY($1::int[])',
-      values: [nftIds],
-    };
-    const resp = await this.client.query(query);
-    return resp.rows as LeveragePosition[];
-  } finally {
-    this.client.end().catch((e) => {
-      this.logger.error((e as Error).message);
-    });
-  }
-}
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  public async getLivePositions(): Promise<number[]> {
+  private async executeQuery(query: string | { text: string, values: any[] }): Promise<QueryResult> {
     try {
-      const resp = await this.client.query('SELECT "nftId" FROM "LeveragePosition" WHERE "positionState" = \'LIVE\'');
-      return resp.rows.map(row => row.nftId);
+      return await this.client.query(query);
+    } catch (e) {
+      this.logger.error((e as Error).message);
+      throw e;
     } finally {
       this.client.end().catch((e) => {
         this.logger.error((e as Error).message);
       });
     }
+  }
+
+  public async getPositionsByNftIds(nftIds: number[]): Promise<LeveragePosition[]> {
+    const query = {
+      text: 'SELECT * FROM "LeveragePosition" WHERE "nftId" = ANY($1::int[])',
+      values: [nftIds],
+    };
+    const resp = await this.executeQuery(query);
+    return resp.rows as LeveragePosition[];
+  }
+
+  public async getLivePositions(): Promise<LeveragePosition[]> {
+    const resp = await this.executeQuery('SELECT * FROM "LeveragePosition" WHERE "positionState" = \'LIVE\'');
+    return resp.rows as LeveragePosition[];
+  }
+
+  public async getLivePositionsNftIds(): Promise<number[]> {
+    const resp = await this.executeQuery('SELECT "nftId" FROM "LeveragePosition" WHERE "positionState" = \'LIVE\'');
+    return resp.rows.map(row => row.nftId);
   }
 }

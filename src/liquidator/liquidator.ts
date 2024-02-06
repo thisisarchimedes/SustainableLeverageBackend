@@ -79,7 +79,7 @@ async function liquidator(dataSource: DataSource, logger: Logger) {
 
   // eslint-disable-next-line no-constant-condition
   while (true) {
-    const nftIds = await dataSource.getLivePositions();
+    const nftIds = await dataSource.getLivePositionsNftIds();
     let liquidatedCount = 0;
 
     for (const nftId of nftIds) {
