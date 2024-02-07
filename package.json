@@ -9,7 +9,7 @@
     "lint": "eslint --ext .ts,.tsx -c .eslintrc.cjs .",
     "build": "tsc",
     "test": "nyc hardhat test",
-    "test_expiration": "npx mocha --require ts-node/register ./test/expirationEngine.ts",
+    "test_expiration": "npx mocha --require ts-node/register ./test/expirationEngine.test.ts",
     "liquidator": "node --loader ts-node/esm src/liquidator/liquidator.ts"
   },
   "nyc": {

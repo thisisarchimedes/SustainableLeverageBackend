@@ -22,10 +22,10 @@ export class PositionExpiratorEngine {
     private readonly DB: DataSource;
     private readonly provider: ethers.Provider;
 
-    constructor(provider: ethers.Provider, logger: Logger, positionExpirator: PositionExpirator, curvePool: CurvePool, tokenIndexes: TokenIndexes, poolRektThreshold: number) {
+    constructor(provider: ethers.Provider, logger: Logger, positionExpirator: PositionExpirator, curvePool: CurvePool, DB: DataSource, tokenIndexes: TokenIndexes, poolRektThreshold: number) {
         this.logger = logger;
         this.positionExpirator = positionExpirator;
-        this.DB = new DataSource();
+        this.DB = DB;
         this.curvePool = curvePool;
         this.WBTC_INDEX = tokenIndexes['WBTC'];
         this.LVBTC_INDEX = tokenIndexes['LVBTC'];
@@ -91,6 +91,8 @@ export class PositionExpiratorEngine {
     public async run(): Promise<void> {
         const poolBalances = await this.getPoolBalances();
         const wbtcRatio = await this.getPoolWBTCRatio(poolBalances);
+
+        console.log('wbtcRatio', wbtcRatio);
 
         if (wbtcRatio < this.poolRektThreshold) {
             let btcToAquire = this.calculateBtcToAcquire(poolBalances);

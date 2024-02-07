@@ -5,7 +5,6 @@ class CurvePool {
     private contract: ethers.Contract;
 
     constructor(private provider: ethers.Provider, contractAddress: string) {
-
         this.contract = new ethers.Contract(contractAddress, CurvePoolABI, provider);
     }
 
