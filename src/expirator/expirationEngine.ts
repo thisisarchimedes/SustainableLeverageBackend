@@ -23,9 +23,11 @@ export class PositionExpiratorEngine {
     private readonly DB: DataSource;
     private readonly multiPoolStrategyFactory: MultiPoolStrategyFactory;
     private readonly provider: ethers.Provider;
+    private readonly uniswap: Uniswap;
 
     constructor(provider: ethers.Provider, logger: Logger, positionExpirator: PositionExpirator,
-        curvePool: CurvePool, DB: DataSource, multiPoolStrategyFactory: MultiPoolStrategyFactory, tokenIndexes: TokenIndexes, poolRektThreshold: number) {
+        curvePool: CurvePool, DB: DataSource, multiPoolStrategyFactory: MultiPoolStrategyFactory,
+        uniswapInstance: Uniswap, tokenIndexes: TokenIndexes, poolRektThreshold: number) {
         this.logger = logger;
         this.positionExpirator = positionExpirator;
         this.DB = DB;
@@ -35,18 +37,18 @@ export class PositionExpiratorEngine {
         this.poolRektThreshold = poolRektThreshold;
         this.multiPoolStrategyFactory = multiPoolStrategyFactory;
         this.provider = provider;
+        this.uniswap = uniswapInstance;
     }
 
     public async previewExpirePosition(position: LeveragePosition) {
         const strategyInstance = this.multiPoolStrategyFactory.create(new EthereumAddress(position.strategy));
 
-        const minimumExpectedAssets = await strategyInstance.convertToAssets(BigInt(position.strategyShares));
+        const minimumExpectedAssets = await strategyInstance.convertToAssets(ethers.parseEther(position.strategyShares.toString()));
+
         const strategyAsset = await strategyInstance.asset();
         const assetDecimals = await strategyInstance.decimals();
 
-        const uniswapInstance = new Uniswap(process.env.MAINNET_RPC_URL!);
-
-        const { payload, swapOutputAmount } = await uniswapInstance.buildPayload(
+        const { payload, swapOutputAmount } = await this.uniswap.buildPayload(
             ethers.formatUnits(minimumExpectedAssets, assetDecimals),
             new EthereumAddress(strategyAsset),
             Number(assetDecimals),
@@ -60,8 +62,7 @@ export class PositionExpiratorEngine {
         };
     }
 
-
-    async getPoolBalances(): Promise<bigint[]> {
+    async getCurvePoolBalances(): Promise<bigint[]> {
         try {
             const indices = [this.WBTC_INDEX, this.LVBTC_INDEX].sort();
             const balances: bigint[] = [];
@@ -93,7 +94,7 @@ export class PositionExpiratorEngine {
     }
 
     public async run(): Promise<void> {
-        const poolBalances = await this.getPoolBalances();
+        const poolBalances = await this.getCurvePoolBalances();
         const wbtcRatio = await this.getPoolWBTCRatio(poolBalances);
 
         console.log('wbtcRatio', wbtcRatio);
@@ -122,11 +123,13 @@ export class PositionExpiratorEngine {
 
     public async getSortedExpirationPositions(currentBlock: number): Promise<any[]> {
         const livePositions = await this.DB.getLivePositions();
-        let eligibleForExpiration = livePositions.filter(position => position.positionExpireBlock > currentBlock);
+        let eligibleForExpiration = livePositions.filter(position => position.positionExpireBlock < currentBlock);
+
         return eligibleForExpiration.sort((a, b) => a.positionExpireBlock - b.positionExpireBlock);
     }
 
     public async expirePositionsUntilBtcAcquired(sortedExpirationPositions: any[], btcToAquire: bigint): Promise<bigint> {
+
         for (const position of sortedExpirationPositions) {
             this.logger.info(`Expiring position with ID: ${position.id}`);
 
@@ -141,11 +144,12 @@ export class PositionExpiratorEngine {
             }
 
             await this.positionExpirator.expirePosition(position.nftId, closeParams);
-
+            this.logger.info(`position ${position.nftId} sent to expiration`);
             btcToAquire -= minimumWBTC;
-
-            if (btcToAquire <= 0)
+            if (btcToAquire <= 0) {
+                this.logger.info('Got enough BTC, breaking');
                 break;
+            }
         }
 
         return btcToAquire;
