@@ -4,11 +4,9 @@ import {EthereumAddress, Logger} from '@thisisarchimedes/backend-sdk';
 
 describe('DataSource Test', function() {
   let dataSource: DataSource;
-  let logger: Logger;
 
   before(function() {
     Logger.initialize('liquidator-bot');
-    logger = Logger.getInstance();
   });
 
   beforeEach(function() {
