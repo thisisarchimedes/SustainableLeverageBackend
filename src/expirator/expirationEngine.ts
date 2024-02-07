@@ -93,23 +93,24 @@ export class PositionExpiratorEngine {
         return ratio.toNumber();
     }
 
-    public async run(): Promise<void> {
+    public async run(): Promise<bigint> {
         const poolBalances = await this.getCurvePoolBalances();
         const wbtcRatio = await this.getPoolWBTCRatio(poolBalances);
 
-        console.log('wbtcRatio', wbtcRatio);
-
+        let btcAquired: bigint = BigInt(0);
         if (wbtcRatio < this.poolRektThreshold) {
             let btcToAquire = this.calculateBtcToAcquire(poolBalances);
             const currentBlock = await this.getCurrentBlock();
 
             if (currentBlock > 0) {
                 const sortedExpirationPositions = await this.getSortedExpirationPositions(currentBlock);
-                btcToAquire = await this.expirePositionsUntilBtcAcquired(sortedExpirationPositions, btcToAquire);
+                btcAquired = await this.expirePositionsUntilBtcAcquired(sortedExpirationPositions, btcToAquire);
             } else {
                 throw new Error("Could not fetch latest block! terminating.")
             }
         }
+
+        return btcAquired;
     }
 
     public calculateBtcToAcquire(poolBalances: bigint[]): bigint {
@@ -124,7 +125,6 @@ export class PositionExpiratorEngine {
     public async getSortedExpirationPositions(currentBlock: number): Promise<any[]> {
         const livePositions = await this.DB.getLivePositions();
         let eligibleForExpiration = livePositions.filter(position => position.positionExpireBlock < currentBlock);
-
         return eligibleForExpiration.sort((a, b) => a.positionExpireBlock - b.positionExpireBlock);
     }
 

@@ -13,6 +13,11 @@ import { MultiPoolStrategyFactory } from '../src/expirator/MultiPoolStrategyFact
 import MultiPoolStrategy from '../src/expirator/contracts/MultiPoolStrategy';
 import Uniswap from '../src/lib/Uniswap';
 
+const POOL_BALANCES = [BigInt(10 * 10 ** 8), BigInt(51 * 10 ** 8)];
+const ZERO_BALANCE_ERROR = "lvBTC balance is zero, can't calculate ratio";
+const FETCH_BLOCK_ERROR = "Could not fetch latest block! terminating.";
+const CURRENT_BLOCK = 19144936;
+
 describe('PositionExpiratorEngine', () => {
     let sandbox: sinon.SinonSandbox;
     let engine: PositionExpiratorEngine;
@@ -21,7 +26,7 @@ describe('PositionExpiratorEngine', () => {
 
     function createProviderStub(): sinon.SinonStubbedInstance<ethers.JsonRpcProvider> {
         const providerStub = sandbox.createStubInstance(ethers.JsonRpcProvider);
-        providerStub.getBlockNumber.resolves(19144936);
+        providerStub.getBlockNumber.resolves(CURRENT_BLOCK);
         return providerStub;
     }
 
@@ -127,19 +132,22 @@ describe('PositionExpiratorEngine', () => {
         expect(result).to.deep.equal([BigInt(10 * 10 ** 8), BigInt(51 * 10 ** 8)]);
     });
 
-    it('should expire position', async () => {
-        await engine.run()
+    it('should aquire enough BTC from expired position', async () => {
+        const btcToAquire = engine.calculateBtcToAcquire(POOL_BALANCES);
+
+        const btcAquired = await engine.run()
+
+        expect(btcAquired > btcToAquire)
     })
 
     it('should calculate BTC to acquire', () => {
-        const poolBalances = [BigInt(10 * 10 ** 8), BigInt(51 * 10 ** 8)];
-        const result = engine.calculateBtcToAcquire(poolBalances);
+        const result = engine.calculateBtcToAcquire(POOL_BALANCES);
         expect(result).to.equal(BigInt(41 * 10 ** 8));
     });
 
     it('should get current block', async () => {
         const result = await engine.getCurrentBlock();
-        expect(result).to.equal(19144936);
+        expect(result).to.equal(CURRENT_BLOCK);
     });
 
     it('should throw error when lvBTC balance is zero', async () => {
@@ -150,7 +158,7 @@ describe('PositionExpiratorEngine', () => {
             expect.fail('Expected run to throw an error');
         } catch (error) {
             expect(error).to.be.an('error');
-            expect((error as Error).message).to.equal("lvBTC balance is zero, can't calculate ratio");
+            expect((error as Error).message).to.equal(ZERO_BALANCE_ERROR);
         }
     });
 
@@ -161,23 +169,15 @@ describe('PositionExpiratorEngine', () => {
             expect.fail('Expected run to throw an error');
         } catch (error) {
             expect(error).to.be.an('error');
-            expect((error as Error).message).to.equal("Could not fetch latest block! terminating.");
+            expect((error as Error).message).to.equal(FETCH_BLOCK_ERROR);
         }
     });
 
-    // it('should get sorted expiration positions', async () => {
-    //     const result = await engine.getSortedExpirationPositions(19133668);
-    //     expect(result).to.be.an('array');
-    //     expect(result).to.have.lengthOf(PositionsDummy.filter(p => p.positionExpireBlock < 19133668).length);
-    //     expect(result[0].positionExpireBlock).to.be.lessThan(result[1].positionExpireBlock);
-    // });
-
-    // it('should expire positions until BTC acquired', async () => {
-    //     const sortedExpirationPositions = convertToLeveragePositionRows(JSON.stringify(PositionsDummy));
-    //     const btcToAquire = BigInt(41 * 10 ** 8);
-    //     const result = await engine.expirePositionsUntilBtcAcquired(sortedExpirationPositions, btcToAquire);
-    //     expect(result).to.be.a('bigint');
-    //     expect(result).to.be.lessThan(btcToAquire);
-    // });
+    it('should get sorted expiration positions', async () => {
+        const result = await engine.getSortedExpirationPositions(CURRENT_BLOCK);
+        expect(result).to.be.an('array');
+        expect(result).to.have.lengthOf(PositionsDummy.filter(p => p.positionExpireBlock < CURRENT_BLOCK).length);
+        expect(result[0].positionExpireBlock).to.be.lessThan(result[1].positionExpireBlock);
+    });
 
 });
