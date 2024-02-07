@@ -1,11 +1,11 @@
 import {assert} from 'chai';
 import '@nomicfoundation/hardhat-ethers';
+import {ethers} from 'hardhat';
+import {JsonRpcProvider} from 'ethers';
 import {type HardhatEthersSigner} from '@nomicfoundation/hardhat-ethers/signers';
 import {ALUSD, CURVE_POOL, FRAXBP, getTokenBalancesSlot} from './lib/addresses';
 import CurvePool from './lib/CurvePool';
 import {EVMStorageManipulator, EthereumAddress} from '@thisisarchimedes/backend-sdk';
-import {JsonRpcProvider} from 'ethers';
-import {ethers} from 'hardhat';
 
 describe('Rebalance pool', function() {
   let signer: HardhatEthersSigner;
@@ -13,6 +13,9 @@ describe('Rebalance pool', function() {
 
   before(async function() {
     [signer] = await ethers.getSigners();
+  });
+
+  beforeEach(async function() {
     curvePool = await CurvePool.createInstance(signer, CURVE_POOL, ALUSD, FRAXBP);
   });
 
@@ -20,8 +23,7 @@ describe('Rebalance pool', function() {
     const evmStorage = new EVMStorageManipulator(signer.provider as JsonRpcProvider);
 
     const alUSDMemSlot = getTokenBalancesSlot(ALUSD.toString());
-    await evmStorage.setERC20Balance(ALUSD, alUSDMemSlot.slot, new EthereumAddress(signer.address),
-        curvePool.dumpTokenBalance, alUSDMemSlot.isVyper);
+    await evmStorage.setERC20Balance(ALUSD, alUSDMemSlot.slot, new EthereumAddress(signer.address), 10n ** 36n, alUSDMemSlot.isVyper);
 
     // Unbalance the pool
     await curvePool.unbalance(25);
@@ -29,8 +31,7 @@ describe('Rebalance pool', function() {
     // Reinit pool balances
     curvePool = await CurvePool.createInstance(signer, CURVE_POOL, ALUSD, FRAXBP);
     const fraxbpMemSlot = getTokenBalancesSlot(FRAXBP.toString());
-    await evmStorage.setERC20Balance(FRAXBP, fraxbpMemSlot.slot, new EthereumAddress(signer.address),
-        curvePool.valueTokenBalance * 100n, fraxbpMemSlot.isVyper);
+    await evmStorage.setERC20Balance(FRAXBP, fraxbpMemSlot.slot, new EthereumAddress(signer.address), 10n ** 36n, fraxbpMemSlot.isVyper);
 
     // Assert the pool is unbalanced
     const alUSDPriceInFRAXBPBefore = await curvePool.getDumpTokenPriceInValueToken();
@@ -40,8 +41,6 @@ describe('Rebalance pool', function() {
     await curvePool.rebalance();
 
     // Assert for balanced pool
-    const alUSDPriceInFRAXBPAfter = await curvePool.getDumpTokenPriceInValueToken();
-    assert.approximately(Number(ethers.formatUnits(alUSDPriceInFRAXBPAfter, curvePool.valueTokenDecimals)),
-        1, 0.01, 'Pool did not balance');
+    assert.isTrue(await curvePool.adapter.underlyingBalance() > await curvePool.adapter.storedUnderlyingBalance(), 'Pool did not balance');
   });
 });

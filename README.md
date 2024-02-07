@@ -65,6 +65,7 @@ configured in the hardhat config.
 ```
 yarn hardhat run scripts/rebalance.ts
 yarn hardhat run scripts/unbalance.ts
+yarn hardhat run scripts/unbalance-position.ts
 yarn hardhat run scripts/changeAdjustInInterval.ts
 ```
 
