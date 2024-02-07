@@ -16,6 +16,8 @@ import Uniswap from '../src/lib/Uniswap';
 describe('PositionExpiratorEngine', () => {
     let sandbox: sinon.SinonSandbox;
     let engine: PositionExpiratorEngine;
+    let stubs: any;
+
 
     function createProviderStub(): sinon.SinonStubbedInstance<ethers.JsonRpcProvider> {
         const providerStub = sandbox.createStubInstance(ethers.JsonRpcProvider);
@@ -112,7 +114,7 @@ describe('PositionExpiratorEngine', () => {
 
     beforeEach(() => {
         sandbox = sinon.createSandbox();
-        const stubs = setupStubs();
+        stubs = setupStubs();
         engine = createEngine(stubs);
     });
 
@@ -129,7 +131,6 @@ describe('PositionExpiratorEngine', () => {
         await engine.run()
     })
 
-
     it('should calculate BTC to acquire', () => {
         const poolBalances = [BigInt(10 * 10 ** 8), BigInt(51 * 10 ** 8)];
         const result = engine.calculateBtcToAcquire(poolBalances);
@@ -140,44 +141,43 @@ describe('PositionExpiratorEngine', () => {
         const result = await engine.getCurrentBlock();
         expect(result).to.equal(19144936);
     });
+
+    it('should throw error when lvBTC balance is zero', async () => {
+        stubs.curvePool.balances.onFirstCall().resolves(BigInt(10 * 10 ** 8));
+        stubs.curvePool.balances.onSecondCall().resolves(BigInt(0));
+        try {
+            await engine.run();
+            expect.fail('Expected run to throw an error');
+        } catch (error) {
+            expect(error).to.be.an('error');
+            expect((error as Error).message).to.equal("lvBTC balance is zero, can't calculate ratio");
+        }
+    });
+
+    it('should throw error when unable to fetch latest block', async () => {
+        stubs.provider.getBlockNumber.resolves(0);
+        try {
+            await engine.run();
+            expect.fail('Expected run to throw an error');
+        } catch (error) {
+            expect(error).to.be.an('error');
+            expect((error as Error).message).to.equal("Could not fetch latest block! terminating.");
+        }
+    });
+
+    // it('should get sorted expiration positions', async () => {
+    //     const result = await engine.getSortedExpirationPositions(19133668);
+    //     expect(result).to.be.an('array');
+    //     expect(result).to.have.lengthOf(PositionsDummy.filter(p => p.positionExpireBlock < 19133668).length);
+    //     expect(result[0].positionExpireBlock).to.be.lessThan(result[1].positionExpireBlock);
+    // });
+
+    // it('should expire positions until BTC acquired', async () => {
+    //     const sortedExpirationPositions = convertToLeveragePositionRows(JSON.stringify(PositionsDummy));
+    //     const btcToAquire = BigInt(41 * 10 ** 8);
+    //     const result = await engine.expirePositionsUntilBtcAcquired(sortedExpirationPositions, btcToAquire);
+    //     expect(result).to.be.a('bigint');
+    //     expect(result).to.be.lessThan(btcToAquire);
+    // });
+
 });
-
-
-
-// it('should get sorted expiration positions', async () => {
-//     const result = await engine.getSortedExpirationPositions(19133668);
-//     expect(result).to.be.an('array');
-//     expect(result).to.have.lengthOf(PositionsDummy.length);
-//     expect(result[0].positionExpireBlock).to.be.lessThan(result[1].positionExpireBlock);
-// });
-
-// it('should expire positions until BTC acquired', async () => {
-//     const sortedExpirationPositions = convertToLeveragePositionRows(JSON.stringify(PositionsDummy));
-//     const btcToAquire = BigInt(41 * 10 ** 8);
-//     const result = await engine.expirePositionsUntilBtcAcquired(sortedExpirationPositions, btcToAquire);
-//     expect(result).to.be.a('bigint');
-//     expect(result).to.be.lessThan(btcToAquire);
-// });
-
-// it('should throw error when lvBTC balance is zero', async () => {
-//     curvePoolStub.balances.onFirstCall().resolves(BigInt(10 * 10 ** 8));
-//     curvePoolStub.balances.onSecondCall().resolves(BigInt(0));
-//     try {
-//         await engine.run();
-//         expect.fail('Expected run to throw an error');
-//     } catch (error) {
-//         expect(error).to.be.an('error');
-//         expect(error.message).to.equal("lvBTC balance is zero, can't calculate ratio");
-//     }
-// });
-
-// it('should throw error when unable to fetch latest block', async () => {
-//     providerStub.getBlockNumber.resolves(0);
-//     try {
-//         await engine.run();
-//         expect.fail('Expected run to throw an error');
-//     } catch (error) {
-//         expect(error).to.be.an('error');
-//         expect(error.message).to.equal("Could not fetch latest block! terminating.");
-//     }
-// });
