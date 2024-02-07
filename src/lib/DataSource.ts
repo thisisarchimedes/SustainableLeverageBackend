@@ -1,7 +1,6 @@
-import {Logger} from '@thisisarchimedes/backend-sdk';
-import {Client, ClientConfig, QueryResult} from 'pg';
+import { Logger } from '@thisisarchimedes/backend-sdk';
+import { Client, ClientConfig, QueryResult } from 'pg';
 import LeveragePosition from '../types/LeveragePosition';
-import {Logger} from '@thisisarchimedes/backend-sdk';
 
 // RDS database configuration
 const dbConfig: ClientConfig = {

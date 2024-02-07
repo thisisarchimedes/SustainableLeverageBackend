@@ -4,6 +4,8 @@ This repo contains different backend services for the Archimedes Finance Sustain
 
 ## Backend Services
 * Positions Liquidator
+* Positions Expirator
+
 
 ## Quick start
 
@@ -74,3 +76,11 @@ yarn hardhat run scripts/changeAdjustInInterval.ts
 ```
 yarn liquidator
 ```
+
+### Run Expirator Bot
+
+```
+yarn ./expirator/runner.ts
+```
+
+The expirator bot use node-cron to automatically run every 5 minutes.
