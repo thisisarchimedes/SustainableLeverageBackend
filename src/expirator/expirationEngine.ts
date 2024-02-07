@@ -9,6 +9,7 @@ import { WBTC, WBTC_DECIMALS } from '../constants';
 import { TokenIndexes } from '../types/TokenIndexes';
 import PositionExpirator from './contracts/PositionExpirator';
 import CurvePool from './contracts/CurvePool';
+import { MultiPoolStrategyFactory } from './MultiPoolStrategyFactory';
 
 
 export class PositionExpiratorEngine {
@@ -20,9 +21,11 @@ export class PositionExpiratorEngine {
     private readonly LVBTC_INDEX: number;
     private readonly poolRektThreshold: number;
     private readonly DB: DataSource;
+    private readonly multiPoolStrategyFactory: MultiPoolStrategyFactory;
     private readonly provider: ethers.Provider;
 
-    constructor(provider: ethers.Provider, logger: Logger, positionExpirator: PositionExpirator, curvePool: CurvePool, DB: DataSource, tokenIndexes: TokenIndexes, poolRektThreshold: number) {
+    constructor(provider: ethers.Provider, logger: Logger, positionExpirator: PositionExpirator,
+        curvePool: CurvePool, DB: DataSource, multiPoolStrategyFactory: MultiPoolStrategyFactory, tokenIndexes: TokenIndexes, poolRektThreshold: number) {
         this.logger = logger;
         this.positionExpirator = positionExpirator;
         this.DB = DB;
@@ -30,13 +33,14 @@ export class PositionExpiratorEngine {
         this.WBTC_INDEX = tokenIndexes['WBTC'];
         this.LVBTC_INDEX = tokenIndexes['LVBTC'];
         this.poolRektThreshold = poolRektThreshold;
+        this.multiPoolStrategyFactory = multiPoolStrategyFactory;
         this.provider = provider;
     }
 
     public async previewExpirePosition(position: LeveragePosition) {
-        const strategyInstance = Contracts.general.multiPoolStrategy(new EthereumAddress(position.strategy), this.provider);
+        const strategyInstance = this.multiPoolStrategyFactory.create(new EthereumAddress(position.strategy));
 
-        const minimumExpectedAssets = await strategyInstance.convertToAssets(position.strategyShares);
+        const minimumExpectedAssets = await strategyInstance.convertToAssets(BigInt(position.strategyShares));
         const strategyAsset = await strategyInstance.asset();
         const assetDecimals = await strategyInstance.decimals();
 
@@ -76,8 +80,8 @@ export class PositionExpiratorEngine {
 
     public async getPoolWBTCRatio(poolBalances: bigint[]): Promise<number> {
 
-        const wbtcBalance = new BigNumber(this.WBTC_INDEX);
-        const lvBtcBalance = new BigNumber(this.LVBTC_INDEX);
+        const wbtcBalance = new BigNumber(poolBalances[this.WBTC_INDEX].toString());
+        const lvBtcBalance = new BigNumber(poolBalances[this.LVBTC_INDEX].toString());
 
         if (lvBtcBalance.isZero()) {
             throw new Error("lvBTC balance is zero, can't calculate ratio");

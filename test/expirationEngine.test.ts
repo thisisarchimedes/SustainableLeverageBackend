@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import sinon from 'sinon';
-import { PositionExpiratorEngine } from '../src/expirator/expirationEngine';
+import { PositionExpiratorEngine } from '../src/expirator/ExpirationEngine';
 import { Logger } from "@thisisarchimedes/backend-sdk"
 import DataSource from '../src/lib/DataSource';
 import { TokenIndexes } from '../src/types/TokenIndexes';
@@ -55,7 +55,7 @@ describe('PositionExpiratorEngine', () => {
     function createCurvePoolStub(): sinon.SinonStubbedInstance<CurvePool> {
         curvePoolStub = sandbox.createStubInstance(CurvePool);
         curvePoolStub.balances.onFirstCall().resolves(BigInt(10 * 10 ** 8));
-        curvePoolStub.balances.onSecondCall().resolves(BigInt(30 * 10 ** 8));
+        curvePoolStub.balances.onSecondCall().resolves(BigInt(51 * 10 ** 8));
 
         return curvePoolStub;
 
@@ -72,7 +72,7 @@ describe('PositionExpiratorEngine', () => {
         providerStub = createProviderStub();
         tokenIndexes = { 'WBTC': 0, 'LVBTC': 1 };
 
-        engine = new PositionExpiratorEngine(providerStub, loggerStub, positionExpiratorStub, curvePoolStub, dataSourceStub, tokenIndexes, 0.5);
+        engine = new PositionExpiratorEngine(providerStub, loggerStub, positionExpiratorStub, curvePoolStub, dataSourceStub, tokenIndexes, 0.2);
     });
 
     afterEach(() => {
@@ -82,7 +82,7 @@ describe('PositionExpiratorEngine', () => {
     it('should return pool balances', async () => {
         const result = await engine.getPoolBalances();
 
-        expect(result).to.deep.equal([BigInt(10 * 10 ** 8), BigInt(30 * 10 ** 8)]);
+        expect(result).to.deep.equal([BigInt(10 * 10 ** 8), BigInt(51 * 10 ** 8)]);
     });
 
     it('should expire position', async () => {
