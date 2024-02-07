@@ -1,5 +1,5 @@
 import cron from 'node-cron';
-import { Logger, PositionExpirator, ClosePositionParamsStruct, Contracts, EthereumAddress, CurvePool } from "@thisisarchimedes/backend-sdk"
+import { Logger, Contracts, EthereumAddress, ClosePositionParamsStruct } from "@thisisarchimedes/backend-sdk"
 import { BigNumber } from 'bignumber.js';
 import DataSource from '../lib/DataSource';
 import LeveragePosition from '../types/LeveragePosition';
@@ -7,6 +7,8 @@ import { ethers } from 'ethers';
 import Uniswap from '../lib/Uniswap';
 import { WBTC, WBTC_DECIMALS } from '../constants';
 import { TokenIndexes } from '../types/TokenIndexes';
+import PositionExpirator from './contracts/PositionExpirator';
+import CurvePool from './contracts/CurvePool';
 
 
 export class PositionExpiratorEngine {
@@ -18,8 +20,9 @@ export class PositionExpiratorEngine {
     private readonly LVBTC_INDEX: number;
     private readonly poolRektThreshold: number;
     private readonly DB: DataSource;
+    private readonly provider: ethers.Provider;
 
-    constructor(logger: Logger, positionExpirator: PositionExpirator, curvePool: CurvePool, tokenIndexes: TokenIndexes, poolRektThreshold: number) {
+    constructor(provider: ethers.Provider, logger: Logger, positionExpirator: PositionExpirator, curvePool: CurvePool, tokenIndexes: TokenIndexes, poolRektThreshold: number) {
         this.logger = logger;
         this.positionExpirator = positionExpirator;
         this.DB = new DataSource();
@@ -27,10 +30,11 @@ export class PositionExpiratorEngine {
         this.WBTC_INDEX = tokenIndexes['WBTC'];
         this.LVBTC_INDEX = tokenIndexes['LVBTC'];
         this.poolRektThreshold = poolRektThreshold;
+        this.provider = provider;
     }
 
     public async previewExpirePosition(position: LeveragePosition) {
-        const strategyInstance = Contracts.general.multiPoolStrategy(new EthereumAddress(position.strategy), this.positionExpirator.runner ?? undefined);
+        const strategyInstance = Contracts.general.multiPoolStrategy(new EthereumAddress(position.strategy), this.provider);
 
         const minimumExpectedAssets = await strategyInstance.convertToAssets(position.strategyShares);
         const strategyAsset = await strategyInstance.asset();
@@ -106,7 +110,7 @@ export class PositionExpiratorEngine {
     }
 
     public async getCurrentBlock(): Promise<number> {
-        const currentBlock = await this.positionExpirator.runner?.provider?.getBlockNumber();
+        const currentBlock = await this.provider.getBlockNumber();
         return currentBlock || 0;
     }
 
