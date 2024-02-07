@@ -1,7 +1,7 @@
-import { Config, loadConfig } from '../lib/ConfigService';
-import { Provider, ethers, getDefaultProvider } from 'ethers';
-import { WBTC, WBTC_DECIMALS } from '../constants';
-import { Contracts, EthereumAddress, Logger } from '@thisisarchimedes/backend-sdk';
+import {Config, loadConfig} from '../lib/ConfigService';
+import {Provider, ethers, getDefaultProvider} from 'ethers';
+import {WBTC, WBTC_DECIMALS} from '../constants';
+import {Contracts, EthereumAddress, Logger} from '@thisisarchimedes/backend-sdk';
 import Uniswap from '../lib/Uniswap';
 import TransactionSimulator from '../lib/TransactionSimulator';
 import DataSource from '../lib/DataSource';
@@ -27,7 +27,7 @@ liquidator(dataSource, logger);
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function liquidatePosition(nftId: number, config: Config, signer: ethers.Wallet, positionLiquidator: any,
-  txSimulator: TransactionSimulator, logger: Logger) {
+    txSimulator: TransactionSimulator, logger: Logger) {
   if (isNaN(nftId)) {
     logger.error(`Position nftId is not a number`);
     return false;
@@ -118,12 +118,12 @@ const getClosePositionSwapPayload = async (provider: Provider, config: Config, n
   const assetDecimals = await asset.decimals();
 
   const UniswapInstance = new Uniswap(process.env.MAINNET_RPC_URL!);
-  const { payload } = await UniswapInstance.buildPayload(
-    ethers.formatUnits(minimumExpectedAssets, assetDecimals),
-    new EthereumAddress(strategyAsset),
-    Number(assetDecimals),
-    new EthereumAddress(WBTC),
-    WBTC_DECIMALS,
+  const {payload} = await UniswapInstance.buildPayload(
+      ethers.formatUnits(minimumExpectedAssets, assetDecimals),
+      new EthereumAddress(strategyAsset),
+      Number(assetDecimals),
+      new EthereumAddress(WBTC),
+      WBTC_DECIMALS,
   );
 
   return payload;

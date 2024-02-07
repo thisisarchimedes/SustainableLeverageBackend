@@ -1,6 +1,6 @@
-import { Client, ClientConfig, QueryResult } from 'pg';
-import LeveragePosition from '../types/LeveragePosition'
-import { Logger } from '@thisisarchimedes/backend-sdk';
+import {Client, ClientConfig, QueryResult} from 'pg';
+import LeveragePosition from '../types/LeveragePosition';
+import {Logger} from '@thisisarchimedes/backend-sdk';
 
 // RDS database configuration
 const dbConfig: ClientConfig = {
@@ -25,6 +25,7 @@ export default class DataSource {
     });
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private async executeQuery(query: string | { text: string, values: any[] }): Promise<QueryResult> {
     try {
       return await this.client.query(query);
@@ -54,6 +55,6 @@ export default class DataSource {
 
   public async getLivePositionsNftIds(): Promise<number[]> {
     const resp = await this.executeQuery('SELECT "nftId" FROM "LeveragePosition" WHERE "positionState" = \'LIVE\'');
-    return resp.rows.map(row => row.nftId);
+    return resp.rows.map((row) => row.nftId);
   }
 }

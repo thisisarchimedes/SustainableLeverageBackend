@@ -1,3 +1,4 @@
+/* eslint-disable semi */
 export default interface LeveragePositionRow {
   id: number;
   nftId: number;

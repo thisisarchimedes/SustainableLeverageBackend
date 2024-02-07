@@ -1,4 +1,4 @@
-import { CurvePool, Logger } from '@thisisarchimedes/backend-sdk';
+import {CurvePool, Logger} from '@thisisarchimedes/backend-sdk';
 import {TokenIndexes} from '../types/TokenIndexes';
 class CurvePoolMonitor {
   private curvePool: CurvePool;
@@ -18,7 +18,7 @@ class CurvePoolMonitor {
 
       return [wbtcBalance, lvBTCBalance];
     } catch (error) {
-      Logger.getInstance().error(`Error fetching pool balances: ${(error as Error).message}`) ;
+      Logger.getInstance().error(`Error fetching pool balances: ${(error as Error).message}`);
       throw error;
     }
   }

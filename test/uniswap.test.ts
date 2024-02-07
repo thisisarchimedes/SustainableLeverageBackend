@@ -1,6 +1,6 @@
-import { assert } from 'chai';
+import {assert} from 'chai';
 import Uniswap from '../src/lib/Uniswap';
-import { EthereumAddress } from '@thisisarchimedes/backend-sdk';
+import {EthereumAddress} from '@thisisarchimedes/backend-sdk';
 import 'dotenv/config';
 
 const WETH = '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2';
@@ -8,20 +8,20 @@ const WETH_DECIMALS = 18;
 const WBTC = '0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599';
 const WBTC_DECIMALS = 8;
 
-describe('UniSwap', function () {
+describe('UniSwap', function() {
   let uniSwap: Uniswap;
 
-  beforeEach(function () {
+  beforeEach(function() {
     uniSwap = new Uniswap(process.env.MAINNET_RPC_URL!);
   });
 
-  it('Test payload build', async function () {
-    const { swapOutputAmount, payload } = await uniSwap.buildPayload(
-      (1 ** WETH_DECIMALS).toString(),
-      new EthereumAddress(WETH),
-      WETH_DECIMALS,
-      new EthereumAddress(WBTC),
-      WBTC_DECIMALS,
+  it('Test payload build', async function() {
+    const {swapOutputAmount, payload} = await uniSwap.buildPayload(
+        (1 ** WETH_DECIMALS).toString(),
+        new EthereumAddress(WETH),
+        WETH_DECIMALS,
+        new EthereumAddress(WBTC),
+        WBTC_DECIMALS,
     );
 
     const expectedPayload = `0x00000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000
