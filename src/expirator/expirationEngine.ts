@@ -1,17 +1,18 @@
-import {Logger, EthereumAddress, ClosePositionParamsStruct} from '@thisisarchimedes/backend-sdk';
-import {BigNumber} from 'bignumber.js';
+import { Logger, EthereumAddress, ClosePositionParamsStruct } from '@thisisarchimedes/backend-sdk';
+import { BigNumber } from 'bignumber.js';
 import DataSource from '../lib/DataSource';
 import LeveragePosition from '../types/LeveragePosition';
-import {ethers} from 'ethers';
+import { ethers } from 'ethers';
 import Uniswap from '../lib/Uniswap';
-import {WBTC, WBTC_DECIMALS} from '../constants';
-import {TokenIndexes} from '../types/TokenIndexes';
+import { WBTC, WBTC_DECIMALS } from '../constants';
+import { TokenIndexes } from '../types/TokenIndexes';
 import PositionExpirator from './contracts/PositionExpirator';
 import CurvePool from './contracts/CurvePool';
-import {MultiPoolStrategyFactory} from './MultiPoolStrategyFactory';
+import { MultiPoolStrategyFactory } from './MultiPoolStrategyFactory';
 
 const ZERO_ADDRESS = ethers.ZeroAddress;
 const SWAP_ROUTE = 0;
+const PRECISION_FACTOR = 1000000;
 
 /**
  * Position Expirator Engine class
@@ -29,8 +30,8 @@ export class PositionExpiratorEngine {
   private readonly uniswap: Uniswap;
 
   constructor(wallet: ethers.Wallet, logger: Logger, positionExpirator: PositionExpirator,
-      curvePool: CurvePool, DB: DataSource, multiPoolStrategyFactory: MultiPoolStrategyFactory,
-      uniswapInstance: Uniswap, tokenIndexes: TokenIndexes, poolRektThreshold: number) {
+    curvePool: CurvePool, DB: DataSource, multiPoolStrategyFactory: MultiPoolStrategyFactory,
+    uniswapInstance: Uniswap, tokenIndexes: TokenIndexes, poolRektThreshold: number) {
     this.logger = logger;
     this.positionExpirator = positionExpirator;
     this.DB = DB;
@@ -56,12 +57,12 @@ export class PositionExpiratorEngine {
     const strategyAsset = await strategyInstance.asset();
     const assetDecimals = await strategyInstance.decimals();
 
-    const {payload, swapOutputAmount} = await this.uniswap.buildPayload(
-        ethers.formatUnits(minimumExpectedAssets, assetDecimals),
-        new EthereumAddress(strategyAsset),
-        Number(assetDecimals),
-        new EthereumAddress(WBTC),
-        WBTC_DECIMALS,
+    const { payload, swapOutputAmount } = await this.uniswap.buildPayload(
+      ethers.formatUnits(minimumExpectedAssets, assetDecimals),
+      new EthereumAddress(strategyAsset),
+      Number(assetDecimals),
+      new EthereumAddress(WBTC),
+      WBTC_DECIMALS,
     );
 
     return {
@@ -116,7 +117,6 @@ export class PositionExpiratorEngine {
     const poolBalances = await this.getCurvePoolBalances();
     const wbtcRatio = this.getPoolWBTCRatio(poolBalances);
 
-
     let btcAquired: bigint = BigInt(0);
     if (wbtcRatio < this.poolRektThreshold) {
       this.logger.warning(`LVBTC pool is unbalanced. WBTC ratio: ${wbtcRatio}`);
@@ -151,12 +151,17 @@ export class PositionExpiratorEngine {
    */
 
   public calculateBtcToAcquire(wbtcBalance: bigint, lvBtcBalance: bigint, targetRatio: number): bigint {
+    // Convert target_ratio to bigint
+    const targetRatioBigInt = BigInt(Math.floor(targetRatio * PRECISION_FACTOR));
+    const hundredThousand = BigInt(PRECISION_FACTOR);
+
     // Calculate the amount of WBTC to add
-    const x = (BigInt(targetRatio) * lvBtcBalance) - wbtcBalance;
+    const x = (targetRatioBigInt * lvBtcBalance) / hundredThousand - wbtcBalance;
 
     // Ensure that the result is non-negative
-    return x > BigInt(0) ? x : BigInt(0);
+    return x > 0n ? x : 0n;
   }
+
 
   /**
   * Get the current block number
@@ -202,7 +207,7 @@ export class PositionExpiratorEngine {
  * @returns {Promise<bigint>} The remaining amount of BTC to acquire
  */
   private async expirePositionAndCalculateRemainingBtc(position: LeveragePosition, btcToAquire: bigint): Promise<bigint> {
-    const {minimumWBTC, payload} = await this.previewExpirePosition(position);
+    const { minimumWBTC, payload } = await this.previewExpirePosition(position);
     await this.expirePosition(position.nftId, payload, minimumWBTC);
     return btcToAquire - minimumWBTC;
   }

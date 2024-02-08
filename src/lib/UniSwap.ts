@@ -1,9 +1,9 @@
-import {CurrencyAmount, Token, TradeType} from '@uniswap/sdk-core';
-import {Protocol} from '@uniswap/router-sdk';
-import {AlphaRouter, SwapRoute} from '@uniswap/smart-order-router';
-import {Pool} from '@uniswap/v3-sdk';
-import {ethers} from 'ethers';
-import {EthereumAddress} from '@thisisarchimedes/backend-sdk';
+import { CurrencyAmount, Token, TradeType } from '@uniswap/sdk-core';
+import { Protocol } from '@uniswap/router-sdk';
+import { AlphaRouter, SwapRoute } from '@uniswap/smart-order-router';
+import { Pool } from '@uniswap/v3-sdk';
+import { ethers } from 'ethers';
+import { EthereumAddress } from '@thisisarchimedes/backend-sdk';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let uniSwapEthers: any;
@@ -27,11 +27,11 @@ export default class Uniswap {
   }
 
   public async buildPayload(
-      amount: string,
-      inputToken: EthereumAddress,
-      inputTokenDecimals: number,
-      outputToken: EthereumAddress,
-      outputTokenDecimals: number,
+    amount: string,
+    inputToken: EthereumAddress,
+    inputTokenDecimals: number,
+    outputToken: EthereumAddress,
+    outputTokenDecimals: number,
   ): Promise<{ payload: string; swapOutputAmount: string }> {
     try {
       const primaryAsset = new Token(1, inputToken.toString(), inputTokenDecimals);
@@ -40,26 +40,26 @@ export default class Uniswap {
       if (!primaryAsset || !secondaryAsset) throw new Error('Please enter a valid asset');
       const amountBN = ethers.parseUnits(amount, inputTokenDecimals).toString();
       const route: SwapRoute | null = await this.router.route(
-          CurrencyAmount.fromRawAmount(primaryAsset, amountBN),
-          secondaryAsset,
-          TradeType.EXACT_INPUT,
-          undefined,
-          {protocols},
+        CurrencyAmount.fromRawAmount(primaryAsset, amountBN),
+        secondaryAsset,
+        TradeType.EXACT_INPUT,
+        undefined,
+        { protocols },
       );
-      const {pools, tokenPath, swapOutputAmount} = this.mapRouteData(route);
-      const {dataTypes, dataValues} = this.buildPathFromUniswapRouteData(
-          pools,
-          tokenPath,
+      const { pools, tokenPath, swapOutputAmount } = this.mapRouteData(route);
+      const { dataTypes, dataValues } = this.buildPathFromUniswapRouteData(
+        pools,
+        tokenPath,
       );
       const abiCoder = ethers.AbiCoder.defaultAbiCoder();
       const timestamp = Math.floor(Date.now() / 1000);
       const encodedPath = ethers.solidityPacked(dataTypes, dataValues);
       const deadline = BigInt(timestamp + 1000);
       const payload = abiCoder.encode(
-          ['(bytes,uint256)'],
-          [[encodedPath, deadline]],
+        ['(bytes,uint256)'],
+        [[encodedPath, deadline]],
       );
-      return {swapOutputAmount, payload};
+      return { swapOutputAmount, payload };
     } catch (err) {
       console.error('fetchUniswapRoute err: ', err);
       throw err;
@@ -75,7 +75,7 @@ export default class Uniswap {
     // @ts-expect-error
     const tokenPath = route.route[0].route.tokenPath;
     const swapOutputAmount = route.quote.toExact() || '0';
-    return {pools, tokenPath, swapOutputAmount};
+    return { pools, tokenPath, swapOutputAmount };
   };
 
   private buildPathFromUniswapRouteData(pools: Pool[], tokens: Token[]) {
@@ -92,6 +92,6 @@ export default class Uniswap {
       dataValues.splice(feeIndex, 0, currentPool.fee.toString());
       feeIndex += 2;
     }
-    return {dataTypes, dataValues};
+    return { dataTypes, dataValues };
   }
 }

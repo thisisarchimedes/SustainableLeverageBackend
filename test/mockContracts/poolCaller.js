@@ -26,7 +26,7 @@ const contractAbi =  [
 ];
 
 // Define the address of the contract (replace with your actual contract address)
-const contractAddress = '0x87670f49B6B9904C29715Dca38A338E321347058';
+const contractAddress = '0x78b69f488b2A1D9711a101429437Cc3B4017779d';
 
 async function main() {
     // Connect to the network
