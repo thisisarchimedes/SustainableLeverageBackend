@@ -13,7 +13,7 @@ import {MultiPoolStrategyFactory} from './MultiPoolStrategyFactory';
 import cron from 'node-cron';
 
 Logger.initialize('Position expirator');
-const privateKey = '0xfb3e889306aafa69793a67e74c09e657eec07c4c552543db26f3158cf53c2a57';
+const privateKey = process.env.PRIVATE_KEY!;
 
 // Initialize the required instances
 const provider = new ethers.JsonRpcProvider(process.env.RPC_URL!);
@@ -21,7 +21,7 @@ const wallet = new ethers.Wallet(privateKey, provider);
 
 const logger = Logger.getInstance();
 const positionExpirator = new PositionExpirator(wallet, new EthereumAddress(process.env.POSITION_EXPIRATOR_ADDRESS!));
-const curvePool = new CurvePool(wallet, new EthereumAddress('0x87670f49B6B9904C29715Dca38A338E321347058'));
+const curvePool = new CurvePool(wallet, new EthereumAddress(process.env.MOCK_CURVE_POOL_ADDRESS!));
 const DB = new DataSource();
 const multiPoolStrategyFactory = new MultiPoolStrategyFactory(wallet);
 const uniswapInstance = new Uniswap(process.env.RPC_URL!);
