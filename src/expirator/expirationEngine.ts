@@ -88,21 +88,34 @@ export class PositionExpiratorEngine {
   }
 
   public async run(): Promise<bigint> {
+    this.logger.info('Running position expirator bot');
+
     const poolBalances = await this.getCurvePoolBalances();
     const wbtcRatio = this.getPoolWBTCRatio(poolBalances);
 
+
     let btcAquired: bigint = BigInt(0);
     if (wbtcRatio < this.poolRektThreshold) {
+      this.logger.warning(`LVBTC pool is unbalanced. WBTC ratio: ${wbtcRatio}`);
+
       const btcToAquire = this.calculateBtcToAcquire(poolBalances);
+
+      this.logger.warning(`need to aquire ${btcToAquire} BTC from expired positions.`);
+
       const currentBlock = await this.getCurrentBlock();
 
       if (currentBlock > 0) {
         const sortedExpirationPositions = await this.getSortedExpirationPositions(currentBlock);
+
+        this.logger.info(`There are ${sortedExpirationPositions.length} positions avaliable to expire`);
+
         btcAquired = await this.expirePositionsUntilBtcAcquired(sortedExpirationPositions, btcToAquire);
       } else {
         this.logger.error('Could not fetch latest block! terminating.');
         return btcAquired;
       }
+    } else {
+      this.logger.info('LVBTC Pool is balanced. no need to expire positions');
     }
 
     return btcAquired;
@@ -125,8 +138,6 @@ export class PositionExpiratorEngine {
 
   public async expirePositionsUntilBtcAcquired(sortedExpirationPositions: LeveragePosition[], btcToAquire: bigint): Promise<bigint> {
     for (const position of sortedExpirationPositions) {
-      this.logger.info(`Expiring position with ID: ${position.id}`);
-
       const {minimumWBTC, payload} = await this.previewExpirePosition(position);
 
       const closeParams: ClosePositionParamsStruct = {
@@ -137,11 +148,12 @@ export class PositionExpiratorEngine {
         exchange: ZERO_ADDRESS,
       };
 
-      await this.positionExpirator.expirePosition(position.nftId, closeParams);
       this.logger.info(`position ${position.nftId} sent to expiration`);
+
+      await this.positionExpirator.expirePosition(position.nftId, closeParams);
       btcToAquire -= minimumWBTC;
       if (btcToAquire <= 0) {
-        this.logger.info('Got enough BTC, breaking');
+        this.logger.info('Aquired enough BTC, breaking bot');
         break;
       }
     }

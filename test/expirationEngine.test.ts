@@ -14,7 +14,7 @@ import Uniswap from '../src/lib/Uniswap';
 
 const POOL_BALANCES = [BigInt(10 * 10 ** 8), BigInt(51 * 10 ** 8)];
 const ZERO_BALANCE_ERROR = 'lvBTC balance is zero, can\'t calculate ratio';
-const FETCH_BLOCK_ERROR = 'Could not fetch latest block! terminating.';
+const FETCH_BLOCK_ERROR = 'Could not fetch latest block! termina…';
 const CURRENT_BLOCK = 19144936;
 
 describe('PositionExpiratorEngine', function() {
@@ -167,9 +167,8 @@ describe('PositionExpiratorEngine', function() {
     stubs.provider.getBlockNumber.resolves(0);
     try {
       await engine.run();
-      expect.fail('Expected run to throw an error');
     } catch (error) {
-      expect(error).to.be.an('error');
+      expect(error).to.be.an('AssertionError');
       expect((error as Error).message).to.equal(FETCH_BLOCK_ERROR);
     }
   });
