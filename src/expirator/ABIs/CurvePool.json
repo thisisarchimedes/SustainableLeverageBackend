@@ -1,19 +1,23 @@
 [
-            {
-                "stateMutability": "view",
-                "type": "function",
-                "name": "balances",
-                "inputs": [
-                    {
-                        "name": "arg0",
-                        "type": "uint256"
-                    }
-                ],
-                "outputs": [
-                    {
-                        "name": "",
-                        "type": "uint256"
-                    }
-                ]
-            }
-        ]
+    {
+        "constant": true,
+        "inputs": [{"name": "index", "type": "uint8"}],
+        "name": "balances",
+        "outputs": [{"name": "", "type": "uint256"}],
+        "payable": false,
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "constant": false,
+        "inputs": [
+            {"name": "balance0", "type": "uint256"},
+            {"name": "balance1", "type": "uint256"}
+        ],
+        "name": "updateBalances",
+        "outputs": [],
+        "payable": false,
+        "stateMutability": "nonpayable",
+        "type": "function"
+    }
+]

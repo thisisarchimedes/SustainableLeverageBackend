@@ -49,5 +49,11 @@ cron.schedule('*/5 * * * *', async () => {
     console.log('Run function executed successfully');
   } catch (error) {
     console.error('Error executing run function:', error);
+  } finally {
+    await logger.flush();
   }
+});
+
+positionExpiratorEngine.run().then((a) => {
+  console.log(a);
 });

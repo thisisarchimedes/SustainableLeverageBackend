@@ -77,7 +77,9 @@ export class PositionExpiratorEngine {
   async getCurvePoolBalances(): Promise<bigint[]> {
     try {
       const indices = [this.WBTC_INDEX, this.LVBTC_INDEX].sort();
-      const balancesPromises = indices.map((index) => this.curvePool.balances(index));
+      const balancesPromises = indices.map((index) => {
+        return this.curvePool.balances(index);
+      });
       const balances = await Promise.all(balancesPromises);
       return balances;
     } catch (error) {

@@ -40,7 +40,7 @@ async function main() {
     const contract = new ethers.Contract(contractAddress, contractAbi, wallet);
 
     // Call the updateBalances function
-    const tx = await contract.updateBalances(30,40);
+    const tx = await contract.updateBalances(10,60);
 
     // Wait for the transaction to be mined
     const receipt = await tx.wait();
@@ -49,9 +49,6 @@ async function main() {
     const balance1 = await contract.balances(1)
 
     console.log("balances",[balance0,balance1]);
-
-
-    console.log(`Transaction mined: ${receipt.transactionHash}`);
 }
 
 main().catch(console.error);
