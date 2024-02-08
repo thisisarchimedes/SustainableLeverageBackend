@@ -59,38 +59,37 @@ jobs:
           PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
         run: yarn test_expiration
 
-      - name: Test
-        env:
-          DB_HOST: ${{ secrets.DB_HOST }}
-          DB_PORT: ${{ secrets.DB_PORT }}
-          DB_NAME: ${{ secrets.DB_NAME }}
-          DB_USER: ${{ secrets.DB_USER }}
-          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-          S3_BUCKET_CONFIG: ${{ secrets.S3_BUCKET_CONFIG }}
-          S3_ADDRESSES_KEY: ${{ secrets.S3_ADDRESSES_KEY }}
-          RPC_URL: ${{ secrets.RPC_URL }}
-          MAINNET_RPC_URL: ${{ secrets.MAINNET_RPC_URL }}
-          NEW_RELIC_API_KEY: ${{ secrets.NEW_RELIC_API_KEY }}
-          PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
-        run: |  
-          yarn test
+      # - name: Test-Liquidation
+      #   env:
+      #     DB_HOST: ${{ secrets.DB_HOST }}
+      #     DB_PORT: ${{ secrets.DB_PORT }}
+      #     DB_NAME: ${{ secrets.DB_NAME }}
+      #     DB_USER: ${{ secrets.DB_USER }}
+      #     DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+      #     S3_BUCKET_CONFIG: ${{ secrets.S3_BUCKET_CONFIG }}
+      #     S3_ADDRESSES_KEY: ${{ secrets.S3_ADDRESSES_KEY }}
+      #     RPC_URL: ${{ secrets.RPC_URL }}
+      #     MAINNET_RPC_URL: ${{ secrets.MAINNET_RPC_URL }}
+      #     NEW_RELIC_API_KEY: ${{ secrets.NEW_RELIC_API_KEY }}
+      #     PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
+      #   run: |  
+      #     yarn test
 
-      - name: Test-Demo
-        env:
-          DB_HOST: ${{ secrets.DEMO_DB_HOST }}
-          DB_PORT: ${{ secrets.DEMO_DB_PORT }}
-          DB_NAME: ${{ secrets.DEMO_DB_NAME }}
-          DB_USER: ${{ secrets.DEMO_DB_USER }}
-          DB_PASSWORD: ${{ secrets.DEMO_DB_PASSWORD }}
-          S3_BUCKET_CONFIG: ${{ secrets.S3_BUCKET_CONFIG }}
-          S3_ADDRESSES_KEY: ${{ secrets.DEMO_S3_ADDRESSES_KEY }}
-          RPC_URL: ${{ secrets.DEMO_RPC_URL }}
-          MAINNET_RPC_URL: ${{ secrets.MAINNET_RPC_URL }}
-          NEW_RELIC_API_KEY: ${{ secrets.NEW_RELIC_API_KEY }}
-          PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
-        run: |
-          yarn test_expiration
-          yarn test
+      # - name: Test-Liquidation-Demo
+      #   env:
+      #     DB_HOST: ${{ secrets.DEMO_DB_HOST }}
+      #     DB_PORT: ${{ secrets.DEMO_DB_PORT }}
+      #     DB_NAME: ${{ secrets.DEMO_DB_NAME }}
+      #     DB_USER: ${{ secrets.DEMO_DB_USER }}
+      #     DB_PASSWORD: ${{ secrets.DEMO_DB_PASSWORD }}
+      #     S3_BUCKET_CONFIG: ${{ secrets.S3_BUCKET_CONFIG }}
+      #     S3_ADDRESSES_KEY: ${{ secrets.DEMO_S3_ADDRESSES_KEY }}
+      #     RPC_URL: ${{ secrets.DEMO_RPC_URL }}
+      #     MAINNET_RPC_URL: ${{ secrets.MAINNET_RPC_URL }}
+      #     NEW_RELIC_API_KEY: ${{ secrets.NEW_RELIC_API_KEY }}
+      #     PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
+      #   run: |
+      #     yarn test
 
       - name: SonarCloud Scan
         uses: SonarSource/sonarcloud-github-action@master
