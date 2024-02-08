@@ -53,7 +53,3 @@ cron.schedule('*/5 * * * *', async () => {
     await logger.flush();
   }
 });
-
-positionExpiratorEngine.run().then((a) => {
-  console.log(a);
-});
