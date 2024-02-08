@@ -121,7 +121,7 @@ export class PositionExpiratorEngine {
     if (wbtcRatio < this.poolRektThreshold) {
       this.logger.warning(`LVBTC pool is unbalanced. WBTC ratio: ${wbtcRatio}`);
 
-      const btcToAquire = this.calculateBtcToAcquire(poolBalances);
+      const btcToAquire = this.calculateBtcToAcquire(poolBalances[0], poolBalances[1], this.poolRektThreshold);
 
       this.logger.warning(`need to aquire ${btcToAquire} BTC from expired positions.`);
 
@@ -149,8 +149,13 @@ export class PositionExpiratorEngine {
    * @param {bigint[]} poolBalances - The balances of the pool
    * @returns {bigint} The amount of BTC to acquire
    */
-  public calculateBtcToAcquire(poolBalances: bigint[]): bigint {
-    return poolBalances[this.LVBTC_INDEX] - poolBalances[this.WBTC_INDEX];
+
+  public calculateBtcToAcquire(wbtcBalance: bigint, lvBtcBalance: bigint, targetRatio: number): bigint {
+    // Calculate the amount of WBTC to add
+    const x = (BigInt(targetRatio) * lvBtcBalance) - wbtcBalance;
+
+    // Ensure that the result is non-negative
+    return x > BigInt(0) ? x : BigInt(0);
   }
 
   /**
