@@ -5,8 +5,8 @@ import {EthereumAddress} from '@thisisarchimedes/backend-sdk';
 class MultiPoolStrategy {
   private contract: ethers.Contract;
 
-  constructor(private provider: ethers.Provider, contractAddress: EthereumAddress) {
-    this.contract = new ethers.Contract(contractAddress.toString(), MultiPoolStrategyABI, provider);
+  constructor(private wallet: ethers.Wallet, contractAddress: EthereumAddress) {
+    this.contract = new ethers.Contract(contractAddress.toString(), MultiPoolStrategyABI, wallet);
   }
 
   async convertToAssets(shares: bigint): Promise<bigint> {

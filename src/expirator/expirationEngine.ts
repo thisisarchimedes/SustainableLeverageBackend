@@ -10,6 +10,8 @@ import PositionExpirator from './contracts/PositionExpirator';
 import CurvePool from './contracts/CurvePool';
 import {MultiPoolStrategyFactory} from './MultiPoolStrategyFactory';
 
+const ZERO_ADDRESS = ethers.ZeroAddress;
+const SWAP_ROUTE = 0;
 
 export class PositionExpiratorEngine {
   private readonly logger: Logger;
@@ -20,10 +22,10 @@ export class PositionExpiratorEngine {
   private readonly poolRektThreshold: number;
   private readonly DB: DataSource;
   private readonly multiPoolStrategyFactory: MultiPoolStrategyFactory;
-  private readonly provider: ethers.Provider;
+  private readonly wallet: ethers.Wallet;
   private readonly uniswap: Uniswap;
 
-  constructor(provider: ethers.Provider, logger: Logger, positionExpirator: PositionExpirator,
+  constructor(wallet: ethers.Wallet, logger: Logger, positionExpirator: PositionExpirator,
       curvePool: CurvePool, DB: DataSource, multiPoolStrategyFactory: MultiPoolStrategyFactory,
       uniswapInstance: Uniswap, tokenIndexes: TokenIndexes, poolRektThreshold: number) {
     this.logger = logger;
@@ -34,7 +36,7 @@ export class PositionExpiratorEngine {
     this.LVBTC_INDEX = tokenIndexes['LVBTC'];
     this.poolRektThreshold = poolRektThreshold;
     this.multiPoolStrategyFactory = multiPoolStrategyFactory;
-    this.provider = provider;
+    this.wallet = wallet;
     this.uniswap = uniswapInstance;
   }
 
@@ -63,13 +65,8 @@ export class PositionExpiratorEngine {
   async getCurvePoolBalances(): Promise<bigint[]> {
     try {
       const indices = [this.WBTC_INDEX, this.LVBTC_INDEX].sort();
-      const balances: bigint[] = [];
-
-      for (const index of indices) {
-        const balance: bigint = await this.curvePool.balances(index);
-        balances.push(balance);
-      }
-
+      const balancesPromises = indices.map((index) => this.curvePool.balances(index));
+      const balances = await Promise.all(balancesPromises);
       return balances;
     } catch (error) {
       this.logger.error(`Error fetching pool balances: ${(error as Error).message}`);
@@ -103,7 +100,8 @@ export class PositionExpiratorEngine {
         const sortedExpirationPositions = await this.getSortedExpirationPositions(currentBlock);
         btcAquired = await this.expirePositionsUntilBtcAcquired(sortedExpirationPositions, btcToAquire);
       } else {
-        throw new Error('Could not fetch latest block! terminating.');
+        this.logger.error('Could not fetch latest block! terminating.');
+        return btcAquired;
       }
     }
 
@@ -115,7 +113,7 @@ export class PositionExpiratorEngine {
   }
 
   public async getCurrentBlock(): Promise<number> {
-    const currentBlock = await this.provider.getBlockNumber();
+    const currentBlock = await this.wallet.provider?.getBlockNumber();
     return currentBlock || 0;
   }
 
@@ -135,8 +133,8 @@ export class PositionExpiratorEngine {
         nftId: position.nftId,
         swapData: payload,
         minWBTC: minimumWBTC,
-        swapRoute: 0,
-        exchange: ethers.ZeroAddress,
+        swapRoute: SWAP_ROUTE,
+        exchange: ZERO_ADDRESS,
       };
 
       await this.positionExpirator.expirePosition(position.nftId, closeParams);

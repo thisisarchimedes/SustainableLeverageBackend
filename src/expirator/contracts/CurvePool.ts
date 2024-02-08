@@ -5,8 +5,8 @@ import {EthereumAddress} from '@thisisarchimedes/backend-sdk';
 class CurvePool {
   private contract: ethers.Contract;
 
-  constructor(private provider: ethers.Provider, contractAddress: EthereumAddress) {
-    this.contract = new ethers.Contract(contractAddress.toString(), CurvePoolABI, provider);
+  constructor(private wallet: ethers.Wallet, contractAddress: EthereumAddress) {
+    this.contract = new ethers.Contract(contractAddress.toString(), CurvePoolABI, wallet);
   }
 
   async balances(index: number): Promise<bigint> {

@@ -6,8 +6,8 @@ import PositionExpiratorABI from '../ABIs/PositionExpirator.json';
 class PositionExpirator {
   private contract: ethers.Contract;
 
-  constructor(private provider: ethers.Provider, contractAddress: EthereumAddress) {
-    this.contract = new ethers.Contract(contractAddress.toString(), PositionExpiratorABI, provider);
+  constructor(private wallet: ethers.Wallet, contractAddress: EthereumAddress) {
+    this.contract = new ethers.Contract(contractAddress.toString(), PositionExpiratorABI, wallet);
   }
 
   async expirePosition(nftId: ethers.BigNumberish, params: ClosePositionParamsStruct): Promise<void> {

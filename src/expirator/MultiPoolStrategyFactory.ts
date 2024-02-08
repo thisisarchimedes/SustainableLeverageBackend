@@ -3,13 +3,13 @@ import {ethers} from 'ethers';
 import MultiPoolStrategy from './contracts/MultiPoolStrategy';
 
 export class MultiPoolStrategyFactory {
-  private provider: ethers.Provider;
+  private wallet: ethers.Wallet;
 
-  constructor(provider: ethers.Provider) {
-    this.provider = provider;
+  constructor(wallet: ethers.Wallet) {
+    this.wallet = wallet;
   }
 
   create(address: EthereumAddress): MultiPoolStrategy {
-    return new MultiPoolStrategy(this.provider, address);
+    return new MultiPoolStrategy(this.wallet, address);
   }
 }
