@@ -44,7 +44,7 @@ jobs:
       - name: Run linter
         run: yarn lint
 
-      - name: Test-Demo-Expiration
+      - name: Test-Expiration
         env:
           DB_HOST: ${{ secrets.DB_HOST }}
           DB_PORT: ${{ secrets.DB_PORT }}
