@@ -1,15 +1,15 @@
 import dotenv from 'dotenv';
 dotenv.config();
 
-import {PositionExpiratorEngine} from './ExpirationEngine';
-import {Logger, EthereumAddress} from '@thisisarchimedes/backend-sdk';
-import {ethers} from 'ethers';
+import { ExpirationEngine } from './expirationEngine';
+import { Logger, EthereumAddress } from '@thisisarchimedes/backend-sdk';
+import { ethers } from 'ethers';
 import DataSource from '../lib/DataSource';
 import Uniswap from '../lib/Uniswap';
-import {TokenIndexes} from '../types/TokenIndexes';
+import { TokenIndexes } from '../types/TokenIndexes';
 import PositionExpirator from './contracts/PositionExpirator';
 import CurvePool from './contracts/CurvePool';
-import {MultiPoolStrategyFactory} from './MultiPoolStrategyFactory';
+import { MultiPoolStrategyFactory } from './MultiPoolStrategyFactory';
 import cron from 'node-cron';
 
 Logger.initialize('Position expirator');
@@ -25,21 +25,21 @@ const curvePool = new CurvePool(wallet, new EthereumAddress(process.env.MOCK_CUR
 const DB = new DataSource();
 const multiPoolStrategyFactory = new MultiPoolStrategyFactory(wallet);
 const uniswapInstance = new Uniswap(process.env.RPC_URL!);
-const tokenIndexes: TokenIndexes = {'WBTC': 0, 'LVBTC': 1};
+const tokenIndexes: TokenIndexes = { 'WBTC': 0, 'LVBTC': 1 };
 const poolRektThreshold = 0.3;
 
 
 // Initialize PositionExpiratorEngine
-const positionExpiratorEngine = new PositionExpiratorEngine(
-    wallet,
-    logger,
-    positionExpirator,
-    curvePool,
-    DB,
-    multiPoolStrategyFactory,
-    uniswapInstance,
-    tokenIndexes,
-    poolRektThreshold,
+const positionExpiratorEngine = new ExpirationEngine(
+  wallet,
+  logger,
+  positionExpirator,
+  curvePool,
+  DB,
+  multiPoolStrategyFactory,
+  uniswapInstance,
+  tokenIndexes,
+  poolRektThreshold,
 );
 
 // Schedule the run function to be called every 5 minutes
