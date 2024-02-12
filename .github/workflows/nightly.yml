@@ -62,12 +62,11 @@ jobs:
 
           cat test_coverage.txt
           echo "COVERAGE_FUNC=`grep "All files" test_coverage.txt | awk -F '|' '{print $4}' | sed 's/^[ \t]*//;s/[ \t]*$//'`" >> $GITHUB_ENV
-          
+          echo "TEST_PASS=false" >> $GITHUB_ENV
+      
 
       - name: Set Test Result Env Variable
         run: |
-          echo "TEST_PASS=false" >> $GITHUB_ENV
-
           if [ ${{ steps.test_suite.outputs.passed }} -eq 0 ]; then
             echo "TEST_PASS=true" >> $GITHUB_ENV
 
