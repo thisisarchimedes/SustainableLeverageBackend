@@ -1,11 +1,10 @@
 import {Config, loadConfig} from '../lib/ConfigService';
-import {Signer, TransactionRequest, ethers} from 'ethers';
+import {Signer, TransactionRequest} from 'ethers';
 import pLimit from 'p-limit';
-import {WBTC, WBTC_DECIMALS} from '../constants';
 import {Contracts, EthereumAddress, Logger, PositionLiquidator} from '@thisisarchimedes/backend-sdk';
-import UniSwap from '../lib/UniSwap';
 import TransactionSimulator from '../lib/TransactionSimulator';
 import DataSource from '../lib/DataSource';
+import UniSwapPayloadBuilder from '../lib/UniSwapPayloadBuilder';
 
 const MAX_CONCURRENCY = 20;
 const GAS_PRICE_MULTIPLIER = 3n;
@@ -110,7 +109,7 @@ export default class Liquidator {
 
   private tryLiquidate = async (nftId: number, gasPrice: bigint | null, strategy: EthereumAddress, strategyShares: number) => {
     try {
-      const payload = await this.getClosePositionSwapPayload(strategy, strategyShares);
+      const payload = await UniSwapPayloadBuilder.getClosePositionSwapPayload(this.signer, strategy, strategyShares);
       const tx = this.prepareTransaction(nftId, gasPrice, payload);
       await this.txSimulator.simulateAndRunTransaction(tx);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -137,33 +136,6 @@ export default class Liquidator {
     };
 
     return tx;
-  };
-
-  /**
-   * Returns the swap payload to close the position
-   * @param strategy strategy address
-   * @param strategyShares shares amount
-   * @returns string - swap payload to close the position
-   */
-  private getClosePositionSwapPayload = async (strategy: EthereumAddress, strategyShares: number): Promise<string> => {
-    // console.log('Building payload for:', nftId); // Debug
-    const strategyContract = Contracts.general.multiPoolStrategy(strategy, this.signer);
-    const strategyAsset = await strategyContract.asset(); // Optimization: can get from DB
-    const asset = Contracts.general.erc20(new EthereumAddress(strategyAsset), this.signer);
-    const assetDecimals = await asset.decimals(); // Optimization: can get from DB
-    const strategySharesN = ethers.parseUnits(strategyShares.toFixed(Number(assetDecimals)), assetDecimals); // Converting float to bigint
-    const minimumExpectedAssets = await strategyContract.convertToAssets(strategySharesN); // Must query live
-
-    const uniSwap = new UniSwap(process.env.MAINNET_RPC_URL!);
-    const {payload} = await uniSwap.buildPayload(
-        ethers.formatUnits(minimumExpectedAssets, assetDecimals),
-        new EthereumAddress(strategyAsset),
-        Number(assetDecimals),
-        new EthereumAddress(WBTC),
-        WBTC_DECIMALS,
-    );
-
-    return payload;
   };
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
