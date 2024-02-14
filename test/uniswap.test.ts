@@ -20,7 +20,7 @@ describe('UniSwap', function() {
         (1 ** WETH_DECIMALS).toString(),
         new EthereumAddress(WETH),
         WETH_DECIMALS,
-        new EthereumAddress(WBTC),
+        WBTC,
         WBTC_DECIMALS,
     );
 

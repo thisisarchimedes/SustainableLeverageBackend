@@ -7,6 +7,8 @@ export interface Config {
   leveragedStrategy: EthereumAddress;
   positionLedger: EthereumAddress;
   positionLiquidator: EthereumAddress;
+  positionOpener: EthereumAddress;
+  positionCloser: EthereumAddress;
 }
 
 export async function loadConfig(): Promise<Config> {
@@ -20,6 +22,8 @@ export async function loadConfig(): Promise<Config> {
     leveragedStrategy: new EthereumAddress(addresses.filter((obj) => obj.name === 'LeveragedStrategy')[0].address),
     positionLedger: new EthereumAddress(addresses.filter((obj) => obj.name === 'PositionLedger')[0].address),
     positionLiquidator: new EthereumAddress(addresses.filter((obj) => obj.name === 'PositionLiquidator')[0].address),
+    positionOpener: new EthereumAddress(addresses.filter((obj) => obj.name === 'PositionOpener')[0].address),
+    positionCloser: new EthereumAddress(addresses.filter((obj) => obj.name === 'PositionCloser')[0].address),
   };
 
   return config;
