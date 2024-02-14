@@ -63,11 +63,15 @@ describe('E2E Positions', function() {
 
     console.log('Waiting for DB update...');
     await sleep(WAIT_FOR_DB_UPDATE);
+
+    const position = await dataSource.getPosition(openedPosition);
+    assert(position.positionState === 'LIVE', 'Position is not live');
   });
 
   it('Close Position', async function() {
     assert.isNotNaN(openedPosition, 'Position not opened');
     const position = await dataSource.getPosition(openedPosition);
+    assert(position.positionState === 'LIVE', 'Position is not live');
     assert.isNumber(Number(position.strategyShares), 'Strategy shares are not numeric');
 
     const payload = await UniSwapPayloadBuilder.getClosePositionSwapPayload(
@@ -86,6 +90,12 @@ describe('E2E Positions', function() {
 
     const txReceipt = await tx.wait();
     assert(txReceipt!.status === 1, 'Transaction failed');
+
+    console.log('Waiting for DB update...');
+    await sleep(WAIT_FOR_DB_UPDATE);
+
+    const positionAfter = await dataSource.getPosition(openedPosition);
+    assert(positionAfter.positionState === 'CLOSED', 'Position is not closed');
   });
 });
 
