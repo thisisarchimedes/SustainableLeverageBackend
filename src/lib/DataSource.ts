@@ -25,4 +25,13 @@ export default class DataSource {
     const resp = this.client.query('SELECT "nftId", "strategy", "strategyShares" FROM "LeveragePosition" WHERE "positionState" = \'LIVE\'');
     return resp;
   }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  public async getPosition(nftId: number): Promise<any> {
+    const resp = this.client.query(
+        `SELECT "nftId", "strategy", "strategyShares", "positionState"
+        FROM "LeveragePosition" WHERE "nftId" = $1`,
+        [nftId]);
+    return (await resp).rows[0];
+  }
 }
