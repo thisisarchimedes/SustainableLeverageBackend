@@ -55,6 +55,7 @@ describe('E2E Positions', function() {
     });
     const txReceipt = await tx.wait();
     assert(txReceipt!.status === 1, 'Transaction failed');
+    console.log(tx, txReceipt);
 
     const event = txReceipt!.logs.find((event) => event['fragment']?.name === 'PositionOpened');
     assert.isDefined(event, 'PositionOpened event not found');
