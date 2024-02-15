@@ -16,6 +16,7 @@ export async function loadConfig(): Promise<Config> {
   const bucketName = process.env.S3_BUCKET_CONFIG!;
   const keyName = process.env.S3_ADDRESSES_KEY!;
 
+  console.log('path', process.env.S3_ADDRESSES_KEY!.split('').join('-'));
   const addresses = await s3Service.getJsonObject(bucketName, keyName) as [{ address: string, name: string }];
 
   const config: Config = {
