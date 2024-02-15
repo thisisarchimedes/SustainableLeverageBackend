@@ -24,7 +24,7 @@ describe('E2E Positions', function() {
   let openedPosition = NaN;
 
   before(async function() {
-    console.log('path', process.env.S3_ADDRESSES_KEY!.split('').join('-'));
+    console.log('path', process.env.S3_ADDRESSES_KEY);
     config = await loadConfig();
     console.log(config);
     Logger.initialize('liquidator-bot');
