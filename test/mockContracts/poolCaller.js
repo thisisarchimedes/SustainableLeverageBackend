@@ -1,3 +1,5 @@
+require('dotenv').config()
+
 const ethers = require('ethers');
 
 // Define the ABI of the contract (replace with your actual ABI)
@@ -26,14 +28,14 @@ const contractAbi =  [
 ];
 
 // Define the address of the contract (replace with your actual contract address)
-const contractAddress = '0x78b69f488b2A1D9711a101429437Cc3B4017779d';
+const contractAddress = process.env.MOCK_CURVE_POOL_ADDRESS;
 
 async function main() {
     // Connect to the network
-    const provider = new ethers.JsonRpcProvider("http://ec2-54-198-59-29.compute-1.amazonaws.com:8545");
+    const provider = new ethers.JsonRpcProvider(process.env.RPC_URL);
 
     // Create a wallet from a private key
-    let privateKey = "0xfb3e889306aafa69793a67e74c09e657eec07c4c552543db26f3158cf53c2a57";
+    let privateKey = process.env.PRIVATE_KEY;
     let wallet = new ethers.Wallet(privateKey, provider);
 
     // Create a contract instance
