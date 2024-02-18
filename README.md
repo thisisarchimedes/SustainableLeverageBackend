@@ -20,6 +20,9 @@ yarn install
 ```
 
 ### Environment
+
+** Uniswap SDK require MAINNET RPC to work properly.
+
 Environment example:
 ```bash
 PAT_TOKEN=
