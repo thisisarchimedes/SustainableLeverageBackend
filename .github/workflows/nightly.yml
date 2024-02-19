@@ -106,7 +106,7 @@ jobs:
               "input": {
                 "title": "Nightly Test Failure: ${{ github.repository }}",
                 "description": "The nightly tests have failed. Please investigate. ${{ github.repository }}",
-                "teamId": ${{ vars.LINEAR_TEAM_ID }}
+                "teamId": "${{ vars.LINEAR_TEAM_ID }}",
               }
             }
           }'
