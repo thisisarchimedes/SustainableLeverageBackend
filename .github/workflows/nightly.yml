@@ -99,14 +99,14 @@ jobs:
         run: |
          curl -X POST https://api.linear.app/graphql \
           -H "Content-Type: application/json" \
-          -H "Authorization: Bearer YOUR_LINEAR_API_KEY" \
+          -H "Authorization: Bearer ${{ secrets.LINEAR_API_KEY }}" \
           --data-raw '{
             "query": "mutation IssueCreate($input: IssueCreateInput!) { issueCreate(input: $input) { success issue { id title } } }",
             "variables": {
               "input": {
-                "title": "Nightly Test Failure: thisisarchimedes/SustainableLeverageBackend",
-                "description": "The nightly tests have failed. Please investigate. thisisarchimedes/SustainableLeverageBackend",
-                "teamId": "22d423c3-ef5e-4695-997c-1b28027429a2"
+                "title": "Nightly Test Failure: ${{ github.repository }}",
+                "description": "The nightly tests have failed. Please investigate. ${{ github.repository }}",
+                "teamId": ${{ vars.LINEAR_TEAM_ID }}
               }
             }
           }'
