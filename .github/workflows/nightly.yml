@@ -98,9 +98,9 @@ jobs:
         if: env.TEST_PASS == 'false'
         run: |
           curl -X POST https://api.linear.app/graphql \
-          -H "Authorization: Bearer YOUR_ACTUAL_LINEAR_API_KEY" \
+          -H "Authorization: Bearer YOUR_LINEAR_API_KEY" \
           -H "Content-Type: application/json" \
-          --data-raw '{"query":"mutation CreateIssue($input: IssueCreateInput!) { createIssue(input: $input) { success issue { id } } }","variables":{"input":{"teamId":"22d423c3-ef5e-4695-997c-1b28027429a2","title":"Nightly Test Failure: thisisarchimedes/SustainableLeverageBackend","description":"The nightly tests have failed. Please investigate. thisisarchimedes/SustainableLeverageBackend"}}}'
+          --data-raw '{"query":"mutation IssueCreate($input: IssueCreateInput!) { issueCreate(input: $input) { success issue { id title } } }","variables":{"input":{"title":"Nightly Test Failure: thisisarchimedes/SustainableLeverageBackend","description":"The nightly tests have failed. Please investigate. thisisarchimedes/SustainableLeverageBackend","teamId":"22d423c3-ef5e-4695-997c-1b28027429a2"}}}'
 
 
       - name: Report test run time
