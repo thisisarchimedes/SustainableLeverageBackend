@@ -112,6 +112,7 @@ jobs:
           }'
 
 
+
       - name: Report test run time
         run: |
             echo "Time taken to run the script: ${{ env.DURATION }} seconds"
