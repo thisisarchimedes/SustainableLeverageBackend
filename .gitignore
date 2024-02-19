@@ -154,3 +154,5 @@ jspm_packages
 
 # Serverless directories
 .serverless
+
+.stryker-tmp/**
