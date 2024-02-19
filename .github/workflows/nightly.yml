@@ -25,6 +25,8 @@ env:
   MAINNET_RPC_URL: ${{ secrets.MAINNET_RPC_URL }}
   NEW_RELIC_API_KEY: ${{ secrets.NEW_RELIC_API_KEY }}
   PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
+  LINEAR_API_KEY: ${{ secrets.LINEAR_API_KEY }}
+  LINEAR_TEAM_ID: ${{ vars.LINEAR_TEAM_ID }}
 
 jobs:
   test_quality:
@@ -89,7 +91,15 @@ jobs:
           fi
             
           echo "LINT_PROBLEMS=$LINT_OUTPUT" >> $GITHUB_ENV
-
+          
+      - name: Open ticket on Linear
+        if: env.TEST_PASS == 'false'
+        run: |
+          curl -X POST https://api.linear.app/graphql \
+          -H "Authorization: Bearer ${{ secrets.LINEAR_API_KEY }}" \
+          -H "Content-Type: application/json" \
+          --data-raw '{"query":"mutation CreateIssue($input: IssueCreateInput!) { createIssue(input: $input) { success issue { id } } }","variables":{"input":{"teamId":${{vars.LINEAR_TEAM_ID }},"title":"Nightly Test Failure: ${{ github.repository }}","description":"The nightly tests have failed. Please investigate. ${{ github.repository }}"}}}'
+      
 
       - name: Report test run time
         run: |
