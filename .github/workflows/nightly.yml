@@ -63,12 +63,12 @@ jobs:
           cat test_coverage.txt
           echo "COVERAGE_FUNC=`grep "All files" test_coverage.txt | awk -F '|' '{print $4}' | sed 's/^[ \t]*//;s/[ \t]*$//'`" >> $GITHUB_ENV
           echo "TEST_PASS=false" >> $GITHUB_ENV
-      
-
+  
       - name: Set Test Result Env Variable
         run: |
-          if [ ${{ steps.test_suite.outputs.passed }} -eq 0 ]; then
+          if [ "${{ steps.test_suite.outputs.passed }}" = "0" ]; then
             echo "TEST_PASS=true" >> $GITHUB_ENV
+          fi
 
       - name: Runnig Stryker Mutator JS
         id: mutation_testing
