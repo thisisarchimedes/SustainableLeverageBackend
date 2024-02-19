@@ -100,7 +100,7 @@ jobs:
           curl -X POST https://api.linear.app/graphql \
           -H "Authorization: Bearer ${{ secrets.LINEAR_API_KEY }}" \
           -H "Content-Type: application/json" \
-          --data-raw '{"query":"mutation CreateIssue($input: IssueCreateInput!) { createIssue(input: $input) { success issue { id } } }","variables":{"input":{"teamId":${{vars.LINEAR_TEAM_ID }},"title":"Nightly Test Failure: ${{ github.repository }}","description":"The nightly tests have failed. Please investigate. ${{ github.repository }}"}}}'
+          --data-raw '{"query":"mutation CreateIssue($input: IssueCreateInput!) { createIssue(input: $input) { success issue { id } } }","variables":{"input":{"teamId":"${{vars.LINEAR_TEAM_ID }}","title":"Nightly Test Failure: ${{ github.repository }}","description":"The nightly tests have failed. Please investigate. ${{ github.repository }}"}}}'
       
 
       - name: Report test run time
