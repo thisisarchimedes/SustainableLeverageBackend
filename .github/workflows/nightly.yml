@@ -68,8 +68,10 @@ jobs:
   
       - name: Set Test Result Env Variable
         run: |
-          if [ "${{ steps.test_suite.outputs.passed }}" = "0" ]; then
+          if [ ${{ steps.test_suite.outputs.passed }} -eq 0 ]; then
             echo "TEST_PASS=true" >> $GITHUB_ENV
+          else
+            echo "TEST_PASS=false" >> $GITHUB_ENV
           fi
 
       - name: Runnig Stryker Mutator JS
