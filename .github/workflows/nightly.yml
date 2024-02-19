@@ -99,7 +99,7 @@ jobs:
         run: |
          curl -X POST https://api.linear.app/graphql \
           -H "Content-Type: application/json" \
-          -H "Authorization: Bearer ${{ secrets.LINEAR_API_KEY }}" \
+          -H "Authorization: ${{ secrets.LINEAR_API_KEY }}" \
           --data-raw '{
             "query": "mutation IssueCreate($input: IssueCreateInput!) { issueCreate(input: $input) { success issue { id title } } }",
             "variables": {
