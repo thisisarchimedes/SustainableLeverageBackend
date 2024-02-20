@@ -39,7 +39,7 @@
     "@typescript-eslint/eslint-plugin": "^6.13.2",
     "@typescript-eslint/parser": "^6.13.2",
     "@uniswap/router-sdk": "^1.7.1",
-    "@uniswap/sdk-core": "^4.0.10",
+    "@uniswap/sdk-core": "^4.1.2",
     "@uniswap/smart-order-router": "^3.20.0",
     "@uniswap/v3-sdk": "^3.10.0",
     "chai": "^4.3.10",

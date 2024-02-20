@@ -2704,10 +2704,10 @@
     "@uniswap/v2-sdk" "^4.1.0"
     "@uniswap/v3-sdk" "^3.10.1"
 
-"@uniswap/sdk-core@^4.0.10", "@uniswap/sdk-core@^4.0.7":
-  "integrity" "sha512-RiobXJKXvVVb+wfNM09Ik8djOMOuRQGfyRP5pHgUjojicK/7nscZILjZ87DjVCGjXEoD8yTSIps0UAQuz6pJIw=="
-  "resolved" "https://registry.npmjs.org/@uniswap/sdk-core/-/sdk-core-4.0.10.tgz"
-  "version" "4.0.10"
+"@uniswap/sdk-core@^4.0.7", "@uniswap/sdk-core@^4.1.2":
+  "integrity" "sha512-bk/oHiNCofy48ix84Q8aK/HHDmMVmk+SaoTq6U/93MmJ/nE7hbsckmY1c3MG2Vz1+jnGMCX9AmdBbnSF7VR5Ow=="
+  "resolved" "https://registry.npmjs.org/@uniswap/sdk-core/-/sdk-core-4.1.2.tgz"
+  "version" "4.1.2"
   dependencies:
     "@ethersproject/address" "^5.0.2"
     "big.js" "^5.2.2"

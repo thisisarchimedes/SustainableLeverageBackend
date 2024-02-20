@@ -199,11 +199,12 @@ export class ExpirationEngine {
   public async expirePositionsUntilBtcAcquired(sortedExpirationPositions: LeveragePosition[], btcToAquire: bigint): Promise<bigint> {
     let btcAquired = BigInt(0);
     for (const position of sortedExpirationPositions) {
-      let {minimumWBTC, payload} = await this.previewExpirePosition(position);
+      // let { minimumWBTC, payload } = await this.previewExpirePosition(position);
+      let {minimumWBTC} = await this.previewExpirePosition(position);
 
       // add 0.5% slippage tollerance
       minimumWBTC = minimumWBTC - (minimumWBTC / BigInt(200));
-      await this.expirePosition(position.nftId, payload, minimumWBTC);
+      // await this.expirePosition(position.nftId, payload, minimumWBTC);
       btcAquired += minimumWBTC;
 
       if (btcAquired >= btcToAquire) {
