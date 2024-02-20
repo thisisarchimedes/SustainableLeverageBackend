@@ -1,7 +1,7 @@
 import {expect} from 'chai';
 import sinon from 'sinon';
 import {ExpirationEngine} from '../src/expirator/expirationEngine';
-import {Logger} from '@thisisarchimedes/backend-sdk';
+import {EthereumAddress, Logger} from '@thisisarchimedes/backend-sdk';
 import DataSource from '../src/lib/DataSource';
 import PositionExpirator from '../src/expirator/contracts/PositionExpirator';
 import CurvePool from '../src/expirator/contracts/CurvePool';
@@ -92,7 +92,17 @@ describe('PositionExpiratorEngine', function() {
 
   function createPositionLedgerStub(): sinon.SinonStubbedInstance<PositionLedger> {
     const mockPositionLedger = sinon.createStubInstance(PositionLedger);
-    mockPositionLedger.getPosition.resolves([0, 0, 1000]);
+    mockPositionLedger.getPosition.resolves({
+      positionOpenBlock: BigInt(0),
+      positionExpirationBlock: BigInt(0),
+      PositionState: 0,
+      liquidationBuffer: BigInt(0),
+      claimableAmount: BigInt(0),
+      wbtcDebtAmount: BigInt(0),
+      strategyShares: BigInt(1000),
+      collateralAmount: BigInt(0),
+      strategyAddress: new EthereumAddress('0xb6057e08a11da09a998985874FE2119e98dB3D5D'),
+    });
     return mockPositionLedger;
   }
 
@@ -151,12 +161,7 @@ describe('PositionExpiratorEngine', function() {
   });
 
   it('should calculate BTC to acquire', function() {
-    console.log('POOL_BALANCES[0]', POOL_BALANCES[0]);
-    console.log('POOL_BALANCES[1]', POOL_BALANCES[1]);
-
     const result = engine.calculateBtcToAcquire(POOL_BALANCES[0], POOL_BALANCES[1], 1.8);
-
-    console.log('WBTC TO AQUIRE:', result);
 
     expect(Number(result)).to.approximately(66666667, 0.0001);
   });
