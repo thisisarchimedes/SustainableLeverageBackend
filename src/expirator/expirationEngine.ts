@@ -202,7 +202,6 @@ export class ExpirationEngine {
     let btcAquired = BigInt(0);
     for (const position of sortedExpirationPositions) {
       let {minimumWBTC, payload} = await this.previewExpirePosition(position);
-      console.log('in bot minimumWBTC', minimumWBTC);
 
       // add 0.5% slippage tollerance
       minimumWBTC = minimumWBTC - (minimumWBTC / BigInt(200));

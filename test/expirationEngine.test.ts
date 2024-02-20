@@ -154,9 +154,7 @@ describe('PositionExpiratorEngine', function() {
 
   it('should aquire enough BTC from expired position', async function() {
     const btcToAquire = engine.calculateBtcToAcquire(POOL_BALANCES[0], POOL_BALANCES[1], 0.3);
-    console.log('btcToAquire', btcToAquire);
     const btcAquired = await engine.run();
-    console.log('btcAquired', btcAquired);
 
     expect(Number(btcAquired / BigInt(10) ** BigInt(8))).to.be.greaterThan(Number(btcToAquire / BigInt(10) ** BigInt(8)));
   });
