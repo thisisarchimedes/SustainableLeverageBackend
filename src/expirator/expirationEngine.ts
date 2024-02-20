@@ -10,6 +10,7 @@ import PositionExpirator from './contracts/PositionExpirator';
 import CurvePool from './contracts/CurvePool';
 import {MultiPoolStrategyFactory} from './MultiPoolStrategyFactory';
 import PositionLedger from './contracts/PositionLedger';
+import ExpirationEngineParams from '../types/ExpirationEngineParams';
 
 const ZERO_ADDRESS = ethers.ZeroAddress;
 const SWAP_ROUTE = 0;
@@ -30,21 +31,19 @@ export class ExpirationEngine {
   private readonly wallet: ethers.Wallet;
   private readonly uniswap: Uniswap;
 
-  constructor(wallet: ethers.Wallet, logger: Logger, positionExpirator: PositionExpirator,
-      positionLedger: PositionLedger, curvePool: CurvePool, DB: DataSource,
-      multiPoolStrategyFactory: MultiPoolStrategyFactory, uniswapInstance: Uniswap,
-      tokenIndexes: TokenIndexes, poolRektThreshold: number) {
-    this.logger = logger;
-    this.positionExpirator = positionExpirator;
-    this.positionLedger = positionLedger;
-    this.DB = DB;
-    this.curvePool = curvePool;
-    this.WBTC_INDEX = tokenIndexes['WBTC'];
-    this.LVBTC_INDEX = tokenIndexes['LVBTC'];
-    this.poolRektThreshold = poolRektThreshold;
-    this.multiPoolStrategyFactory = multiPoolStrategyFactory;
-    this.wallet = wallet;
-    this.uniswap = uniswapInstance;
+
+  constructor(params: ExpirationEngineParams) {
+    this.logger = params.logger;
+    this.positionExpirator = params.positionExpirator;
+    this.positionLedger = params.positionLedger;
+    this.DB = params.DB;
+    this.curvePool = params.curvePool;
+    this.WBTC_INDEX = params.tokenIndexes['WBTC'];
+    this.LVBTC_INDEX = params.tokenIndexes['LVBTC'];
+    this.poolRektThreshold = params.poolRektThreshold;
+    this.multiPoolStrategyFactory = params.multiPoolStrategyFactory;
+    this.wallet = params.wallet;
+    this.uniswap = params.uniswapInstance;
   }
 
   /**

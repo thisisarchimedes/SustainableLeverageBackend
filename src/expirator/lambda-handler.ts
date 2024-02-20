@@ -41,19 +41,18 @@ export const handler = async (
     const tokenIndexes: TokenIndexes = {'WBTC': 0, 'LVBTC': 1};
     const poolRektThreshold = 0.7;
 
-    // Initialize PositionExpiratorEngine
-    const positionExpiratorEngine = new ExpirationEngine(
-        wallet,
-        logger,
-        positionExpirator,
-        positionLedger,
-        curvePool,
-        DB,
-        multiPoolStrategyFactory,
-        uniswapInstance,
-        tokenIndexes,
-        poolRektThreshold,
-    );
+    const positionExpiratorEngine = new ExpirationEngine({
+      wallet: wallet,
+      logger: logger,
+      positionExpirator: positionExpirator,
+      positionLedger: positionLedger,
+      curvePool: curvePool,
+      DB: DB,
+      multiPoolStrategyFactory: multiPoolStrategyFactory,
+      uniswapInstance: uniswapInstance,
+      tokenIndexes: tokenIndexes,
+      poolRektThreshold: poolRektThreshold,
+    });
 
     const btcAquired = await positionExpiratorEngine.run();
 
