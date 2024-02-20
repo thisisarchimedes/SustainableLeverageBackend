@@ -1,14 +1,14 @@
-import {Logger, EthereumAddress, ClosePositionParamsStruct} from '@thisisarchimedes/backend-sdk';
-import {BigNumber} from 'bignumber.js';
+import { Logger, EthereumAddress, ClosePositionParamsStruct } from '@thisisarchimedes/backend-sdk';
+import { BigNumber } from 'bignumber.js';
 import DataSource from '../lib/DataSource';
 import LeveragePosition from '../types/LeveragePosition';
-import {ethers} from 'ethers';
+import { ethers } from 'ethers';
 import Uniswap from '../lib/Uniswap';
-import {WBTC_ADDRESS, WBTC_DECIMALS} from '../constants';
-import {TokenIndexes} from '../types/TokenIndexes';
+import { WBTC_ADDRESS, WBTC_DECIMALS } from '../constants';
+import { TokenIndexes } from '../types/TokenIndexes';
 import PositionExpirator from './contracts/PositionExpirator';
 import CurvePool from './contracts/CurvePool';
-import {MultiPoolStrategyFactory} from './MultiPoolStrategyFactory';
+import { MultiPoolStrategyFactory } from './MultiPoolStrategyFactory';
 import PositionLedger from './contracts/PositionLedger';
 
 const ZERO_ADDRESS = ethers.ZeroAddress;
@@ -31,9 +31,9 @@ export class ExpirationEngine {
   private readonly uniswap: Uniswap;
 
   constructor(wallet: ethers.Wallet, logger: Logger, positionExpirator: PositionExpirator,
-      positionLedger: PositionLedger, curvePool: CurvePool, DB: DataSource,
-      multiPoolStrategyFactory: MultiPoolStrategyFactory, uniswapInstance: Uniswap,
-      tokenIndexes: TokenIndexes, poolRektThreshold: number) {
+    positionLedger: PositionLedger, curvePool: CurvePool, DB: DataSource,
+    multiPoolStrategyFactory: MultiPoolStrategyFactory, uniswapInstance: Uniswap,
+    tokenIndexes: TokenIndexes, poolRektThreshold: number) {
     this.logger = logger;
     this.positionExpirator = positionExpirator;
     this.positionLedger = positionLedger;
@@ -63,12 +63,12 @@ export class ExpirationEngine {
     const strategyAsset = await strategyInstance.asset();
     const assetDecimals = await strategyInstance.decimals();
 
-    const {payload, swapOutputAmount} = await this.uniswap.buildPayload(
-        ethers.formatUnits(minimumExpectedAssets, assetDecimals),
-        new EthereumAddress(strategyAsset),
-        Number(assetDecimals),
-        new EthereumAddress(WBTC_ADDRESS),
-        WBTC_DECIMALS,
+    const { payload, swapOutputAmount } = await this.uniswap.buildPayload(
+      ethers.formatUnits(minimumExpectedAssets, assetDecimals),
+      new EthereumAddress(strategyAsset),
+      Number(assetDecimals),
+      new EthereumAddress(WBTC_ADDRESS),
+      WBTC_DECIMALS,
     );
 
     return {
@@ -199,35 +199,23 @@ export class ExpirationEngine {
  * @returns {Promise<bigint>} The remaining amount of BTC to acquire
  */
   public async expirePositionsUntilBtcAcquired(sortedExpirationPositions: LeveragePosition[], btcToAquire: bigint): Promise<bigint> {
+    let btcAquired = BigInt(0);
     for (const position of sortedExpirationPositions) {
-      btcToAquire = await this.expirePositionAndCalculateRemainingBtc(position, btcToAquire);
 
-      let {minimumWBTC, payload} = await this.previewExpirePosition(position);
+      let { minimumWBTC, payload } = await this.previewExpirePosition(position);
+      console.log('in bot minimumWBTC', minimumWBTC);
 
-      // deduct by 1% for slippage tollerance
-      minimumWBTC = minimumWBTC - minimumWBTC / 100n;
-
+      //add 0.5% slippage tollerance
+      minimumWBTC = minimumWBTC - (minimumWBTC / BigInt(200));
       await this.expirePosition(position.nftId, payload, minimumWBTC);
-      btcToAquire -= minimumWBTC;
+      btcAquired += minimumWBTC;
 
-      if (btcToAquire <= 0) {
+      if (btcAquired >= btcToAquire) {
         this.logger.info('Aquired enough BTC, breaking bot');
         break;
       }
     }
-    return btcToAquire;
-  }
-
-  /**
- * Expire a position and calculate the remaining amount of BTC to acquire
- * @param {LeveragePosition} position - The position to expire
- * @param {bigint} btcToAquire - The amount of BTC to acquire
- * @returns {Promise<bigint>} The remaining amount of BTC to acquire
- */
-  private async expirePositionAndCalculateRemainingBtc(position: LeveragePosition, btcToAquire: bigint): Promise<bigint> {
-    const {minimumWBTC, payload} = await this.previewExpirePosition(position);
-    await this.expirePosition(position.nftId, payload, minimumWBTC);
-    return btcToAquire - minimumWBTC;
+    return btcAquired;
   }
 
   /**
