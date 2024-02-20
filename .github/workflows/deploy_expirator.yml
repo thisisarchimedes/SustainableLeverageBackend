@@ -4,8 +4,6 @@ on:
     branches:
       - daniel/arc-690-backend-to-expire-positions
 
-
-
 env:
     AWS_REGION: us-east-1
     PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
@@ -60,7 +58,7 @@ jobs:
       - name: Deploy the SAM application
         id: deploy
         run: |
-          sam deploy --debug --template-file packaged.yaml --stack-name EventProcessorStack --capabilities CAPABILITY_IAM --parameter-overrides \
+          sam deploy --debug --template-file packaged.yaml --stack-name ExpiratorBotDemoStack --capabilities CAPABILITY_IAM --parameter-overrides \
           ParameterKey=PrivateKey,ParameterValue="${{ secrets.PRIVATE_KEY_EXPIRATOR }}" \
           ParameterKey=MockCurvePoolAddress,ParameterValue="${{ secrets.MOCK_CURVE_POOL_ADDRESS }}" \
           ParameterKey=MainnetRpcUrl,ParameterValue="${{ secrets.MAINNET_RPC_URL }}" \
