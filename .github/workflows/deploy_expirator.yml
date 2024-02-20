@@ -53,7 +53,7 @@ jobs:
         run: pip install --user aws-sam-cli
 
       - name: Package the SAM application
-        run: sam package --template-file template.yaml --output-template-file packaged.yaml --s3-bucket aws-sam-eventsfetcher
+        run: sam package --template-file template.yaml --output-template-file packaged.yaml --s3-bucket aws-sam-expiratorbot
 
       - name: Deploy the SAM application
         id: deploy
