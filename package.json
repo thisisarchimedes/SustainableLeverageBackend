@@ -54,15 +54,16 @@
     "typescript": "^5.3.2"
   },
   "dependencies": {
-    "@thisisarchimedes/backend-sdk": "^1.0.77",
     "@stryker-mutator/core": "^8.2.2",
+    "@thisisarchimedes/backend-sdk": "^1.0.77",
+    "bignumber.js": "^9.1.2",
     "dotenv": "^16.3.1",
     "eslint-config-google": "^0.14.0",
     "eslint-plugin-mocha": "^10.2.0",
     "ethers": "^6.9.1",
     "node-cron": "^3.0.3",
-    "p-limit": "3",
     "nyc": "^15.1.0",
+    "p-limit": "3",
     "pg": "^8.11.3",
     "solidity-coverage": "^0.8.5"
   }
