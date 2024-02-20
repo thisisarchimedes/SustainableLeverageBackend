@@ -1,0 +1,77 @@
+name: Deploy on PR
+on:
+  pull_request:
+    types: [synchronize]
+
+
+env:
+    AWS_REGION: us-east-1
+    EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }} # SSH private key stored in GitHub secrets
+    EC2_HOST: ${{ secrets.EC2_HOST }} # EC2 instance IP or domain
+    DEMO_EC2_HOST: ${{ secrets.DEMO_EC2_HOST }} # EC2 Demo instance IP or domain
+    EC2_USER: ubuntu
+    PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
+    API_DEVOPS_EVENT_CATCHER: ${{ vars.API_DEVOPS_EVENT_CATCHER }}
+    DEVOPS_EVENTS_SECRET_TOKEN: ${{ secrets.DEVOPS_EVENTS_SECRET_TOKEN }}
+  
+jobs:
+
+  deploy-sustainable-leverage-expirator-bot-demo-lambda:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          submodules: 'recursive'
+          fetch-depth: 0
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 'latest'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build
+        run: npm run build
+
+      - name: Remove development dependencies
+        run: npm prune --production
+
+      - name: Prepare deployment package
+        run: |
+          mkdir -p deploy-package
+          rsync -av --progress ./dist/ ./deploy-package/ --exclude test
+          cp -r ./node_modules ./deploy-package/
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Install AWS SAM CLI
+        run: pip install --user aws-sam-cli
+
+      - name: Package the SAM application
+        run: sam package --template-file template.yaml --output-template-file packaged.yaml --s3-bucket aws-sam-eventsfetcher
+
+      - name: Deploy the SAM application
+        id: deploy
+        run: |
+          sam deploy --debug --template-file packaged.yaml --stack-name EventProcessorStack --capabilities CAPABILITY_IAM --parameter-overrides \
+          ParameterKey=PrivateKey,ParameterValue="${{ secrets.PRIVATE_KEY_EXPIRATOR }}" \
+          ParameterKey=MockCurvePoolAddress,ParameterValue="${{ secrets.MOCK_CURVE_POOL_ADDRESS }}" \
+          ParameterKey=MainnetRpcUrl,ParameterValue="${{ secrets.MAINNET_RPC_URL }}" \
+          ParameterKey=RpcUrl,ParameterValue="${{ secrets.DEMO_RPC_URL }}" \
+          ParameterKey=S3BucketConfig,ParameterValue="${{ secrets.S3_BUCKET_CONFIG }}" \
+          ParameterKey=S3AddressesKey,ParameterValue="${{ secrets.S3_ADDRESSES_KEY }}" \
+          ParameterKey=DbHost,ParameterValue="${{ secrets.DEMO_DB_HOST }}" \
+          ParameterKey=DbPort,ParameterValue="${{ secrets.DEMO_DB_PORT }}" \
+          ParameterKey=DbName,ParameterValue="${{ secrets.DEMO_DB_NAME }}" \
+          ParameterKey=DbUser,ParameterValue="${{ secrets.DEMO_DB_USER }}" \
+          ParameterKey=DbPassword,ParameterValue="${{ secrets.DEMO_DB_PASSWORD }}" \
+          ParameterKey=NewRelicAPIKey,ParameterValue="${{ secrets.NEW_RELIC_API_KEY }}"
