@@ -152,21 +152,22 @@ export class ExpirationEngine {
   }
 
   /**
-   * Calculate the amount of BTC to acquire
-   * @param {bigint[]} poolBalances - The balances of the pool
-   * @returns {bigint} The amount of BTC to acquire
+   * Calculates the amount of WBTC needed to balance a liquidity pool to a certain ratio.
+   *
+   * @param {bigint} wbtcBalance - The current balance of WBTC in the pool.
+   * @param {bigint} lvBtcBalance - The current balance of LVBTC in the pool.
+   * @param {number} targetRatio - The desired ratio of WBTC to LVBTC in the pool. This is a numerical value where 1 represents a 1:1 ratio, 0.5 represents a 1:2 ratio (WBTC:LVBTC), 2 represents a 2:1 ratio, and so on. It essentially dictates the proportion of WBTC to LVBTC that you aim to achieve in the pool.
+   * @returns {bigint} The amount of WBTC needed to balance the pool to the target ratio.
+   * @throws {Error} If the required WBTC is negative, indicating the pool is already over the target ratio.
    */
-
   public calculateBtcToAcquire(wbtcBalance: bigint, lvBtcBalance: bigint, targetRatio: number): bigint {
-    // Convert target_ratio to bigint
-    const targetRatioBigInt = BigInt(Math.floor(targetRatio * PRECISION_FACTOR));
-    const hundredThousand = BigInt(PRECISION_FACTOR);
+    // Convert the target ratio to a fraction
+    const targetFraction = 1 / targetRatio;
 
-    // Calculate the amount of WBTC to add
-    const x = (targetRatioBigInt * lvBtcBalance) / hundredThousand - wbtcBalance;
+    // Calculate the amount of WBTC needed to balance the pool
+    const requiredWbtc = BigInt(Math.ceil(Number(lvBtcBalance) * targetFraction)) - wbtcBalance;
 
-    // Ensure that the result is non-negative
-    return x > 0n ? x : 0n;
+    return requiredWbtc < BigInt(0) ? BigInt(0) : requiredWbtc;
   }
 
   /**

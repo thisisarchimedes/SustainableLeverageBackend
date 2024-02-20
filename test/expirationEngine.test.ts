@@ -13,7 +13,7 @@ import MultiPoolStrategy from '../src/expirator/contracts/MultiPoolStrategy';
 import Uniswap from '../src/lib/Uniswap';
 import PositionLedger from '../src/expirator/contracts/PositionLedger';
 
-const POOL_BALANCES = [BigInt(10 * 10 ** 8), BigInt(51 * 10 ** 8)];
+const POOL_BALANCES = [BigInt(0.7 * 10 ** 8), BigInt(1 * 10 ** 8)];
 const ZERO_BALANCE_ERROR = 'lvBTC balance is zero, can\'t calculate ratio';
 const FETCH_BLOCK_ERROR = 'Could not fetch latest block! termina…';
 const CURRENT_BLOCK = 19144936;
@@ -151,9 +151,18 @@ describe('PositionExpiratorEngine', function () {
   });
 
   it('should calculate BTC to acquire', function () {
-    const result = engine.calculateBtcToAcquire(POOL_BALANCES[0], POOL_BALANCES[1], 0.3);
+
+    console.log('POOL_BALANCES[0]', POOL_BALANCES[0])
+    console.log('POOL_BALANCES[1]', POOL_BALANCES[1])
+
+    const result = engine.calculateBtcToAcquire(POOL_BALANCES[0], POOL_BALANCES[1], 0.8);
+
+    console.log('WBTC TO AQUIRE:', result)
+
     expect(result).to.equal(BigInt(5.3 * 10 ** 8));
   });
+
+  
 
   it('should get current block', async function () {
     const result = await engine.getCurrentBlock();
