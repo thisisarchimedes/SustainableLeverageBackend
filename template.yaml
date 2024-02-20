@@ -43,7 +43,7 @@ Resources:
     Properties:
       Handler: lambda-handler.handler
       Runtime: nodejs16.x
-      CodeUri: ./deploy-package/expirator/
+      CodeUri: ./deploy-package
       FunctionName: !Sub 'ExpiratorBotDemo${FunctionNameSuffix}'
       Role: !GetAtt LambdaExecutionRole.Arn
       Events:
