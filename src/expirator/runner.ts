@@ -16,7 +16,7 @@ Logger.initialize('Position expirator');
 const privateKey = process.env.PRIVATE_KEY!;
 
 // Initialize the required instances
-const provider = new ethers.JsonRpcProvider(process.env.RPC_URL!);
+const provider = new ethers.JsonRpcProvider(process.env.RPC_URL);
 const wallet = new ethers.Wallet(privateKey, provider);
 
 const logger = Logger.getInstance();

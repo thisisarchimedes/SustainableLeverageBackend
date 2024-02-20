@@ -1,8 +1,7 @@
 import {ethers} from 'ethers';
 import {EthereumAddress} from '@thisisarchimedes/backend-sdk';
 import PositionLedgerABI from '../ABIs/PositionLedger.json';
-import LedgerEntry from '../../types/LedgerEntry';
-import {populateLedgerEntry} from '../../types/LedgerEntry';
+import {populateLedgerEntry, LedgerEntry} from '../../types/LedgerEntry';
 
 
 class PositionLedger {

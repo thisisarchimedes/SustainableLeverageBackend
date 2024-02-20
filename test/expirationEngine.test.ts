@@ -12,6 +12,7 @@ import {MultiPoolStrategyFactory} from '../src/expirator/MultiPoolStrategyFactor
 import MultiPoolStrategy from '../src/expirator/contracts/MultiPoolStrategy';
 import Uniswap from '../src/lib/Uniswap';
 import PositionLedger from '../src/expirator/contracts/PositionLedger';
+import {assert} from 'console';
 
 const POOL_BALANCES = [BigInt(1 * 10 ** 8), BigInt(3 * 10 ** 8)];
 const ZERO_BALANCE_ERROR = 'lvBTC balance is zero, can\'t calculate ratio';
@@ -157,7 +158,7 @@ describe('PositionExpiratorEngine', function() {
 
     const btcAquired = await engine.run();
 
-    expect(btcAquired > btcToAquire);
+    assert(btcAquired > btcToAquire);
   });
 
   it('should calculate BTC to acquire', function() {

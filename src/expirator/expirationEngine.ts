@@ -178,7 +178,7 @@ export class ExpirationEngine {
   */
   public async getCurrentBlock(): Promise<number> {
     const currentBlock = await this.wallet.provider?.getBlockNumber();
-    return currentBlock || 0;
+    return currentBlock ?? 0;
   }
 
   /**

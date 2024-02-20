@@ -2,7 +2,7 @@
 /* eslint-disable no-extra-semi */
 import {EthereumAddress} from '@thisisarchimedes/backend-sdk';
 
-export default interface LedgerEntry {
+export interface LedgerEntry {
   collateralAmount: bigint;
   strategyAddress: EthereumAddress;
   strategyShares: bigint;
