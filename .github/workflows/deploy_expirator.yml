@@ -1,15 +1,13 @@
 name: Deploy on PR
 on:
-  pull_request:
-    types: [synchronize]
+  push:
+    branches:
+      - daniel/arc-690-backend-to-expire-positions
+
 
 
 env:
     AWS_REGION: us-east-1
-    EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }} # SSH private key stored in GitHub secrets
-    EC2_HOST: ${{ secrets.EC2_HOST }} # EC2 instance IP or domain
-    DEMO_EC2_HOST: ${{ secrets.DEMO_EC2_HOST }} # EC2 Demo instance IP or domain
-    EC2_USER: ubuntu
     PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
     API_DEVOPS_EVENT_CATCHER: ${{ vars.API_DEVOPS_EVENT_CATCHER }}
     DEVOPS_EVENTS_SECRET_TOKEN: ${{ secrets.DEVOPS_EVENTS_SECRET_TOKEN }}
