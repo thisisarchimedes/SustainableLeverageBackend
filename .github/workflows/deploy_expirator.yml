@@ -1,4 +1,4 @@
-name: Deploy on PR
+name: Deploy on Expirator lambda
 on:
   push:
     branches:
@@ -39,7 +39,7 @@ jobs:
       - name: Prepare deployment package
         run: |
           mkdir -p deploy-package
-          rsync -av --progress ./dist/ ./deploy-package/ --exclude test
+          rsync -av --progress ./dist/ ./deploy-package/ --exclude liquidator
           cp -r ./node_modules ./deploy-package/
 
       - name: Configure AWS Credentials
