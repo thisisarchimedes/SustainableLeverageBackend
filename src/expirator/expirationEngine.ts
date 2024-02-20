@@ -35,7 +35,6 @@ export class ExpirationEngine {
     positionLedger: PositionLedger, curvePool: CurvePool, DB: DataSource,
     multiPoolStrategyFactory: MultiPoolStrategyFactory, uniswapInstance: Uniswap,
     tokenIndexes: TokenIndexes, poolRektThreshold: number) {
-
     this.logger = logger;
     this.positionExpirator = positionExpirator;
     this.positionLedger = positionLedger;
@@ -57,7 +56,7 @@ export class ExpirationEngine {
   public async previewExpirePosition(position: LeveragePosition) {
     const strategyInstance = this.multiPoolStrategyFactory.create(new EthereumAddress(position.strategy));
 
-    //get blockchain position
+    // get blockchain position
     const blockchainPosition = await this.positionLedger.getPosition(position.nftId);
 
     const minimumExpectedAssets = await strategyInstance.convertToAssets(blockchainPosition[2]);
@@ -167,10 +166,7 @@ export class ExpirationEngine {
     const x = (targetRatioBigInt * lvBtcBalance) / hundredThousand - wbtcBalance;
 
     // Ensure that the result is non-negative
-    const result = x > 0n ? x : 0n;
-
-    // Multiply the result by 10 ** 8
-    return result * BigInt(10 ** WBTC_DECIMALS);
+    return x > 0n ? x : 0n;
   }
 
   /**
@@ -201,12 +197,11 @@ export class ExpirationEngine {
  */
   public async expirePositionsUntilBtcAcquired(sortedExpirationPositions: LeveragePosition[], btcToAquire: bigint): Promise<bigint> {
     for (const position of sortedExpirationPositions) {
-
       btcToAquire = await this.expirePositionAndCalculateRemainingBtc(position, btcToAquire);
 
       let { minimumWBTC, payload } = await this.previewExpirePosition(position);
 
-      //deduct by 1% for slippage tollerance
+      // deduct by 1% for slippage tollerance
       minimumWBTC = minimumWBTC - minimumWBTC / 100n;
 
       await this.expirePosition(position.nftId, payload, minimumWBTC);

@@ -1,8 +1,8 @@
-import { Config, loadConfig } from '../lib/ConfigService';
-import { Signer, TransactionRequest, ethers } from 'ethers';
+import {Config, loadConfig} from '../lib/ConfigService';
+import {Signer, TransactionRequest, ethers} from 'ethers';
 import pLimit from 'p-limit';
-import { WBTC_ADDRESS, WBTC_DECIMALS } from '../constants';
-import { Contracts, EthereumAddress, Logger, PositionLiquidator } from '@thisisarchimedes/backend-sdk';
+import {WBTC_ADDRESS, WBTC_DECIMALS} from '../constants';
+import {Contracts, EthereumAddress, Logger, PositionLiquidator} from '@thisisarchimedes/backend-sdk';
 import UniSwap from '../lib/Uniswap';
 import TransactionSimulator from '../lib/TransactionSimulator';
 import DataSource from '../lib/DataSource';
@@ -55,7 +55,7 @@ export default class Liquidator {
     const promises = [];
     for (const row of res) {
       try {
-        const { nftId, strategy, strategyShares } = this.retrievePositionData(row); // Throws
+        const {nftId, strategy, strategyShares} = this.retrievePositionData(row); // Throws
 
         const promise = this.pushToSemaphore(nftId, gasPrice, strategy, strategyShares, () => {
           liquidatedCount++;
@@ -73,7 +73,7 @@ export default class Liquidator {
 
     this.logRunResult(liquidatedCount, res.length);
 
-    return { liquidatedCount, answers };
+    return {liquidatedCount, answers};
   };
 
   private configureGasPrice = async (): Promise<bigint | null> => {
@@ -156,12 +156,12 @@ export default class Liquidator {
     const minimumExpectedAssets = await strategyContract.convertToAssets(strategySharesN); // Must query live
 
     const uniSwap = new UniSwap(process.env.MAINNET_RPC_URL!);
-    const { payload } = await uniSwap.buildPayload(
-      ethers.formatUnits(minimumExpectedAssets, assetDecimals),
-      new EthereumAddress(strategyAsset),
-      Number(assetDecimals),
-      new EthereumAddress(WBTC_ADDRESS),
-      WBTC_DECIMALS,
+    const {payload} = await uniSwap.buildPayload(
+        ethers.formatUnits(minimumExpectedAssets, assetDecimals),
+        new EthereumAddress(strategyAsset),
+        Number(assetDecimals),
+        new EthereumAddress(WBTC_ADDRESS),
+        WBTC_DECIMALS,
     );
 
     return payload;
