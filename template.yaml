@@ -41,7 +41,7 @@ Resources:
   ExpiratorBotDemo:
     Type: AWS::Serverless::Function
     Properties:
-      Handler: lambda-handler.handler
+      Handler: src/expirator/lambda-handler.handler
       Runtime: nodejs16.x
       CodeUri: ./deploy-package
       FunctionName: !Sub 'ExpiratorBotDemo${FunctionNameSuffix}'
