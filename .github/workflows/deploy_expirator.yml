@@ -42,6 +42,10 @@ jobs:
           rsync -av --progress ./dist/ ./deploy-package/ --exclude liquidator
           cp -r ./node_modules ./deploy-package/
 
+
+      - name: Print deployment package contents
+        run: ls -alR ./deploy-package
+     
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
