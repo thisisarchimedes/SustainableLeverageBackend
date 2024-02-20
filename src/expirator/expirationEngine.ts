@@ -1,14 +1,14 @@
-import { Logger, EthereumAddress, ClosePositionParamsStruct } from '@thisisarchimedes/backend-sdk';
-import { BigNumber } from 'bignumber.js';
+import {Logger, EthereumAddress, ClosePositionParamsStruct} from '@thisisarchimedes/backend-sdk';
+import {BigNumber} from 'bignumber.js';
 import DataSource from '../lib/DataSource';
 import LeveragePosition from '../types/LeveragePosition';
-import { ethers } from 'ethers';
+import {ethers} from 'ethers';
 import Uniswap from '../lib/Uniswap';
-import { WBTC_ADDRESS, WBTC_DECIMALS } from '../constants';
-import { TokenIndexes } from '../types/TokenIndexes';
+import {WBTC_ADDRESS, WBTC_DECIMALS} from '../constants';
+import {TokenIndexes} from '../types/TokenIndexes';
 import PositionExpirator from './contracts/PositionExpirator';
 import CurvePool from './contracts/CurvePool';
-import { MultiPoolStrategyFactory } from './MultiPoolStrategyFactory';
+import {MultiPoolStrategyFactory} from './MultiPoolStrategyFactory';
 import PositionLedger from './contracts/PositionLedger';
 
 const ZERO_ADDRESS = ethers.ZeroAddress;
@@ -31,9 +31,9 @@ export class ExpirationEngine {
   private readonly uniswap: Uniswap;
 
   constructor(wallet: ethers.Wallet, logger: Logger, positionExpirator: PositionExpirator,
-    positionLedger: PositionLedger, curvePool: CurvePool, DB: DataSource,
-    multiPoolStrategyFactory: MultiPoolStrategyFactory, uniswapInstance: Uniswap,
-    tokenIndexes: TokenIndexes, poolRektThreshold: number) {
+      positionLedger: PositionLedger, curvePool: CurvePool, DB: DataSource,
+      multiPoolStrategyFactory: MultiPoolStrategyFactory, uniswapInstance: Uniswap,
+      tokenIndexes: TokenIndexes, poolRektThreshold: number) {
     this.logger = logger;
     this.positionExpirator = positionExpirator;
     this.positionLedger = positionLedger;
@@ -63,12 +63,12 @@ export class ExpirationEngine {
     const strategyAsset = await strategyInstance.asset();
     const assetDecimals = await strategyInstance.decimals();
 
-    const { payload, swapOutputAmount } = await this.uniswap.buildPayload(
-      ethers.formatUnits(minimumExpectedAssets, assetDecimals),
-      new EthereumAddress(strategyAsset),
-      Number(assetDecimals),
-      new EthereumAddress(WBTC_ADDRESS),
-      WBTC_DECIMALS,
+    const {payload, swapOutputAmount} = await this.uniswap.buildPayload(
+        ethers.formatUnits(minimumExpectedAssets, assetDecimals),
+        new EthereumAddress(strategyAsset),
+        Number(assetDecimals),
+        new EthereumAddress(WBTC_ADDRESS),
+        WBTC_DECIMALS,
     );
 
     return {
@@ -201,11 +201,10 @@ export class ExpirationEngine {
   public async expirePositionsUntilBtcAcquired(sortedExpirationPositions: LeveragePosition[], btcToAquire: bigint): Promise<bigint> {
     let btcAquired = BigInt(0);
     for (const position of sortedExpirationPositions) {
-
-      let { minimumWBTC, payload } = await this.previewExpirePosition(position);
+      let {minimumWBTC, payload} = await this.previewExpirePosition(position);
       console.log('in bot minimumWBTC', minimumWBTC);
 
-      //add 0.5% slippage tollerance
+      // add 0.5% slippage tollerance
       minimumWBTC = minimumWBTC - (minimumWBTC / BigInt(200));
       await this.expirePosition(position.nftId, payload, minimumWBTC);
       btcAquired += minimumWBTC;

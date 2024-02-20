@@ -1,15 +1,15 @@
 import dotenv from 'dotenv';
 dotenv.config();
 
-import { ExpirationEngine } from './expirationEngine';
-import { Logger, EthereumAddress } from '@thisisarchimedes/backend-sdk';
-import { ethers } from 'ethers';
+import {ExpirationEngine} from './expirationEngine';
+import {Logger, EthereumAddress} from '@thisisarchimedes/backend-sdk';
+import {ethers} from 'ethers';
 import DataSource from '../lib/DataSource';
 import Uniswap from '../lib/Uniswap';
-import { TokenIndexes } from '../types/TokenIndexes';
+import {TokenIndexes} from '../types/TokenIndexes';
 import PositionExpirator from './contracts/PositionExpirator';
 import CurvePool from './contracts/CurvePool';
-import { MultiPoolStrategyFactory } from './MultiPoolStrategyFactory';
+import {MultiPoolStrategyFactory} from './MultiPoolStrategyFactory';
 import PositionLedger from './contracts/PositionLedger';
 
 Logger.initialize('Position expirator');
@@ -26,7 +26,7 @@ const curvePool = new CurvePool(wallet, new EthereumAddress(process.env.MOCK_CUR
 const DB = new DataSource();
 const multiPoolStrategyFactory = new MultiPoolStrategyFactory(wallet);
 const uniswapInstance = new Uniswap(process.env.MAINNET_RPC_URL!);
-const tokenIndexes: TokenIndexes = { 'WBTC': 0, 'LVBTC': 1 };
+const tokenIndexes: TokenIndexes = {'WBTC': 0, 'LVBTC': 1};
 const poolRektThreshold = 0.7;
 
 
@@ -40,16 +40,16 @@ async function mineBlocks(numBlocks: number) {
 
 // Initialize PositionExpiratorEngine
 const positionExpiratorEngine = new ExpirationEngine(
-  wallet,
-  logger,
-  positionExpirator,
-  positionLedger,
-  curvePool,
-  DB,
-  multiPoolStrategyFactory,
-  uniswapInstance,
-  tokenIndexes,
-  poolRektThreshold,
+    wallet,
+    logger,
+    positionExpirator,
+    positionLedger,
+    curvePool,
+    DB,
+    multiPoolStrategyFactory,
+    uniswapInstance,
+    tokenIndexes,
+    poolRektThreshold,
 );
 
 async function main() {
