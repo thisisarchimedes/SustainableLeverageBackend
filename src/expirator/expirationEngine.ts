@@ -1,14 +1,15 @@
-import {Logger, EthereumAddress, ClosePositionParamsStruct} from '@thisisarchimedes/backend-sdk';
-import {BigNumber} from 'bignumber.js';
+import { Logger, EthereumAddress, ClosePositionParamsStruct } from '@thisisarchimedes/backend-sdk';
+import { BigNumber } from 'bignumber.js';
 import DataSource from '../lib/DataSource';
 import LeveragePosition from '../types/LeveragePosition';
-import {ethers} from 'ethers';
+import { ethers } from 'ethers';
 import Uniswap from '../lib/Uniswap';
-import {WBTC, WBTC_DECIMALS} from '../constants';
-import {TokenIndexes} from '../types/TokenIndexes';
+import { WBTC_ADDRESS, WBTC_DECIMALS } from '../constants';
+import { TokenIndexes } from '../types/TokenIndexes';
 import PositionExpirator from './contracts/PositionExpirator';
 import CurvePool from './contracts/CurvePool';
-import {MultiPoolStrategyFactory} from './MultiPoolStrategyFactory';
+import { MultiPoolStrategyFactory } from './MultiPoolStrategyFactory';
+import PositionLedger from './contracts/PositionLedger';
 
 const ZERO_ADDRESS = ethers.ZeroAddress;
 const SWAP_ROUTE = 0;
@@ -20,6 +21,7 @@ const PRECISION_FACTOR = 1000000;
 export class ExpirationEngine {
   private readonly logger: Logger;
   private readonly positionExpirator: PositionExpirator;
+  private readonly positionLedger: PositionLedger;
   private readonly curvePool: CurvePool;
   private readonly WBTC_INDEX: number;
   private readonly LVBTC_INDEX: number;
@@ -30,10 +32,13 @@ export class ExpirationEngine {
   private readonly uniswap: Uniswap;
 
   constructor(wallet: ethers.Wallet, logger: Logger, positionExpirator: PositionExpirator,
-      curvePool: CurvePool, DB: DataSource, multiPoolStrategyFactory: MultiPoolStrategyFactory,
-      uniswapInstance: Uniswap, tokenIndexes: TokenIndexes, poolRektThreshold: number) {
+    positionLedger: PositionLedger, curvePool: CurvePool, DB: DataSource,
+    multiPoolStrategyFactory: MultiPoolStrategyFactory, uniswapInstance: Uniswap,
+    tokenIndexes: TokenIndexes, poolRektThreshold: number) {
+
     this.logger = logger;
     this.positionExpirator = positionExpirator;
+    this.positionLedger = positionLedger;
     this.DB = DB;
     this.curvePool = curvePool;
     this.WBTC_INDEX = tokenIndexes['WBTC'];
@@ -52,21 +57,24 @@ export class ExpirationEngine {
   public async previewExpirePosition(position: LeveragePosition) {
     const strategyInstance = this.multiPoolStrategyFactory.create(new EthereumAddress(position.strategy));
 
-    const minimumExpectedAssets = await strategyInstance.convertToAssets(ethers.parseEther(position.strategyShares.toString()));
+    //get blockchain position
+    const blockchainPosition = await this.positionLedger.getPosition(position.nftId);
+
+    const minimumExpectedAssets = await strategyInstance.convertToAssets(blockchainPosition[2]);
 
     const strategyAsset = await strategyInstance.asset();
     const assetDecimals = await strategyInstance.decimals();
 
-    const {payload, swapOutputAmount} = await this.uniswap.buildPayload(
-        ethers.formatUnits(minimumExpectedAssets, assetDecimals),
-        new EthereumAddress(strategyAsset),
-        Number(assetDecimals),
-        new EthereumAddress(WBTC),
-        WBTC_DECIMALS,
+    const { payload, swapOutputAmount } = await this.uniswap.buildPayload(
+      ethers.formatUnits(minimumExpectedAssets, assetDecimals),
+      new EthereumAddress(strategyAsset),
+      Number(assetDecimals),
+      new EthereumAddress(WBTC_ADDRESS),
+      WBTC_DECIMALS,
     );
 
     return {
-      minimumWBTC: BigInt(swapOutputAmount),
+      minimumWBTC: BigInt(ethers.parseUnits(swapOutputAmount, WBTC_DECIMALS)),
       payload,
     };
   }
@@ -159,9 +167,11 @@ export class ExpirationEngine {
     const x = (targetRatioBigInt * lvBtcBalance) / hundredThousand - wbtcBalance;
 
     // Ensure that the result is non-negative
-    return x > 0n ? x : 0n;
-  }
+    const result = x > 0n ? x : 0n;
 
+    // Multiply the result by 10 ** 8
+    return result * BigInt(10 ** WBTC_DECIMALS);
+  }
 
   /**
   * Get the current block number
@@ -191,7 +201,17 @@ export class ExpirationEngine {
  */
   public async expirePositionsUntilBtcAcquired(sortedExpirationPositions: LeveragePosition[], btcToAquire: bigint): Promise<bigint> {
     for (const position of sortedExpirationPositions) {
+
       btcToAquire = await this.expirePositionAndCalculateRemainingBtc(position, btcToAquire);
+
+      let { minimumWBTC, payload } = await this.previewExpirePosition(position);
+
+      //deduct by 1% for slippage tollerance
+      minimumWBTC = minimumWBTC - minimumWBTC / 100n;
+
+      await this.expirePosition(position.nftId, payload, minimumWBTC);
+      btcToAquire -= minimumWBTC;
+
       if (btcToAquire <= 0) {
         this.logger.info('Aquired enough BTC, breaking bot');
         break;
@@ -207,7 +227,7 @@ export class ExpirationEngine {
  * @returns {Promise<bigint>} The remaining amount of BTC to acquire
  */
   private async expirePositionAndCalculateRemainingBtc(position: LeveragePosition, btcToAquire: bigint): Promise<bigint> {
-    const {minimumWBTC, payload} = await this.previewExpirePosition(position);
+    const { minimumWBTC, payload } = await this.previewExpirePosition(position);
     await this.expirePosition(position.nftId, payload, minimumWBTC);
     return btcToAquire - minimumWBTC;
   }
@@ -222,9 +242,9 @@ export class ExpirationEngine {
   private async expirePosition(nftId: number, payload: string, minimumWBTC: bigint): Promise<void> {
     const closeParams: ClosePositionParamsStruct = {
       nftId: nftId,
-      swapData: payload,
       minWBTC: minimumWBTC,
       swapRoute: SWAP_ROUTE,
+      swapData: payload,
       exchange: ZERO_ADDRESS,
     };
 
