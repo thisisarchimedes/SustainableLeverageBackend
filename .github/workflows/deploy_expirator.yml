@@ -1,7 +1,6 @@
 name: Deploy on PR
 on:
   pull_request:
-    types: [synchronize]
 
 
 env:
