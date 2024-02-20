@@ -1,12 +1,14 @@
+/* eslint-disable no-extra-semi */
+/* eslint-disable semi */
 import {ethers} from 'ethers';
 import {Logger} from '@thisisarchimedes/backend-sdk';
 import DataSource from '../lib/DataSource';
 import Uniswap from '../lib/Uniswap';
 import {TokenIndexes} from '../types/TokenIndexes';
-import PositionExpirator from './contracts/PositionExpirator';
-import CurvePool from './contracts/CurvePool';
-import {MultiPoolStrategyFactory} from './MultiPoolStrategyFactory';
-import PositionLedger from './contracts/PositionLedger';
+import PositionExpirator from '../expirator/contracts/PositionExpirator';
+import CurvePool from '../expirator/contracts/CurvePool';
+import {MultiPoolStrategyFactory} from '../expirator/MultiPoolStrategyFactory';
+import PositionLedger from '../expirator/contracts/PositionLedger';
 
 export default interface ExpirationEngineParams {
     wallet: ethers.Wallet;

@@ -5,7 +5,6 @@ import LeveragePosition from '../types/LeveragePosition';
 import {ethers} from 'ethers';
 import Uniswap from '../lib/Uniswap';
 import {WBTC_ADDRESS, WBTC_DECIMALS} from '../constants';
-import {TokenIndexes} from '../types/TokenIndexes';
 import PositionExpirator from './contracts/PositionExpirator';
 import CurvePool from './contracts/CurvePool';
 import {MultiPoolStrategyFactory} from './MultiPoolStrategyFactory';
