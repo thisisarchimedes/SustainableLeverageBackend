@@ -82,4 +82,4 @@ async function main() {
   }
 }
 
-cron.schedule('* * * * *', main);
+cron.schedule('*/30 * * * * *', main);
