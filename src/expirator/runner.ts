@@ -34,50 +34,50 @@ async function main() {
 
   console.log('Environment Variables:', process.env);
 
-
-  const privateKey = process.env.PRIVATE_KEY!;
-
-  // Initialize the required instances
-  const provider = new ethers.JsonRpcProvider(process.env.RPC_URL);
-  const wallet = new ethers.Wallet(privateKey, provider);
-
-  const logger = Logger.getInstance();
-
-  logger.info('Expirator bot running..');
-
-  const positionExpirator = new PositionExpirator(wallet, new EthereumAddress(process.env.POSITION_EXPIRATOR_ADDRESS!));
-  console.log('1');
-  const positionLedger = new PositionLedger(wallet, new EthereumAddress(process.env.POSITION_LEDGER_ADDRESS!));
-  console.log('2');
-  const curvePool = new CurvePool(wallet, new EthereumAddress(process.env.MOCK_CURVE_POOL_ADDRESS!));
-  console.log('3');
-  const DB = new DataSource();
-  console.log('4');
-  const multiPoolStrategyFactory = new MultiPoolStrategyFactory(wallet);
-  console.log('5');
-  const uniswapInstance = new Uniswap(process.env.MAINNET_RPC_URL!);
-  console.log('6');
-  const tokenIndexes: TokenIndexes = {'WBTC': 0, 'LVBTC': 1};
-  console.log('7');
-  const poolRektThreshold = 0.7;
-
-  // Initialize PositionExpiratorEngine
-  const positionExpiratorEngine = new ExpirationEngine({
-    wallet: wallet,
-    logger: logger,
-    positionExpirator: positionExpirator,
-    positionLedger: positionLedger,
-    curvePool: curvePool,
-    DB: DB,
-    multiPoolStrategyFactory: multiPoolStrategyFactory,
-    uniswapInstance: uniswapInstance,
-    tokenIndexes: tokenIndexes,
-    poolRektThreshold: poolRektThreshold,
-  });
-
-  console.log('8');
-
   try {
+    const privateKey = process.env.PRIVATE_KEY!;
+
+    // Initialize the required instances
+    const provider = new ethers.JsonRpcProvider(process.env.RPC_URL);
+    const wallet = new ethers.Wallet(privateKey, provider);
+
+    const logger = Logger.getInstance();
+
+    logger.info('Expirator bot running..');
+
+    const positionExpirator = new PositionExpirator(wallet, new EthereumAddress(process.env.POSITION_EXPIRATOR_ADDRESS!));
+    console.log('1');
+    const positionLedger = new PositionLedger(wallet, new EthereumAddress(process.env.POSITION_LEDGER_ADDRESS!));
+    console.log('2');
+    const curvePool = new CurvePool(wallet, new EthereumAddress(process.env.MOCK_CURVE_POOL_ADDRESS!));
+    console.log('3');
+    const DB = new DataSource();
+    console.log('4');
+    const multiPoolStrategyFactory = new MultiPoolStrategyFactory(wallet);
+    console.log('5');
+    const uniswapInstance = new Uniswap(process.env.MAINNET_RPC_URL!);
+    console.log('6');
+    const tokenIndexes: TokenIndexes = {'WBTC': 0, 'LVBTC': 1};
+    console.log('7');
+    const poolRektThreshold = 0.7;
+
+    // Initialize PositionExpiratorEngine
+    const positionExpiratorEngine = new ExpirationEngine({
+      wallet: wallet,
+      logger: logger,
+      positionExpirator: positionExpirator,
+      positionLedger: positionLedger,
+      curvePool: curvePool,
+      DB: DB,
+      multiPoolStrategyFactory: multiPoolStrategyFactory,
+      uniswapInstance: uniswapInstance,
+      tokenIndexes: tokenIndexes,
+      poolRektThreshold: poolRektThreshold,
+    });
+
+    console.log('8');
+
+
     console.log('mining 4 blocks...');
     await mineBlocks(4);
     console.log('Running expirator');
