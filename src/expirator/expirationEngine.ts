@@ -123,7 +123,7 @@ export class ExpirationEngine {
 
     let btcAquired: bigint = BigInt(0);
     if (wbtcRatio < this.poolRektThreshold) {
-      this.logger.warning(`LVBTC pool is unbalanced. WBTC ratio: ${wbtcRatio}`);
+      this.logger.warning(`LVBTC pool is unbalanced. WBTC ratio: ${wbtcRatio}\n WBTC ${poolBalances[0]}\n LvBTC ${poolBalances[1]}`);
 
       const btcToAquire = this.calculateBtcToAcquire(poolBalances[0], poolBalances[1], 3);
 
@@ -143,12 +143,10 @@ export class ExpirationEngine {
           this.logger.error('Could not fetch latest block! terminating.');
           return btcAquired;
         }
-      } else {
-        this.logger.info('LVBTC Pool is balanced. no need to expire positions');
       }
     }
     else {
-      this.logger.info(`LvBTC pool is balanced. ratio: ${wbtcRatio}`);
+      this.logger.info(`LvBTC pool is balanced. ratio: ${wbtcRatio}\n WBTC ${poolBalances[0]}\n LvBTC ${poolBalances[1]}`);
     }
 
     return btcAquired;

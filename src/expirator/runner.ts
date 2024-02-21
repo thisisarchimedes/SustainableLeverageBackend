@@ -75,8 +75,6 @@ async function main() {
     await mineBlocks(4);
     console.log('Running expirator');
     const result = await positionExpiratorEngine.run();
-    console.log(result);
-
     return result;
   } catch (error) {
     console.error('Error:', error);
