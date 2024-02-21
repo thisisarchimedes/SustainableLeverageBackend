@@ -1,15 +1,16 @@
 import dotenv from 'dotenv';
 dotenv.config();
 
-import {ExpirationEngine} from './expirationEngine';
-import {Logger, EthereumAddress} from '@thisisarchimedes/backend-sdk';
-import {ethers} from 'ethers';
+import { ExpirationEngine } from './expirationEngine';
+import { Logger, EthereumAddress } from '@thisisarchimedes/backend-sdk';
+import { ethers } from 'ethers';
 import DataSource from '../lib/DataSource';
+import { loadConfig } from '../lib/ConfigService';
 import Uniswap from '../lib/Uniswap';
-import {TokenIndexes} from '../types/TokenIndexes';
+import { TokenIndexes } from '../types/TokenIndexes';
 import PositionExpirator from './contracts/PositionExpirator';
 import CurvePool from './contracts/CurvePool';
-import {MultiPoolStrategyFactory} from './MultiPoolStrategyFactory';
+import { MultiPoolStrategyFactory } from './MultiPoolStrategyFactory';
 import PositionLedger from './contracts/PositionLedger';
 import cron from 'node-cron';
 
@@ -37,6 +38,7 @@ async function main() {
 
   try {
     const privateKey = process.env.PRIVATE_KEY!;
+    const config = await loadConfig();
 
     // Initialize the required instances
     const provider = new ethers.JsonRpcProvider(process.env.RPC_URL);
@@ -45,9 +47,9 @@ async function main() {
 
     logger.info('Expirator bot running..');
 
-    const positionExpirator = new PositionExpirator(wallet, new EthereumAddress(process.env.POSITION_EXPIRATOR_ADDRESS!));
+    const positionExpirator = new PositionExpirator(wallet, config.positionExpirator);
     console.log('1');
-    const positionLedger = new PositionLedger(wallet, new EthereumAddress(process.env.POSITION_LEDGER_ADDRESS!));
+    const positionLedger = new PositionLedger(wallet, config.positionLedger);
     console.log('2');
     const curvePool = new CurvePool(wallet, new EthereumAddress(process.env.MOCK_CURVE_POOL_ADDRESS!));
     console.log('3');
@@ -57,7 +59,7 @@ async function main() {
     console.log('5');
     const uniswapInstance = new Uniswap(process.env.MAINNET_RPC_URL!);
     console.log('6');
-    const tokenIndexes: TokenIndexes = {'WBTC': 0, 'LVBTC': 1};
+    const tokenIndexes: TokenIndexes = { 'WBTC': 0, 'LVBTC': 1 };
     console.log('7');
     const poolRektThreshold = 0.7;
 
