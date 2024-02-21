@@ -13,65 +13,69 @@ env:
 jobs:
 
   deploy-sustainable-leverage-expirator-bot-demo-lambda:
-    runs-on: ubuntu-latest
-
+   runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          submodules: 'recursive'
+          submodules: "recursive"
           fetch-depth: 0
 
-      - name: Use Node.js
+      - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 'latest'
+          node-version: "18"
 
       - name: Install dependencies
-        run: npm install
+        run: |
+          yarn
+          yarn add @uniswap/router-sdk @uniswap/sdk-core @uniswap/smart-order-router @uniswap/v3-sdk
 
       - name: Build
-        run: npm run build
+        run: yarn build
 
-      - name: Remove development dependencies
-        run: npm prune --production
-
-      - name: Prepare deployment package
-        run: |
-          mkdir -p deploy-package
-          rsync -av --progress ./dist/ ./deploy-package/ --exclude liquidator
-          cp -r ./node_modules ./deploy-package/
-
-
-      - name: Print deployment package contents
-        run: ls -alR ./deploy-package
-     
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v1
+      - name: Copy files to EC2
+        uses: appleboy/scp-action@master
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.AWS_REGION }}
+          host: ${{ env.EXPIRATOR_EC2_HOST_DEMO }}
+          username: ${{ env.EC2_USER }}
+          key: ${{ env.EXPIRATOR_DEMO_EC2_SSH_KEY }}
+          port: 22
+          source: "."
+          target: "/srv"
 
-      - name: Install AWS SAM CLI
-        run: pip install --user aws-sam-cli
-
-      - name: Package the SAM application
-        run: sam package --template-file template.yaml --output-template-file packaged.yaml --s3-bucket aws-sam-expiratorbot
-
-      - name: Deploy the SAM application
-        id: deploy
-        run: |
-          sam deploy --debug --template-file packaged.yaml --stack-name ExpiratorBotDemoStack --capabilities CAPABILITY_IAM --parameter-overrides \
-          ParameterKey=PrivateKey,ParameterValue="${{ secrets.PRIVATE_KEY_EXPIRATOR }}" \
-          ParameterKey=MockCurvePoolAddress,ParameterValue="${{ secrets.MOCK_CURVE_POOL_ADDRESS }}" \
-          ParameterKey=MainnetRpcUrl,ParameterValue="${{ secrets.MAINNET_RPC_URL }}" \
-          ParameterKey=RpcUrl,ParameterValue="${{ secrets.DEMO_RPC_URL }}" \
-          ParameterKey=S3BucketConfig,ParameterValue="${{ secrets.S3_BUCKET_CONFIG }}" \
-          ParameterKey=S3AddressesKey,ParameterValue="${{ secrets.S3_ADDRESSES_KEY }}" \
-          ParameterKey=DbHost,ParameterValue="${{ secrets.DEMO_DB_HOST }}" \
-          ParameterKey=DbPort,ParameterValue="${{ secrets.DEMO_DB_PORT }}" \
-          ParameterKey=DbName,ParameterValue="${{ secrets.DEMO_DB_NAME }}" \
-          ParameterKey=DbUser,ParameterValue="${{ secrets.DEMO_DB_USER }}" \
-          ParameterKey=DbPassword,ParameterValue="${{ secrets.DEMO_DB_PASSWORD }}" \
-          ParameterKey=NewRelicAPIKey,ParameterValue="${{ secrets.NEW_RELIC_API_KEY }}"
+      - name: Run deployment script on EC2
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ env.EXPIRATOR_EC2_HOST_DEMO }}
+          username: ${{ env.EC2_USER }}
+          key: ${{ env.EXPIRATOR_DEMO_EC2_SSH_KEY }}
+          port: 22
+          script: |
+            set -e  # Exit immediately if a command exits with a non-zero status.
+            export NVM_DIR="$HOME/.nvm"
+            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+            [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+            cd /srv
+            cat > .env << EOF
+            AWS_REGION=${{ secrets.AWS_REGION }}
+            AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}
+            AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}
+            MOCK_CURVE_POOL_ADDRESS=${{secrets.MOCK_CURVE_POOL_ADDRESS}}
+            DB_HOST=${{ secrets.DB_HOST }}
+            DB_PORT=${{ secrets.DB_PORT }}
+            DB_NAME=${{ secrets.DB_NAME }}
+            DB_USER=${{ secrets.DB_USER }}
+            DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+            S3_BUCKET_CONFIG=${{ secrets.S3_BUCKET_CONFIG }}
+            S3_ADDRESSES_KEY=${{ secrets.S3_ADDRESSES_KEY }}
+            RPC_URL=${{ secrets.DEMO_RPC_URL }}
+            MAINNET_RPC_URL=${{ secrets.MAINNET_RPC_URL }}
+            NEW_RELIC_API_KEY=${{ secrets.NEW_RELIC_API_KEY }}
+            PRIVATE_KEY=${{ secrets.PRIVATE_KEY_EXPIRATOR }}
+            ENVIRONMENT="demo"
+            EOF
+            pm2 kill                                    # Stops all PM2-managed applications
+            export PAT_TOKEN=${{ secrets.PAT_TOKEN }}   # GitHub personal access token for installing the Backend-SDK
+            yarn install                                # Install dependencies
+            pm2 start 'yarn expirator'                 # Run the liquidator bot

@@ -11,6 +11,7 @@ import PositionExpirator from './contracts/PositionExpirator';
 import CurvePool from './contracts/CurvePool';
 import {MultiPoolStrategyFactory} from './MultiPoolStrategyFactory';
 import PositionLedger from './contracts/PositionLedger';
+import cron from 'node-cron';
 
 Logger.initialize('Position expirator');
 const privateKey = process.env.PRIVATE_KEY!;
@@ -51,7 +52,16 @@ const positionExpiratorEngine = new ExpirationEngine({
   poolRektThreshold: poolRektThreshold,
 });
 
+let isRunning = false;
+
 async function main() {
+  if (isRunning) {
+    console.log('Main function is already running. Skipping this schedule.');
+    return;
+  }
+
+  isRunning = true;
+
   try {
     await mineBlocks(4);
     const result = await positionExpiratorEngine.run();
@@ -62,9 +72,8 @@ async function main() {
     console.error('Error:', error);
   } finally {
     await logger.flush();
+    isRunning = false;
   }
 }
 
-main().then((a) => {
-  console.log(a);
-});
+cron.schedule('* * * * *', main);
