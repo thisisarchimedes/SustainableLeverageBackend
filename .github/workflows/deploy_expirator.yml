@@ -6,6 +6,7 @@ on:
 
 env:
     AWS_REGION: us-east-1
+    EC2_USER: ubuntu
     PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
     API_DEVOPS_EVENT_CATCHER: ${{ vars.API_DEVOPS_EVENT_CATCHER }}
     DEVOPS_EVENTS_SECRET_TOKEN: ${{ secrets.DEVOPS_EVENTS_SECRET_TOKEN }}
@@ -37,9 +38,9 @@ jobs:
       - name: Copy files to EC2
         uses: appleboy/scp-action@master
         with:
-          host: ${{ env.EXPIRATOR_EC2_HOST_DEMO }}
+          host: ${{ secrets.EXPIRATOR_EC2_HOST_DEMO }}
           username: ${{ env.EC2_USER }}
-          key: ${{ env.EXPIRATOR_DEMO_EC2_SSH_KEY }}
+          key: ${{ secrets.EXPIRATOR_DEMO_EC2_SSH_KEY }}
           port: 22
           source: "."
           target: "/srv"
@@ -47,9 +48,9 @@ jobs:
       - name: Run deployment script on EC2
         uses: appleboy/ssh-action@master
         with:
-          host: ${{ env.EXPIRATOR_EC2_HOST_DEMO }}
+          host: ${{ secrets.EXPIRATOR_EC2_HOST_DEMO }}
           username: ${{ env.EC2_USER }}
-          key: ${{ env.EXPIRATOR_DEMO_EC2_SSH_KEY }}
+          key: ${{ secrets.EXPIRATOR_DEMO_EC2_SSH_KEY }}
           port: 22
           script: |
             set -e  # Exit immediately if a command exits with a non-zero status.
