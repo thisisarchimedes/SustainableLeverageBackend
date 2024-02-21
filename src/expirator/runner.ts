@@ -95,4 +95,4 @@ async function main() {
   }
 }
 
-cron.schedule('* * * * *', main);// every 5 mins
+cron.schedule('*/10 * * * *', main);// every 5 mins
