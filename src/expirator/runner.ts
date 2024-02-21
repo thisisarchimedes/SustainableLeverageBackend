@@ -82,4 +82,5 @@ async function main() {
   }
 }
 
-cron.schedule('*/30 * * * * *', main);
+// cron.schedule('*/30 * * * * *', main);//every 30 sec
+cron.schedule('*/5 * * * *', main);//every 5 mins
