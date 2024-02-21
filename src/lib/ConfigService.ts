@@ -1,5 +1,5 @@
 import 'dotenv/config';
-import { EthereumAddress, S3Service } from '@thisisarchimedes/backend-sdk';
+import {EthereumAddress, S3Service} from '@thisisarchimedes/backend-sdk';
 
 const s3Service = new S3Service();
 

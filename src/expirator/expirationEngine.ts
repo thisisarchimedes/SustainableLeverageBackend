@@ -130,6 +130,7 @@ export class ExpirationEngine {
       this.logger.warning(`need to aquire ${btcToAquire} BTC from expired positions.`);
 
       const currentBlock = await this.getCurrentBlock();
+      this.logger.info(`Expirator current block ${currentBlock}`);
 
       if (currentBlock > 0) {
         const sortedExpirationPositions = await this.getSortedExpirationPositions(currentBlock);
@@ -186,6 +187,7 @@ export class ExpirationEngine {
  */
   public async getSortedExpirationPositions(currentBlock: number): Promise<LeveragePosition[]> {
     const livePositions = await this.DB.getLivePositions();
+    console.log('Live positions', JSON.stringify(livePositions));
     const eligibleForExpiration = livePositions.filter((position) => position.positionExpireBlock < currentBlock);
     return eligibleForExpiration.sort((a, b) => a.positionExpireBlock - b.positionExpireBlock);
   }
