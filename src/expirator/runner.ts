@@ -32,8 +32,6 @@ async function main() {
   }
 
   isRunning = true;
-
-  console.log('Environment Variables:', process.env);
   const logger = Logger.getInstance();
 
   try {
