@@ -125,25 +125,30 @@ export class ExpirationEngine {
     if (wbtcRatio < this.poolRektThreshold) {
       this.logger.warning(`LVBTC pool is unbalanced. WBTC ratio: ${wbtcRatio}`);
 
-      const btcToAquire = this.calculateBtcToAcquire(poolBalances[0], poolBalances[1], this.poolRektThreshold);
+      const btcToAquire = this.calculateBtcToAcquire(poolBalances[0], poolBalances[1], 3);
 
       this.logger.warning(`need to aquire ${btcToAquire} BTC from expired positions.`);
 
-      const currentBlock = await this.getCurrentBlock();
-      this.logger.info(`Expirator current block ${currentBlock}`);
+      if (btcToAquire > 0) {
+        const currentBlock = await this.getCurrentBlock();
+        this.logger.info(`Expirator current block ${currentBlock}`);
 
-      if (currentBlock > 0) {
-        const sortedExpirationPositions = await this.getSortedExpirationPositions(currentBlock);
+        if (currentBlock > 0) {
+          const sortedExpirationPositions = await this.getSortedExpirationPositions(currentBlock);
 
-        this.logger.info(`There are ${sortedExpirationPositions.length} positions avaliable to expire`);
+          this.logger.info(`There are ${sortedExpirationPositions.length} positions avaliable to expire`);
 
-        btcAquired = await this.expirePositionsUntilBtcAcquired(sortedExpirationPositions, btcToAquire);
+          btcAquired = await this.expirePositionsUntilBtcAcquired(sortedExpirationPositions, btcToAquire);
+        } else {
+          this.logger.error('Could not fetch latest block! terminating.');
+          return btcAquired;
+        }
       } else {
-        this.logger.error('Could not fetch latest block! terminating.');
-        return btcAquired;
+        this.logger.info('LVBTC Pool is balanced. no need to expire positions');
       }
-    } else {
-      this.logger.info('LVBTC Pool is balanced. no need to expire positions');
+    }
+    else {
+      this.logger.info("LvBTC pool is balanced. ratio:")
     }
 
     return btcAquired;
@@ -207,7 +212,7 @@ export class ExpirationEngine {
       minimumWBTC = minimumWBTC - (minimumWBTC / BigInt(200));
       // await this.expirePosition(position.nftId, payload, minimumWBTC);
       btcAquired += minimumWBTC;
-      console.log('btcAquired', btcAquired)
+      console.log('btcAquired', btcAquired);
       if (btcAquired >= btcToAquire) {
         this.logger.info('Aquired enough BTC, breaking bot');
         break;
