@@ -148,7 +148,7 @@ export class ExpirationEngine {
       }
     }
     else {
-      this.logger.info("LvBTC pool is balanced. ratio:")
+      this.logger.info(`LvBTC pool is balanced. ratio: ${wbtcRatio}`);
     }
 
     return btcAquired;
@@ -205,16 +205,14 @@ export class ExpirationEngine {
   public async expirePositionsUntilBtcAcquired(sortedExpirationPositions: LeveragePosition[], btcToAquire: bigint): Promise<bigint> {
     let btcAquired = BigInt(0);
     for (const position of sortedExpirationPositions) {
-      // let { minimumWBTC, payload } = await this.previewExpirePosition(position);
-      let { minimumWBTC } = await this.previewExpirePosition(position);
-      console.log('minimumWBTC', minimumWBTC);
+      let { minimumWBTC, payload } = await this.previewExpirePosition(position);
+
       // add 0.5% slippage tollerance
       minimumWBTC = minimumWBTC - (minimumWBTC / BigInt(200));
-      // await this.expirePosition(position.nftId, payload, minimumWBTC);
+      await this.expirePosition(position.nftId, payload, minimumWBTC);
       btcAquired += minimumWBTC;
-      console.log('btcAquired', btcAquired);
       if (btcAquired >= btcToAquire) {
-        this.logger.info('Aquired enough BTC, breaking bot');
+        this.logger.info(`Aquired ${btcAquired} BTC. target: ${btcToAquire}. breaking bot`);
         break;
       }
     }
