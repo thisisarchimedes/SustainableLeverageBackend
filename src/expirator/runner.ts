@@ -14,6 +14,11 @@ import { MultiPoolStrategyFactory } from './MultiPoolStrategyFactory';
 import PositionLedger from './contracts/PositionLedger';
 import cron from 'node-cron';
 
+import {
+  Contracts,
+} from '@thisisarchimedes/backend-sdk';
+import { WBTC_ADDRESS } from '../constants';
+
 Logger.initialize('Position expirator');
 
 async function mineBlocks(numBlocks: number) {
@@ -38,11 +43,15 @@ async function main() {
     const privateKey = process.env.PRIVATE_KEY!;
     const config = await loadConfig();
 
+
     // Initialize the required instances
     const provider = new ethers.JsonRpcProvider(process.env.RPC_URL);
     const wallet = new ethers.Wallet(privateKey, provider);
 
+    const wbtcVaultInstance = Contracts.general.erc20(new EthereumAddress(WBTC_ADDRESS), wallet);
 
+    const wbtcVaultBalanceBefore = await wbtcVaultInstance.balanceOf(config.wbtcVault.toString());
+    console.log('WBTC vault before:', wbtcVaultBalanceBefore);
     logger.info('Expirator bot running..');
 
     const positionExpirator = new PositionExpirator(wallet, config.positionExpirator);
@@ -73,6 +82,10 @@ async function main() {
     await mineBlocks(4);
     console.log('Running expirator');
     const result = await positionExpiratorEngine.run();
+
+    const wbtcVaultBalanceAfter = await wbtcVaultInstance.balanceOf(config.wbtcVault.toString());
+    console.log('WBTC vault after:', wbtcVaultBalanceAfter);
+
     return result;
   } catch (error) {
     console.error('Error:', error);
@@ -82,5 +95,5 @@ async function main() {
   }
 }
 
-// cron.schedule('*/30 * * * * *', main);//every 30 sec
-cron.schedule('*/5 * * * *', main);//every 5 mins
+cron.schedule('*/30 * * * * *', main);//every 30 sec
+// cron.schedule('*/5 * * * *', main);// every 5 mins

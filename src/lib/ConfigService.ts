@@ -8,6 +8,7 @@ export interface Config {
   positionLedger: EthereumAddress;
   positionLiquidator: EthereumAddress;
   positionExpirator: EthereumAddress;
+  wbtcVault: EthereumAddress;
 }
 
 export async function loadConfig(): Promise<Config> {
@@ -22,7 +23,7 @@ export async function loadConfig(): Promise<Config> {
     positionLedger: new EthereumAddress(addresses.filter((obj) => obj.name === 'PositionLedger')[0].address),
     positionLiquidator: new EthereumAddress(addresses.filter((obj) => obj.name === 'PositionLiquidator')[0].address),
     positionExpirator: new EthereumAddress(addresses.filter((obj) => obj.name === 'positionExpirator')[0].address),
-
+    wbtcVault: new EthereumAddress(addresses.filter((obj) => obj.name === 'wbtcVault')[0].address),
   };
 
   return config;
