@@ -42,6 +42,9 @@ async function main() {
   const wallet = new ethers.Wallet(privateKey, provider);
 
   const logger = Logger.getInstance();
+
+  logger.info('Expirator bot running..');
+
   const positionExpirator = new PositionExpirator(wallet, new EthereumAddress(process.env.POSITION_EXPIRATOR_ADDRESS!));
   const positionLedger = new PositionLedger(wallet, new EthereumAddress(process.env.POSITION_LEDGER_ADDRESS!));
   const curvePool = new CurvePool(wallet, new EthereumAddress(process.env.MOCK_CURVE_POOL_ADDRESS!));
@@ -66,7 +69,9 @@ async function main() {
   });
 
   try {
+    console.log('mining 4 blocks...');
     await mineBlocks(4);
+    console.log('Running expirator');
     const result = await positionExpiratorEngine.run();
     console.log(result);
 
