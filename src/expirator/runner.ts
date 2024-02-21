@@ -1,35 +1,19 @@
 import dotenv from 'dotenv';
 dotenv.config();
 
-import {ExpirationEngine} from './expirationEngine';
-import {Logger, EthereumAddress} from '@thisisarchimedes/backend-sdk';
-import {ethers} from 'ethers';
+import { ExpirationEngine } from './expirationEngine';
+import { Logger, EthereumAddress } from '@thisisarchimedes/backend-sdk';
+import { ethers } from 'ethers';
 import DataSource from '../lib/DataSource';
 import Uniswap from '../lib/Uniswap';
-import {TokenIndexes} from '../types/TokenIndexes';
+import { TokenIndexes } from '../types/TokenIndexes';
 import PositionExpirator from './contracts/PositionExpirator';
 import CurvePool from './contracts/CurvePool';
-import {MultiPoolStrategyFactory} from './MultiPoolStrategyFactory';
+import { MultiPoolStrategyFactory } from './MultiPoolStrategyFactory';
 import PositionLedger from './contracts/PositionLedger';
 import cron from 'node-cron';
 
 Logger.initialize('Position expirator');
-const privateKey = process.env.PRIVATE_KEY!;
-
-// Initialize the required instances
-const provider = new ethers.JsonRpcProvider(process.env.RPC_URL);
-const wallet = new ethers.Wallet(privateKey, provider);
-
-const logger = Logger.getInstance();
-const positionExpirator = new PositionExpirator(wallet, new EthereumAddress(process.env.POSITION_EXPIRATOR_ADDRESS!));
-const positionLedger = new PositionLedger(wallet, new EthereumAddress(process.env.POSITION_LEDGER_ADDRESS!));
-const curvePool = new CurvePool(wallet, new EthereumAddress(process.env.MOCK_CURVE_POOL_ADDRESS!));
-const DB = new DataSource();
-const multiPoolStrategyFactory = new MultiPoolStrategyFactory(wallet);
-const uniswapInstance = new Uniswap(process.env.MAINNET_RPC_URL!);
-const tokenIndexes: TokenIndexes = {'WBTC': 0, 'LVBTC': 1};
-const poolRektThreshold = 0.7;
-
 
 async function mineBlocks(numBlocks: number) {
   const provider = new ethers.JsonRpcProvider(process.env.RPC_URL);
@@ -37,20 +21,6 @@ async function mineBlocks(numBlocks: number) {
     await provider.send('evm_mine', []);
   }
 }
-
-// Initialize PositionExpiratorEngine
-const positionExpiratorEngine = new ExpirationEngine({
-  wallet: wallet,
-  logger: logger,
-  positionExpirator: positionExpirator,
-  positionLedger: positionLedger,
-  curvePool: curvePool,
-  DB: DB,
-  multiPoolStrategyFactory: multiPoolStrategyFactory,
-  uniswapInstance: uniswapInstance,
-  tokenIndexes: tokenIndexes,
-  poolRektThreshold: poolRektThreshold,
-});
 
 let isRunning = false;
 
@@ -61,6 +31,39 @@ async function main() {
   }
 
   isRunning = true;
+
+  console.log('Environment Variables:', process.env);
+
+
+  const privateKey = process.env.PRIVATE_KEY!;
+
+  // Initialize the required instances
+  const provider = new ethers.JsonRpcProvider(process.env.RPC_URL);
+  const wallet = new ethers.Wallet(privateKey, provider);
+
+  const logger = Logger.getInstance();
+  const positionExpirator = new PositionExpirator(wallet, new EthereumAddress(process.env.POSITION_EXPIRATOR_ADDRESS!));
+  const positionLedger = new PositionLedger(wallet, new EthereumAddress(process.env.POSITION_LEDGER_ADDRESS!));
+  const curvePool = new CurvePool(wallet, new EthereumAddress(process.env.MOCK_CURVE_POOL_ADDRESS!));
+  const DB = new DataSource();
+  const multiPoolStrategyFactory = new MultiPoolStrategyFactory(wallet);
+  const uniswapInstance = new Uniswap(process.env.MAINNET_RPC_URL!);
+  const tokenIndexes: TokenIndexes = { 'WBTC': 0, 'LVBTC': 1 };
+  const poolRektThreshold = 0.7;
+
+  // Initialize PositionExpiratorEngine
+  const positionExpiratorEngine = new ExpirationEngine({
+    wallet: wallet,
+    logger: logger,
+    positionExpirator: positionExpirator,
+    positionLedger: positionLedger,
+    curvePool: curvePool,
+    DB: DB,
+    multiPoolStrategyFactory: multiPoolStrategyFactory,
+    uniswapInstance: uniswapInstance,
+    tokenIndexes: tokenIndexes,
+    poolRektThreshold: poolRektThreshold,
+  });
 
   try {
     await mineBlocks(4);

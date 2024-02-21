@@ -76,7 +76,8 @@ jobs:
             PRIVATE_KEY=${{ secrets.PRIVATE_KEY_EXPIRATOR }}
             ENVIRONMENT="demo"
             EOF
+            cp .env ./dist/src/expirator/               # Copy .env file to /dist/src/expirator/
             pm2 kill                                    # Stops all PM2-managed applications
             export PAT_TOKEN=${{ secrets.PAT_TOKEN }}   # GitHub personal access token for installing the Backend-SDK
             yarn install                                # Install dependencies
-            pm2 start 'yarn expirator'                 # Run the liquidator bot
+            pm2 start 'yarn expirator'                  # Run the liquidator bot
