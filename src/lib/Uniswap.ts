@@ -45,6 +45,7 @@ export default class Uniswap {
       console.log('outputTokenDecimals', outputTokenDecimals);
       console.log('amountBN', amountBN);
       console.log('protocols', protocols);
+      console.log(1);
       const route: SwapRoute | null = await this.router.route(
         CurrencyAmount.fromRawAmount(primaryAsset, amountBN),
         secondaryAsset,
@@ -52,7 +53,7 @@ export default class Uniswap {
         undefined,
         { protocols },
       );
-      console.log(1);
+      console.log(1.1);
       const { pools, tokenPath, swapOutputAmount } = this.mapRouteData(route);
       console.log(2);
       const { dataTypes, dataValues } = this.buildPathFromUniswapRouteData(
