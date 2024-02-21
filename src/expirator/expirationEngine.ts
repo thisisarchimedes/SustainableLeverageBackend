@@ -1,13 +1,13 @@
-import {Logger, EthereumAddress, ClosePositionParamsStruct} from '@thisisarchimedes/backend-sdk';
-import {BigNumber} from 'bignumber.js';
+import { Logger, EthereumAddress, ClosePositionParamsStruct } from '@thisisarchimedes/backend-sdk';
+import { BigNumber } from 'bignumber.js';
 import DataSource from '../lib/DataSource';
 import LeveragePosition from '../types/LeveragePosition';
-import {ethers} from 'ethers';
+import { ethers } from 'ethers';
 import Uniswap from '../lib/Uniswap';
-import {WBTC_ADDRESS, WBTC_DECIMALS} from '../constants';
+import { WBTC_ADDRESS, WBTC_DECIMALS } from '../constants';
 import PositionExpirator from './contracts/PositionExpirator';
 import CurvePool from './contracts/CurvePool';
-import {MultiPoolStrategyFactory} from './MultiPoolStrategyFactory';
+import { MultiPoolStrategyFactory } from './MultiPoolStrategyFactory';
 import PositionLedger from './contracts/PositionLedger';
 import ExpirationEngineParams from '../types/ExpirationEngineParams';
 
@@ -61,12 +61,12 @@ export class ExpirationEngine {
     const strategyAsset = await strategyInstance.asset();
     const assetDecimals = await strategyInstance.decimals();
 
-    const {payload, swapOutputAmount} = await this.uniswap.buildPayload(
-        ethers.formatUnits(minimumExpectedAssets, assetDecimals),
-        new EthereumAddress(strategyAsset),
-        Number(assetDecimals),
-        new EthereumAddress(WBTC_ADDRESS),
-        WBTC_DECIMALS,
+    const { payload, swapOutputAmount } = await this.uniswap.buildPayload(
+      ethers.formatUnits(minimumExpectedAssets, assetDecimals),
+      new EthereumAddress(strategyAsset),
+      Number(assetDecimals),
+      new EthereumAddress(WBTC_ADDRESS),
+      WBTC_DECIMALS,
     );
 
     return {
@@ -187,7 +187,6 @@ export class ExpirationEngine {
  */
   public async getSortedExpirationPositions(currentBlock: number): Promise<LeveragePosition[]> {
     const livePositions = await this.DB.getLivePositions();
-    console.log('Live positions', JSON.stringify(livePositions));
     const eligibleForExpiration = livePositions.filter((position) => position.positionExpireBlock < currentBlock);
     return eligibleForExpiration.sort((a, b) => a.positionExpireBlock - b.positionExpireBlock);
   }
@@ -202,13 +201,13 @@ export class ExpirationEngine {
     let btcAquired = BigInt(0);
     for (const position of sortedExpirationPositions) {
       // let { minimumWBTC, payload } = await this.previewExpirePosition(position);
-      let {minimumWBTC} = await this.previewExpirePosition(position);
-
+      let { minimumWBTC } = await this.previewExpirePosition(position);
+      console.log('minimumWBTC', minimumWBTC);
       // add 0.5% slippage tollerance
       minimumWBTC = minimumWBTC - (minimumWBTC / BigInt(200));
       // await this.expirePosition(position.nftId, payload, minimumWBTC);
       btcAquired += minimumWBTC;
-
+      console.log('btcAquired', btcAquired)
       if (btcAquired >= btcToAquire) {
         this.logger.info('Aquired enough BTC, breaking bot');
         break;
