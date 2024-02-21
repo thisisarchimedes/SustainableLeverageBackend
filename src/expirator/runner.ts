@@ -33,6 +33,7 @@ async function main() {
   isRunning = true;
 
   console.log('Environment Variables:', process.env);
+  const logger = Logger.getInstance();
 
   try {
     const privateKey = process.env.PRIVATE_KEY!;
@@ -41,7 +42,6 @@ async function main() {
     const provider = new ethers.JsonRpcProvider(process.env.RPC_URL);
     const wallet = new ethers.Wallet(privateKey, provider);
 
-    const logger = Logger.getInstance();
 
     logger.info('Expirator bot running..');
 
