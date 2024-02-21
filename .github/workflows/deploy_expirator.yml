@@ -1,4 +1,4 @@
-name: Deploy on Expirator lambda
+name: Deploy expirator bot EC2
 on:
   push:
     branches:
