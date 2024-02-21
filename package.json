@@ -12,7 +12,7 @@
     "test": "nyc hardhat test",
     "test_expiration": "npx mocha --require ts-node/register ./test/expirationEngine.test.ts",
     "liquidator": "node --loader ts-node/esm src/liquidator/runner.ts",
-    "expirator": "node --loader ts-node/esm src/expirator/runner.ts"
+    "expirator": "node dist/src/expirator/runner.js"
   },
   "nyc": {
     "extension": [
