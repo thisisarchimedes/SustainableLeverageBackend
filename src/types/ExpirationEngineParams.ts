@@ -9,6 +9,7 @@ import PositionExpirator from '../expirator/contracts/PositionExpirator';
 import CurvePool from '../expirator/contracts/CurvePool';
 import {MultiPoolStrategyFactory} from '../expirator/MultiPoolStrategyFactory';
 import PositionLedger from '../expirator/contracts/PositionLedger';
+import {Config} from '../lib/ConfigService';
 
 export default interface ExpirationEngineParams {
     wallet: ethers.Wallet;
@@ -21,4 +22,5 @@ export default interface ExpirationEngineParams {
     uniswapInstance: Uniswap;
     tokenIndexes: TokenIndexes;
     poolRektThreshold: number;
+    addressesConfig: Config;
 };

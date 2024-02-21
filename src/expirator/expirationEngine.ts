@@ -1,4 +1,4 @@
-import {Logger, EthereumAddress, ClosePositionParamsStruct} from '@thisisarchimedes/backend-sdk';
+import {Logger, EthereumAddress, ClosePositionParamsStruct, Contracts} from '@thisisarchimedes/backend-sdk';
 import {BigNumber} from 'bignumber.js';
 import DataSource from '../lib/DataSource';
 import LeveragePosition from '../types/LeveragePosition';
@@ -10,6 +10,7 @@ import CurvePool from './contracts/CurvePool';
 import {MultiPoolStrategyFactory} from './MultiPoolStrategyFactory';
 import PositionLedger from './contracts/PositionLedger';
 import ExpirationEngineParams from '../types/ExpirationEngineParams';
+import {Config} from '../lib/ConfigService';
 
 const ZERO_ADDRESS = ethers.ZeroAddress;
 const SWAP_ROUTE = 0;
@@ -29,6 +30,7 @@ export class ExpirationEngine {
   private readonly multiPoolStrategyFactory: MultiPoolStrategyFactory;
   private readonly wallet: ethers.Wallet;
   private readonly uniswap: Uniswap;
+  private readonly addressesConfig: Config;
 
 
   constructor(params: ExpirationEngineParams) {
@@ -43,6 +45,7 @@ export class ExpirationEngine {
     this.multiPoolStrategyFactory = params.multiPoolStrategyFactory;
     this.wallet = params.wallet;
     this.uniswap = params.uniswapInstance;
+    this.addressesConfig = params.addressesConfig;
   }
 
   /**
@@ -201,13 +204,19 @@ export class ExpirationEngine {
  */
   public async expirePositionsUntilBtcAcquired(sortedExpirationPositions: LeveragePosition[], btcToAquire: bigint): Promise<bigint> {
     let btcAquired = BigInt(0);
+    const wbtcVaultInstance = Contracts.general.erc20(new EthereumAddress(WBTC_ADDRESS), this.wallet);
     for (const position of sortedExpirationPositions) {
       let {minimumWBTC, payload} = await this.previewExpirePosition(position);
+
+      const wbtcVaultBalanceBefore = await wbtcVaultInstance.balanceOf(this.addressesConfig.wbtcVault.toString());
+
 
       // add 0.5% slippage tollerance
       minimumWBTC = minimumWBTC - (minimumWBTC / BigInt(200));
       await this.expirePosition(position.nftId, payload, minimumWBTC);
-      btcAquired += minimumWBTC;
+
+      const wbtcVaultBeforeAfter = await wbtcVaultInstance.balanceOf(this.addressesConfig.wbtcVault.toString());
+      btcAquired += wbtcVaultBeforeAfter - wbtcVaultBalanceBefore;
       if (btcAquired >= btcToAquire) {
         this.logger.info(`Aquired ${btcAquired / BigInt(10) ** BigInt(8)} BTC.
          target: ${btcToAquire / BigInt(10) ** BigInt(8)}. breaking bot`);
