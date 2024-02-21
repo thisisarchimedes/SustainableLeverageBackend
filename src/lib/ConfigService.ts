@@ -1,5 +1,5 @@
 import 'dotenv/config';
-import {EthereumAddress, S3Service} from '@thisisarchimedes/backend-sdk';
+import { EthereumAddress, S3Service } from '@thisisarchimedes/backend-sdk';
 
 const s3Service = new S3Service();
 
@@ -21,7 +21,7 @@ export async function loadConfig(): Promise<Config> {
     leveragedStrategy: new EthereumAddress(addresses.filter((obj) => obj.name === 'LeveragedStrategy')[0].address),
     positionLedger: new EthereumAddress(addresses.filter((obj) => obj.name === 'PositionLedger')[0].address),
     positionLiquidator: new EthereumAddress(addresses.filter((obj) => obj.name === 'PositionLiquidator')[0].address),
-    positionExpirator: new EthereumAddress(addresses.filter((obj) => obj.name === 'PositionExpirator')[0].address),
+    positionExpirator: new EthereumAddress(addresses.filter((obj) => obj.name === 'positionExpirator')[0].address),
 
   };
 
