@@ -1,9 +1,9 @@
 import {Logger} from '@thisisarchimedes/backend-sdk';
-import {Client, ClientConfig, QueryResult} from 'pg';
+import {Pool, PoolConfig, QueryResult} from 'pg';
 import LeveragePosition from '../types/LeveragePosition';
 
 // RDS database configuration
-const dbConfig: ClientConfig = {
+const dbConfig: PoolConfig = {
   user: process.env.DB_USER!,
   host: process.env.DB_HOST!,
   database: process.env.DB_NAME!,
@@ -12,30 +12,35 @@ const dbConfig: ClientConfig = {
   ssl: {
     rejectUnauthorized: false,
   },
+  // Additional pool configuration can be added here
 };
 
 export default class DataSource {
-  private client: Client;
+  private pool: Pool;
   private logger: Logger;
+
   constructor() {
     this.logger = Logger.getInstance();
-    this.client = new Client(dbConfig);
-    this.client.connect().catch((e) => {
-      this.logger.error((e as Error).message);
+    this.pool = new Pool(dbConfig);
+    this.pool.on('error', (err) => {
+      this.logger.error(`Unexpected error on idle client ${(err as Error).message}`);
+      process.exit(-1);
     });
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private async executeQuery(query: string | { text: string, values: any[] }): Promise<QueryResult> {
+    let client;
     try {
-      return await this.client.query(query);
+      client = await this.pool.connect();
+      return await client.query(query);
     } catch (e) {
       this.logger.error((e as Error).message);
       throw e;
     } finally {
-      this.client.end().catch((e) => {
-        this.logger.error((e as Error).message);
-      });
+      if (client) {
+        client.release();
+      }
     }
   }
 

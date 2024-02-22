@@ -1,16 +1,16 @@
-import { Logger, EthereumAddress, ClosePositionParamsStruct, Contracts } from '@thisisarchimedes/backend-sdk';
-import { BigNumber } from 'bignumber.js';
+import {Logger, EthereumAddress, ClosePositionParamsStruct, Contracts} from '@thisisarchimedes/backend-sdk';
+import {BigNumber} from 'bignumber.js';
 import DataSource from '../lib/DataSource';
 import LeveragePosition from '../types/LeveragePosition';
-import { ethers } from 'ethers';
+import {ethers} from 'ethers';
 import Uniswap from '../lib/Uniswap';
-import { WBTC_ADDRESS, WBTC_DECIMALS } from '../constants';
+import {WBTC_ADDRESS, WBTC_DECIMALS} from '../constants';
 import PositionExpirator from './contracts/PositionExpirator';
 import CurvePool from './contracts/CurvePool';
-import { MultiPoolStrategyFactory } from './MultiPoolStrategyFactory';
+import {MultiPoolStrategyFactory} from './MultiPoolStrategyFactory';
 import PositionLedger from './contracts/PositionLedger';
 import ExpirationEngineParams from '../types/ExpirationEngineParams';
-import { Config } from '../lib/ConfigService';
+import {Config} from '../lib/ConfigService';
 
 const ZERO_ADDRESS = ethers.ZeroAddress;
 const SWAP_ROUTE = 0;
@@ -64,12 +64,12 @@ export class ExpirationEngine {
     const strategyAsset = await strategyInstance.asset();
     const assetDecimals = await strategyInstance.decimals();
 
-    const { payload, swapOutputAmount } = await this.uniswap.buildPayload(
-      ethers.formatUnits(minimumExpectedAssets, assetDecimals),
-      new EthereumAddress(strategyAsset),
-      Number(assetDecimals),
-      new EthereumAddress(WBTC_ADDRESS),
-      WBTC_DECIMALS,
+    const {payload, swapOutputAmount} = await this.uniswap.buildPayload(
+        ethers.formatUnits(minimumExpectedAssets, assetDecimals),
+        new EthereumAddress(strategyAsset),
+        Number(assetDecimals),
+        new EthereumAddress(WBTC_ADDRESS),
+        WBTC_DECIMALS,
     );
 
     return {
@@ -206,7 +206,7 @@ export class ExpirationEngine {
     let btcAquired = BigInt(0);
     const wbtcVaultInstance = Contracts.general.erc20(new EthereumAddress(WBTC_ADDRESS), this.wallet);
     for (const position of sortedExpirationPositions) {
-      let { minimumWBTC, payload } = await this.previewExpirePosition(position);
+      let {minimumWBTC, payload} = await this.previewExpirePosition(position);
 
       const wbtcVaultBalanceBefore = await wbtcVaultInstance.balanceOf(this.addressesConfig.wbtcVault.toString());
 
