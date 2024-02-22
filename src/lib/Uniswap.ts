@@ -39,13 +39,6 @@ export default class Uniswap {
       const protocols = ['V3'] as Protocol[];
       if (!primaryAsset || !secondaryAsset) throw new Error('Please enter a valid asset');
       const amountBN = ethers.parseUnits(amount, inputTokenDecimals).toString();
-      console.log('inputToken', inputToken);
-      console.log('outputToken', outputToken);
-      console.log('inputTokenDecimals', inputTokenDecimals);
-      console.log('outputTokenDecimals', outputTokenDecimals);
-      console.log('amountBN', amountBN);
-      console.log('protocols', protocols);
-      console.log(1);
       const route: SwapRoute | null = await this.router.route(
         CurrencyAmount.fromRawAmount(primaryAsset, amountBN),
         secondaryAsset,
@@ -53,28 +46,20 @@ export default class Uniswap {
         undefined,
         { protocols },
       );
-      console.log(1.1);
       const { pools, tokenPath, swapOutputAmount } = this.mapRouteData(route);
-      console.log(2);
       const { dataTypes, dataValues } = this.buildPathFromUniswapRouteData(
         pools,
         tokenPath,
       );
-      console.log(3);
       const abiCoder = ethers.AbiCoder.defaultAbiCoder();
-      console.log(4);
       const timestamp = Math.floor(Date.now() / 1000);
-      console.log(5);
       const encodedPath = ethers.solidityPacked(dataTypes, dataValues);
-      console.log(6);
       const deadline = BigInt(timestamp + 100000000);
-      console.log(7);
       const amountOutMin = 1;
       const payload = abiCoder.encode(
         ['(bytes,uint256,uint256)'],
         [[encodedPath, deadline, amountOutMin]],
       );
-      console.log(8);
       return { swapOutputAmount, payload };
     } catch (err) {
       console.error('fetchUniswapRoute err: ', err);

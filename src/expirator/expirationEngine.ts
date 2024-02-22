@@ -130,7 +130,7 @@ export class ExpirationEngine {
 
       const btcToAquire = this.calculateBtcToAcquire(poolBalances[0], poolBalances[1], 3);
 
-      this.logger.warning(`need to aquire ${btcToAquire} BTC from expired positions.`);
+      this.logger.info(`need to aquire ${Number(btcToAquire) / 10 ** 8} BTC from expired positions.`);
 
       if (btcToAquire > 0) {
         const currentBlock = await this.getCurrentBlock();
@@ -216,10 +216,13 @@ export class ExpirationEngine {
       await this.expirePosition(position.nftId, payload, minimumWBTC);
 
       const wbtcVaultBeforeAfter = await wbtcVaultInstance.balanceOf(this.addressesConfig.wbtcVault.toString());
-      btcAquired += wbtcVaultBeforeAfter - wbtcVaultBalanceBefore;
+      const totalAquired = wbtcVaultBeforeAfter - wbtcVaultBalanceBefore;
+
+      this.logger.info(`Position: ${position.nftId} aquired ${Number(totalAquired) / 10 ** 8} BTC`);
+
+      btcAquired += totalAquired;
       if (btcAquired >= btcToAquire) {
-        this.logger.info(`Aquired ${btcAquired} BTC.
-         target: ${btcToAquire}. breaking bot`);
+        this.logger.info(`Aquired ${Number(btcAquired) / 10 ** 8} BTC out of: ${Number(btcToAquire) / 10 ** 8}. stopping bot`);
         break;
       }
     }
@@ -242,7 +245,7 @@ export class ExpirationEngine {
       exchange: ZERO_ADDRESS,
     };
 
-    this.logger.info(`position nftId=${nftId} sent to expiration`);
+    this.logger.info(`position nftId = ${nftId} sent to expiration`);
     await this.positionExpirator.expirePosition(nftId, closeParams);
   }
 }
