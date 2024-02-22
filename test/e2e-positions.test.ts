@@ -26,7 +26,7 @@ describe('E2E Positions', function() {
   before(async function() {
     config = await loadConfig();
     console.log(config);
-    Logger.initialize('liquidator-bot');
+    Logger.initialize('e2e-positions-test');
     logger = Logger.getInstance();
     signer = new ethers.Wallet(process.env.PRIVATE_KEY!, getDefaultProvider(process.env.RPC_URL!));
     positionOpener = Contracts.leverage.positionOpener(config.positionOpener, signer);
@@ -41,8 +41,15 @@ describe('E2E Positions', function() {
   });
 
   it('Open Position', async function() {
+    const latestBlock = await signer.provider?.getBlock('latest');
+
     const totalAmount = OPEN_POSITION_COLLATERAL + OPEN_POSITION_BORROW;
-    const payload = await UniSwapPayloadBuilder.getOpenPositionSwapPayload(signer, totalAmount, OPEN_POSITION_STRATEGY);
+    const payload = await UniSwapPayloadBuilder.getOpenPositionSwapPayload(
+        signer,
+        totalAmount,
+        OPEN_POSITION_STRATEGY,
+        latestBlock!.timestamp,
+    );
 
     const tx = await positionOpener.openPosition({
       collateralAmount: OPEN_POSITION_COLLATERAL,
@@ -70,6 +77,8 @@ describe('E2E Positions', function() {
   });
 
   it('Close Position', async function() {
+    const latestBlock = await signer.provider?.getBlock('latest');
+
     assert.isNotNaN(openedPosition, 'Position not opened');
     const position = await dataSource.getPosition(openedPosition);
     assert(position.positionState === 'LIVE', 'Position is not live');
@@ -79,6 +88,7 @@ describe('E2E Positions', function() {
         signer,
         OPEN_POSITION_STRATEGY,
         Number(position.strategyShares),
+        latestBlock!.timestamp,
     );
 
     const tx = await positionCloser.closePosition({

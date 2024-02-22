@@ -16,12 +16,15 @@ describe('UniSwap', function() {
   });
 
   it('Test payload build', async function() {
+    const currentTimestamp = Math.floor(Date.now() / 1000);
+
     const {swapOutputAmount, payload} = await uniSwap.buildPayload(
         (1 ** WETH_DECIMALS).toString(),
         new EthereumAddress(WETH),
         WETH_DECIMALS,
-        WBTC,
+        new EthereumAddress(WBTC),
         WBTC_DECIMALS,
+        currentTimestamp,
     );
 
     const expectedPayload = `0x00000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000

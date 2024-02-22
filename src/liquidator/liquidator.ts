@@ -36,7 +36,7 @@ export default class Liquidator {
     this.positionLiquidator = Contracts.leverage.positionLiquidator(this.config.positionLiquidator, this.signer);
   };
 
-  public run = async () => {
+  public run = async (currentTimestamp: number) => {
     if (this.config === undefined) {
       throw new Error('Liquidator is not initialized');
     }
@@ -55,7 +55,7 @@ export default class Liquidator {
       try {
         const {nftId, strategy, strategyShares} = this.retrievePositionData(row); // Throws
 
-        const promise = this.pushToSemaphore(nftId, gasPrice, strategy, strategyShares, () => {
+        const promise = this.pushToSemaphore(nftId, gasPrice, strategy, strategyShares, currentTimestamp, () => {
           liquidatedCount++;
         });
         promises.push(promise);
@@ -102,14 +102,27 @@ export default class Liquidator {
     };
   };
 
-  private pushToSemaphore = (nftId: number, gasPrice: bigint | null, strategy: EthereumAddress, strategyShares: number, cb: () => void) => {
-    const promise = limit(() => this.tryLiquidate(nftId, gasPrice, strategy, strategyShares).then(cb));
+  private pushToSemaphore = (
+      nftId: number,
+      gasPrice: bigint | null,
+      strategy: EthereumAddress,
+      strategyShares: number,
+      currentTimestamp: number,
+      cb: () => void,
+  ) => {
+    const promise = limit(() => this.tryLiquidate(nftId, gasPrice, strategy, strategyShares, currentTimestamp).then(cb));
     return promise;
   };
 
-  private tryLiquidate = async (nftId: number, gasPrice: bigint | null, strategy: EthereumAddress, strategyShares: number) => {
+  private tryLiquidate = async (
+      nftId: number,
+      gasPrice: bigint | null,
+      strategy: EthereumAddress,
+      strategyShares: number,
+      currentTimestamp: number,
+  ) => {
     try {
-      const payload = await UniSwapPayloadBuilder.getClosePositionSwapPayload(this.signer, strategy, strategyShares);
+      const payload = await UniSwapPayloadBuilder.getClosePositionSwapPayload(this.signer, strategy, strategyShares, currentTimestamp);
       const tx = this.prepareTransaction(nftId, gasPrice, payload);
       await this.txSimulator.simulateAndRunTransaction(tx);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
