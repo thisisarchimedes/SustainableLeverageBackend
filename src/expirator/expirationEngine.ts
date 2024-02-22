@@ -218,7 +218,7 @@ export class ExpirationEngine {
       const wbtcVaultBeforeAfter = await wbtcVaultInstance.balanceOf(this.addressesConfig.wbtcVault.toString());
       const totalAquired = wbtcVaultBeforeAfter - wbtcVaultBalanceBefore;
 
-      this.logger.info(`Position: ${position.nftId} aquired ${Number(totalAquired) / 10 ** 8} BTC`);
+      this.logger.info(`Position: ${position.nftId} expired. aquired ${Number(totalAquired) / 10 ** 8} BTC`);
 
       btcAquired += totalAquired;
       if (btcAquired >= btcToAquire) {
