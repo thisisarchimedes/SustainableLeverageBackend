@@ -157,4 +157,6 @@ jspm_packages
 .stryker-tmp/**
 
 .env
+.env.demo
+.env.stable
 .env.keys
