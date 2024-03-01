@@ -47,7 +47,7 @@ jobs:
         with:
           host: ${{ env.STABLE_NODE_EC2_HOST }}
           username: ${{ env.STABLE_NODE_EC2_USER }}
-          key: ${{ env.STABLE_NODE_SSH_KEY }}
+          key: ${{ secrets.STABLE_NODE_SSH_KEY }}
           port: 22
           source: "."
           target: "/srv"
@@ -57,7 +57,7 @@ jobs:
         with:
           host: ${{ env.STABLE_NODE_EC2_HOST }}
           username: ${{ env.STABLE_NODE_EC2_USER }}
-          key: ${{ env.STABLE_NODE_SSH_KEY }}
+          key: ${{ secrets.STABLE_NODE_SSH_KEY }}
           port: 22
           script: |
             set -e  # Exit immediately if a command exits with a non-zero status.
@@ -113,7 +113,7 @@ jobs:
         with:
           host: ${{ env.DEMO_NODE_EC2_HOST }}
           username: ${{ env.DEMO_NODE_EC2_USER }}
-          key: ${{ env.DEMO_NODE_SSH_KEY }}
+          key: ${{ secrets.DEMO_NODE_SSH_KEY }}
           port: 22
           script: |
             set -e  # Exit immediately if a command exits with a non-zero status.
