@@ -45,8 +45,8 @@ jobs:
       - name: Copy files to EC2
         uses: appleboy/scp-action@master
         with:
-          host: ${{ env.STABLE_NODE_EC2_HOST }}
-          username: ${{ env.STABLE_NODE_EC2_USER }}
+          host: ${{ vars.STABLE_NODE_EC2_HOST }}
+          username: ${{ vars.STABLE_NODE_EC2_USER }}
           key: ${{ secrets.STABLE_NODE_SSH_KEY }}
           port: 22
           source: "."
@@ -55,8 +55,8 @@ jobs:
       - name: Run deployment script on EC2
         uses: appleboy/ssh-action@master
         with:
-          host: ${{ env.STABLE_NODE_EC2_HOST }}
-          username: ${{ env.STABLE_NODE_EC2_USER }}
+          host: ${{ vars.STABLE_NODE_EC2_HOST }}
+          username: ${{ vars.STABLE_NODE_EC2_USER }}
           key: ${{ secrets.STABLE_NODE_SSH_KEY }}
           port: 22
           script: |
@@ -101,8 +101,8 @@ jobs:
       - name: Copy files to EC2
         uses: appleboy/scp-action@master
         with:
-          host: ${{ env.DEMO_NODE_EC2_HOST }}
-          username: ${{ env.DEMO_NODE_EC2_USER }}
+          host: ${{ vars.DEMO_NODE_EC2_HOST }}
+          username: ${{ vars.DEMO_NODE_EC2_USER }}
           key: ${{ secrets.DEMO_NODE_SSH_KEY }}
           port: 22
           source: "."
@@ -111,8 +111,8 @@ jobs:
       - name: Run deployment script on EC2
         uses: appleboy/ssh-action@master
         with:
-          host: ${{ env.DEMO_NODE_EC2_HOST }}
-          username: ${{ env.DEMO_NODE_EC2_USER }}
+          host: ${{ vars.DEMO_NODE_EC2_HOST }}
+          username: ${{ vars.DEMO_NODE_EC2_USER }}
           key: ${{ secrets.DEMO_NODE_SSH_KEY }}
           port: 22
           script: |
