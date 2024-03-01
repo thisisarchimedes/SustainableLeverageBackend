@@ -160,3 +160,5 @@ jspm_packages
 .env.demo
 .env.stable
 .env.keys
+
+*.pem
