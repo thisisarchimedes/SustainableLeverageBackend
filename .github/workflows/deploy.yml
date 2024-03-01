@@ -30,6 +30,10 @@ jobs:
         with:
           node-version: 20
 
+      - name: Install dotenvx
+        run: | 
+          curl -fsS https://dotenvx.sh/ | sh
+
       - name: Install dependencies
         run: |
           yarn
@@ -78,6 +82,10 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
+
+      - name: Install dotenvx
+        run: | 
+          curl -fsS https://dotenvx.sh/ | sh
 
       - name: Install dependencies
         run: |
@@ -132,6 +140,10 @@ jobs:
           with:
             node-version: 20
             cache: 'yarn'
+
+        - name: Install dotenvx
+          run: | 
+            curl -fsS https://dotenvx.sh/ | sh
   
         - name: List all commit SHAs involved in the push
           id: format_commits
