@@ -64,7 +64,7 @@ jobs:
             export NVM_DIR="$HOME/.nvm"
             [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
             [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
-            ENVIRONMENT="demo" AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }} AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }} DOTENV_KEY='${{ secrets.DOTENV_KEY_STABLE }}' dotenvx run --  cd /srv && pm2 kill && yarn install && pm2 start 'yarn liquidator'
+            ENVIRONMENT="demo" PAT_TOKEN=${{secrets.PAT_TOKEN}} AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }} AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }} DOTENV_KEY='${{ secrets.DOTENV_KEY_STABLE }}' dotenvx run --  cd /srv && pm2 kill && yarn install && pm2 start 'yarn liquidator'
 
   deploy-sustainable-leverage-liquidation-bot-demo-ec2:
     runs-on: ubuntu-latest
@@ -119,7 +119,7 @@ jobs:
             cd /srv
             pm2 kill                                    # Stops all PM2-managed applications
             yarn install                                # Install dependencies
-            ENVIRONMENT="demo" AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }} AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }} DOTENV_KEY='${{ secrets.DOTENV_KEY_DEMO }}' dotenvx run --  pm2 start 'yarn liquidator'
+            ENVIRONMENT="demo" PAT_TOKEN=${{secrets.PAT_TOKEN}} AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }} AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }} DOTENV_KEY='${{ secrets.DOTENV_KEY_DEMO }}' dotenvx run --  pm2 start 'yarn liquidator'
 
   report-devops-event-deploy:
       runs-on: ubuntu-latest
