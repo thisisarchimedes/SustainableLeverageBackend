@@ -43,21 +43,21 @@ jobs:
         run: yarn build
 
       - name: Copy files to EC2
-        uses: appleboy/scp-action@master
+        uses: appleboy/scp-action@v0.1.7
         with:
-          host: ${{ vars.STABLE_NODE_EC2_HOST }}
-          username: ${{ vars.STABLE_NODE_EC2_USER }}
-          key: ${{ secrets.STABLE_NODE_SSH_KEY }}
+          host: ${{ vars.STABLE_LIQUIDATOR_NODE_EC2_HOST }}
+          username: ${{ vars.EC2_USER }}
+          key: ${{ secrets.STABLE_LIQUIDATOR_NODE_SSH_KEY }}
           port: 22
           source: "."
           target: "/srv"
 
       - name: Run deployment script on EC2
-        uses: appleboy/ssh-action@master
+        uses: appleboy/ssh-action@v1.0.3
         with:
-          host: ${{ vars.STABLE_NODE_EC2_HOST }}
-          username: ${{ vars.STABLE_NODE_EC2_USER }}
-          key: ${{ secrets.STABLE_NODE_SSH_KEY }}
+          host: ${{ vars.STABLE_LIQUIDATOR_NODE_EC2_HOST }}
+          username: ${{ vars.EC2_USER }}
+          key: ${{ secrets.STABLE_LIQUIDATOR_NODE_SSH_KEY }}
           port: 22
           script: |
             set -e  # Exit immediately if a command exits with a non-zero status.
@@ -95,21 +95,21 @@ jobs:
         run: npx eslint src/**/*.ts --ext .js,.jsx,.ts,.tsx --ignore-pattern /devops/  
 
       - name: Copy files to EC2
-        uses: appleboy/scp-action@master
+        uses: appleboy/scp-action@v0.1.7
         with:
-          host: ${{ vars.DEMO_NODE_EC2_HOST }}
-          username: ${{ vars.DEMO_NODE_EC2_USER }}
-          key: ${{ secrets.DEMO_NODE_SSH_KEY }}
+          host: ${{ vars.DEMO_LIQUIDATOR_NODE_EC2_HOST }}
+          username: ${{ vars.EC2_USER }}
+          key: ${{ secrets.DEMO_LIQUIDATOR_NODE_SSH_KEY }}
           port: 22
           source: "."
           target: "/srv"
 
       - name: Run deployment script on EC2
-        uses: appleboy/ssh-action@master
+        uses: appleboy/ssh-action@v1.0.3
         with:
-          host: ${{ vars.DEMO_NODE_EC2_HOST }}
-          username: ${{ vars.DEMO_NODE_EC2_USER }}
-          key: ${{ secrets.DEMO_NODE_SSH_KEY }}
+          host: ${{ vars.DEMO_LIQUIDATOR_NODE_EC2_HOST }}
+          username: ${{ vars.EC2_USER }}
+          key: ${{ secrets.DEMO_LIQUIDATOR_NODE_SSH_KEY }}
           port: 22
           script: |
             set -e  # Exit immediately if a command exits with a non-zero status.
