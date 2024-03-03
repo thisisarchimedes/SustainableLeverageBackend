@@ -52,16 +52,18 @@
     "typescript": "^5.3.2"
   },
   "dependencies": {
-    "@stryker-mutator/core": "^8.2.2",
-    "@thisisarchimedes/backend-sdk": "^1.0.77",
     "@uniswap/router-sdk": "^1.7.1",
     "@uniswap/sdk-core": "^4.1.2",
     "@uniswap/smart-order-router": "^3.20.0",
     "@uniswap/v3-sdk": "^3.10.0",
     "bignumber.js": "^9.1.2",
+    "@dotenvx/dotenvx": "^0.23.0",
+    "@stryker-mutator/core": "^8.2.2",
+    "@thisisarchimedes/backend-sdk": "^1.0.77",
     "dotenv": "^16.3.1",
     "ethers": "^6.9.1",
     "node-cron": "^3.0.3",
+    "nyc": "^15.1.0",
     "p-limit": "3",
     "pg": "^8.11.3",
     "solidity-coverage": "^0.8.5"

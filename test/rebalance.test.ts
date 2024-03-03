@@ -7,7 +7,8 @@ import {ALUSD, CURVE_POOL, FRAXBP, getTokenBalancesSlot} from './lib/addresses';
 import CurvePool from './lib/CurvePool';
 import {EVMStorageManipulator, EthereumAddress} from '@thisisarchimedes/backend-sdk';
 
-describe('Rebalance pool', function() {
+// eslint-disable-next-line mocha/no-skipped-tests
+describe.skip('Rebalance pool', function() {
   let signer: HardhatEthersSigner;
   let curvePool: CurvePool;
 

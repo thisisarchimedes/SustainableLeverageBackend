@@ -22,6 +22,11 @@ yarn install
 ```
 
 ### Environment
+
+Repo is using `dotenvx` to manage environment variables. Create a `.env` file in the root of the project and add the following environment variables - see: [EventFetcher README.md](https://github.com/thisisarchimedes/EventFetcherService/tree/main?tab=readme-ov-file#get-env-file)
+
+** Uniswap SDK require MAINNET RPC to work properly.
+
 Environment example:
 ```bash
 PAT_TOKEN=
