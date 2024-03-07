@@ -1,5 +1,5 @@
 import 'dotenv/config';
-import {EthereumAddress, S3Service} from '@thisisarchimedes/backend-sdk';
+import { EthereumAddress, S3Service } from '@thisisarchimedes/backend-sdk';
 
 const s3Service = new S3Service();
 
@@ -9,6 +9,8 @@ export interface Config {
   positionLiquidator: EthereumAddress;
   positionExpirator: EthereumAddress;
   wbtcVault: EthereumAddress;
+  lvBTC: EthereumAddress;
+  LvBTCCurvePool: EthereumAddress;
 }
 
 export async function loadConfig(): Promise<Config> {
@@ -24,6 +26,8 @@ export async function loadConfig(): Promise<Config> {
     positionLiquidator: new EthereumAddress(addresses.filter((obj) => obj.name === 'PositionLiquidator')[0].address),
     positionExpirator: new EthereumAddress(addresses.filter((obj) => obj.name === 'positionExpirator')[0].address),
     wbtcVault: new EthereumAddress(addresses.filter((obj) => obj.name === 'wbtcVault')[0].address),
+    lvBTC: new EthereumAddress(addresses.filter((obj) => obj.name === 'LvBTC')[0].address),
+    LvBTCCurvePool: new EthereumAddress(addresses.filter((obj) => obj.name === 'lvBTCCurvePool')[0].address),
   };
 
   return config;

@@ -1,16 +1,16 @@
-import {Logger, EthereumAddress, ClosePositionParamsStruct, Contracts} from '@thisisarchimedes/backend-sdk';
-import {BigNumber} from 'bignumber.js';
+import { Logger, EthereumAddress, ClosePositionParamsStruct, Contracts } from '@thisisarchimedes/backend-sdk';
 import DataSource from '../lib/DataSource';
 import LeveragePosition from '../types/LeveragePosition';
-import {ethers} from 'ethers';
+import { ethers } from 'ethers';
 import Uniswap from '../lib/Uniswap';
-import {WBTC_ADDRESS, WBTC_DECIMALS} from '../constants';
+import { WBTC_ADDRESS, WBTC_DECIMALS } from '../constants';
 import PositionExpirator from './contracts/PositionExpirator';
 import CurvePool from './contracts/CurvePool';
-import {MultiPoolStrategyFactory} from './MultiPoolStrategyFactory';
+import { MultiPoolStrategyFactory } from './MultiPoolStrategyFactory';
 import PositionLedger from './contracts/PositionLedger';
 import ExpirationEngineParams from '../types/ExpirationEngineParams';
-import {Config} from '../lib/ConfigService';
+import { Config } from '../lib/ConfigService';
+import WBTCVault from './contracts/WBTCVault';
 
 const ZERO_ADDRESS = ethers.ZeroAddress;
 const SWAP_ROUTE = 0;
@@ -31,6 +31,7 @@ export class ExpirationEngine {
   private readonly wallet: ethers.Wallet;
   private readonly uniswap: Uniswap;
   private readonly addressesConfig: Config;
+  private readonly wbtcVault: WBTCVault;
 
 
   constructor(params: ExpirationEngineParams) {
@@ -46,6 +47,7 @@ export class ExpirationEngine {
     this.wallet = params.wallet;
     this.uniswap = params.uniswapInstance;
     this.addressesConfig = params.addressesConfig;
+    this.wbtcVault = params.wbtcVault;
   }
 
   /**
@@ -64,12 +66,12 @@ export class ExpirationEngine {
     const strategyAsset = await strategyInstance.asset();
     const assetDecimals = await strategyInstance.decimals();
 
-    const {payload, swapOutputAmount} = await this.uniswap.buildPayload(
-        ethers.formatUnits(minimumExpectedAssets, assetDecimals),
-        new EthereumAddress(strategyAsset),
-        Number(assetDecimals),
-        new EthereumAddress(WBTC_ADDRESS),
-        WBTC_DECIMALS,
+    const { payload, swapOutputAmount } = await this.uniswap.buildPayload(
+      ethers.formatUnits(minimumExpectedAssets, assetDecimals),
+      new EthereumAddress(strategyAsset),
+      Number(assetDecimals),
+      new EthereumAddress(WBTC_ADDRESS),
+      WBTC_DECIMALS,
     );
 
     return {
@@ -82,6 +84,7 @@ export class ExpirationEngine {
  * Get the balances of the Curve pool
  * @returns {Promise<bigint[]>} The balances of the pool
  */
+  //0x66267c6E24fBcdeBf06AE9104e0ccFb9C8b2AE08
   async getCurvePoolBalances(): Promise<bigint[]> {
     try {
       const indices = [this.WBTC_INDEX, this.LVBTC_INDEX].sort();
@@ -101,17 +104,17 @@ export class ExpirationEngine {
  * @param {bigint[]} poolBalances - The balances of the pool
  * @returns {number} The WBTC ratio
  */
-  public getPoolWBTCRatio(poolBalances: bigint[]): number {
-    const wbtcBalance = new BigNumber(poolBalances[this.WBTC_INDEX].toString());
-    const lvBtcBalance = new BigNumber(poolBalances[this.LVBTC_INDEX].toString());
+  public getPoolWBTCRatio(poolBalances: bigint[]): bigint {
+    const wbtcBalance = BigInt(poolBalances[this.WBTC_INDEX].toString());
+    const lvBtcBalance = BigInt(poolBalances[this.LVBTC_INDEX].toString());
 
-    if (lvBtcBalance.isZero()) {
+    if (lvBtcBalance == 0n) {
       throw new Error('lvBTC balance is zero, can\'t calculate ratio');
     }
 
-    const ratio = wbtcBalance.dividedBy(lvBtcBalance);
+    const ratio = lvBtcBalance * 1000n / wbtcBalance;
 
-    return ratio.toNumber();
+    return ratio;
   }
 
   /**
@@ -124,8 +127,11 @@ export class ExpirationEngine {
     const poolBalances = await this.getCurvePoolBalances();
     const wbtcRatio = this.getPoolWBTCRatio(poolBalances);
 
-    let btcAquired: bigint = BigInt(0);
-    if (wbtcRatio < this.poolRektThreshold) {
+    console.log(`Curve pool WBTC: ${poolBalances[0]}`)
+    console.log(`Curve pool LVBTC: ${poolBalances[1]}`)
+
+    let btcAquired: bigint = 0n;
+    if (wbtcRatio > this.poolRektThreshold) {
       this.logger.warning(`LVBTC pool is unbalanced. WBTC ratio: ${wbtcRatio}\n WBTC ${poolBalances[0]}\n LvBTC ${poolBalances[1]}`);
 
       const btcToAquire = this.calculateBtcToAcquire(poolBalances[0], poolBalances[1], 3);
@@ -142,6 +148,19 @@ export class ExpirationEngine {
           this.logger.info(`There are ${sortedExpirationPositions.length} positions avaliable to expire`);
 
           btcAquired = await this.expirePositionsUntilBtcAcquired(sortedExpirationPositions, btcToAquire);
+
+          // check if should re - balance curve LVBTC pool with wbtcVault new balance
+          if (btcAquired > 0) {
+            const wbtcInstance = Contracts.general.erc20(new EthereumAddress(WBTC_ADDRESS), this.wallet);
+            const wbtcVaultBalance = await wbtcInstance.balanceOf(this.addressesConfig.wbtcVault.toString());
+            const curveWBTCBalance = await this.curvePool.balances(this.WBTC_INDEX);
+
+            this.wbtcVault.swapToLVBTC(wbtcVaultBalance, 1n);
+
+            console.log("wbtcVault Balance", wbtcVaultBalance)
+            console.log("curve WBTC Balance", curveWBTCBalance)
+          }
+
         } else {
           this.logger.error('Could not fetch latest block! terminating.');
           return btcAquired;
@@ -173,7 +192,7 @@ export class ExpirationEngine {
     // Calculate the amount of WBTC needed to balance the pool
     const requiredWbtc = BigInt(Math.ceil(Number(lvBtcBalance) * targetFraction)) - wbtcBalance;
 
-    return requiredWbtc < BigInt(0) ? BigInt(0) : requiredWbtc;
+    return requiredWbtc < 0n ? 0n : requiredWbtc;
   }
 
   /**
@@ -203,20 +222,19 @@ export class ExpirationEngine {
  * @returns {Promise<bigint>} The remaining amount of BTC to acquire
  */
   public async expirePositionsUntilBtcAcquired(sortedExpirationPositions: LeveragePosition[], btcToAquire: bigint): Promise<bigint> {
-    let btcAquired = BigInt(0);
-    const wbtcVaultInstance = Contracts.general.erc20(new EthereumAddress(WBTC_ADDRESS), this.wallet);
+    let btcAquired = 0n;
+    const wbtcInstance = Contracts.general.erc20(new EthereumAddress(WBTC_ADDRESS), this.wallet);
     for (const position of sortedExpirationPositions) {
-      let {minimumWBTC, payload} = await this.previewExpirePosition(position);
+      let { minimumWBTC, payload } = await this.previewExpirePosition(position);
 
-      const wbtcVaultBalanceBefore = await wbtcVaultInstance.balanceOf(this.addressesConfig.wbtcVault.toString());
-
+      const wbtcVaultBalanceBefore = await wbtcInstance.balanceOf(this.addressesConfig.wbtcVault.toString());
 
       // add 0.5% slippage tollerance
-      minimumWBTC = minimumWBTC - (minimumWBTC / BigInt(200));
+      minimumWBTC = minimumWBTC - (minimumWBTC / 200n);
       await this.expirePosition(position.nftId, payload, minimumWBTC);
 
-      const wbtcVaultBeforeAfter = await wbtcVaultInstance.balanceOf(this.addressesConfig.wbtcVault.toString());
-      const totalAquired = wbtcVaultBeforeAfter - wbtcVaultBalanceBefore;
+      const wbtcVaultAfter = await wbtcInstance.balanceOf(this.addressesConfig.wbtcVault.toString());
+      const totalAquired = wbtcVaultAfter - wbtcVaultBalanceBefore;
 
       this.logger.info(`Position: ${position.nftId} expired. aquired ${Number(totalAquired) / 10 ** 8} BTC`);
 

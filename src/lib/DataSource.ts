@@ -1,5 +1,5 @@
-import {Logger} from '@thisisarchimedes/backend-sdk';
-import {Pool, PoolConfig, QueryResult} from 'pg';
+import { Logger } from '@thisisarchimedes/backend-sdk';
+import { Pool, PoolConfig, QueryResult } from 'pg';
 import LeveragePosition from '../types/LeveragePosition';
 
 // RDS database configuration
@@ -54,7 +54,7 @@ export default class DataSource {
   }
 
   public async getLivePositions(): Promise<LeveragePosition[]> {
-    const resp = await this.executeQuery('SELECT * FROM "LeveragePosition" WHERE "positionState" = \'LIVE\'');
+    const resp = await this.executeQuery('SELECT * FROM "LeveragePosition" WHERE "positionState" = \'LIVE\' LIMIT 1000');
     return resp.rows as LeveragePosition[];
   }
 
