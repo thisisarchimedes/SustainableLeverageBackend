@@ -23,6 +23,8 @@ export default interface ExpirationEngineParams {
     multiPoolStrategyFactory: MultiPoolStrategyFactory;
     uniswapInstance: Uniswap;
     tokenIndexes: TokenIndexes;
-    poolRektThreshold: number;
     addressesConfig: Config;
-};
+    minWbtcRatio: number;
+    maxWbtcRatio: number;
+    targetWbtcRatio: number;
+}

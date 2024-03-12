@@ -1,6 +1,6 @@
-import { ethers } from 'ethers';
+import {ethers} from 'ethers';
 import CurvePoolABI from '../ABIs/CurvePool.json';
-import { EthereumAddress } from '@thisisarchimedes/backend-sdk';
+import {EthereumAddress} from '@thisisarchimedes/backend-sdk';
 
 class CurvePool {
   private contract: ethers.Contract;

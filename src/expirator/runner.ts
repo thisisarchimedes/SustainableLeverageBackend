@@ -2,7 +2,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 import { ExpirationEngine } from './expirationEngine';
-import { Logger, EthereumAddress } from '@thisisarchimedes/backend-sdk';
+import { Logger } from '@thisisarchimedes/backend-sdk';
 import { ethers } from 'ethers';
 import DataSource from '../lib/DataSource';
 import { loadConfig } from '../lib/ConfigService';
@@ -41,9 +41,7 @@ async function main() {
 
 
     // Initialize the required instances
-    const provider = new ethers.JsonRpcProvider(process.env.RPC_URL, {
-      hardfork: 'shanghai'
-    });
+    const provider = new ethers.JsonRpcProvider(process.env.RPC_URL);
     const wallet = new ethers.Wallet(privateKey, provider);
 
     // const wbtcVaultInstance = Contracts.general.erc20(new EthereumAddress(WBTC_ADDRESS), wallet);
@@ -60,7 +58,6 @@ async function main() {
     const multiPoolStrategyFactory = new MultiPoolStrategyFactory(wallet);
     const uniswapInstance = new Uniswap(process.env.MAINNET_RPC_URL!);
     const tokenIndexes: TokenIndexes = { 'WBTC': 0, 'LVBTC': 1 };
-    const poolRektThreshold = 0.33;
 
     // Initialize PositionExpiratorEngine
     const positionExpiratorEngine = new ExpirationEngine({
@@ -73,9 +70,11 @@ async function main() {
       multiPoolStrategyFactory: multiPoolStrategyFactory,
       uniswapInstance: uniswapInstance,
       tokenIndexes: tokenIndexes,
-      poolRektThreshold: poolRektThreshold,
       addressesConfig: config,
-      wbtcVault: wbtcVault
+      wbtcVault: wbtcVault,
+      minWbtcRatio: 0.25,
+      maxWbtcRatio: 0.4,
+      targetWbtcRatio: 0.3,
     });
 
 
