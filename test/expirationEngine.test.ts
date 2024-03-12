@@ -1,21 +1,21 @@
-import { expect } from 'chai';
+import {expect} from 'chai';
 import sinon from 'sinon';
-import { ExpirationEngine } from '../src/expirator/expirationEngine';
-import { EthereumAddress, Logger } from '@thisisarchimedes/backend-sdk';
+import {ExpirationEngine} from '../src/expirator/expirationEngine';
+import {EthereumAddress, Logger} from '@thisisarchimedes/backend-sdk';
 import DataSource from '../src/lib/DataSource';
 import PositionExpirator from '../src/expirator/contracts/PositionExpirator';
 import CurvePool from '../src/expirator/contracts/CurvePool';
 import PositionsDummy from './dummyData/Positions.json';
-import { ethers } from 'ethers';
+import {ethers} from 'ethers';
 import LeveragePositionRow from '../src/types/LeveragePosition';
-import { MultiPoolStrategyFactory } from '../src/expirator/MultiPoolStrategyFactory';
+import {MultiPoolStrategyFactory} from '../src/expirator/MultiPoolStrategyFactory';
 import MultiPoolStrategy from '../src/expirator/contracts/MultiPoolStrategy';
 import Uniswap from '../src/lib/Uniswap';
 import PositionLedger from '../src/expirator/contracts/PositionLedger';
 import WBTCVault from '../src/expirator/contracts/WBTCVault';
 import ERC20 from '../src/expirator/contracts/ERC20';
 
-import { loadConfig } from '../src/lib/ConfigService';
+import {loadConfig} from '../src/lib/ConfigService';
 
 
 const POOL_BALANCES = [BigInt(1 * 10e8), BigInt(3 * 10e8)];
@@ -23,7 +23,7 @@ const ZERO_BALANCE_ERROR = 'lvBTC balance is zero, can\'t calculate ratio';
 const FETCH_BLOCK_ERROR = 'Could not fetch latest block! termina…';
 const CURRENT_BLOCK = 19144936;
 
-describe('PositionExpiratorEngine', function () {
+describe('PositionExpiratorEngine', function() {
   let sandbox: sinon.SinonSandbox;
   let engine: ExpirationEngine;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -43,14 +43,13 @@ describe('PositionExpiratorEngine', function () {
     erc20Stub.balanceOf.resolves(BigInt(1e8));
 
     return erc20Stub;
-
   }
 
   function createUniswapStub(): sinon.SinonStubbedInstance<Uniswap> {
     const uniswapStub = sandbox.createStubInstance(Uniswap);
 
     const swapAmountOut = (10 * 10e8).toString();
-    uniswapStub.buildPayload.resolves({ payload: '', swapOutputAmount: swapAmountOut });
+    uniswapStub.buildPayload.resolves({payload: '', swapOutputAmount: swapAmountOut});
 
     return uniswapStub;
   }
@@ -137,7 +136,7 @@ describe('PositionExpiratorEngine', function () {
       provider: createProviderStub(),
       uniswapInstance: createUniswapStub(),
       multiPoolStrategyFactory: createMultiPoolStrategyFactoryStub(),
-      erc20: createWBTCInstanceStub()
+      erc20: createWBTCInstanceStub(),
     };
 
     return stubs;
@@ -156,51 +155,51 @@ describe('PositionExpiratorEngine', function () {
       DB: stubs.dataSource,
       multiPoolStrategyFactory: stubs.multiPoolStrategyFactory,
       uniswapInstance: stubs.uniswapInstance,
-      tokenIndexes: { 'WBTC': 0, 'LVBTC': 1 },
+      tokenIndexes: {'WBTC': 0, 'LVBTC': 1},
       addressesConfig: config,
       wbtcVault: stubs.wbtcVault,
       minWbtcRatio: 0.25,
       maxWbtcRatio: 0.4,
       targetWbtcRatio: 0.3,
-      wbtcInstance: stubs.erc20
+      wbtcInstance: stubs.erc20,
     });
   }
 
-  beforeEach(async function () {
+  beforeEach(async function() {
     sandbox = sinon.createSandbox();
     stubs = setupStubs();
     engine = await createEngine(stubs);
   });
 
-  afterEach(function () {
+  afterEach(function() {
     sandbox.restore();
   });
 
-  it('should return pool balances', async function () {
+  it('should return pool balances', async function() {
     const result = await engine.getCurvePoolBalances();
-    expect(result).to.deep.equal({ 'wbtc': BigInt(10 * 10e8), 'lvbtc': BigInt(51 * 10e8) });
+    expect(result).to.deep.equal({'wbtc': BigInt(10 * 10e8), 'lvbtc': BigInt(51 * 10e8)});
   });
 
-  it('should aquire enough BTC from expired position', async function () {
+  it('should aquire enough BTC from expired position', async function() {
     const btcToAquire = engine.calculateBtcToAcquire(POOL_BALANCES[0], POOL_BALANCES[1], 0.3);
     const btcAquired = await engine.run();
 
     expect(Number(btcAquired / BigInt(10) ** BigInt(8))).to.be.greaterThan(Number(btcToAquire / BigInt(10) ** BigInt(8)));
   });
 
-  it('should calculate BTC to acquire', function () {
+  it('should calculate BTC to acquire', function() {
     const result = engine.calculateBtcToAcquire(POOL_BALANCES[0], POOL_BALANCES[1], 1.8);
 
     expect(Number(result)).to.approximately(666666667, 0.0001);
   });
 
 
-  it('should get current block', async function () {
+  it('should get current block', async function() {
     const result = await engine.getCurrentBlock();
     expect(result).to.equal(CURRENT_BLOCK);
   });
 
-  it('should throw error when lvBTC balance is zero', async function () {
+  it('should throw error when lvBTC balance is zero', async function() {
     stubs.curvePool.balances.onFirstCall().resolves(BigInt(10 * 10e8));
     stubs.curvePool.balances.onSecondCall().resolves(BigInt(0));
     try {
@@ -212,7 +211,7 @@ describe('PositionExpiratorEngine', function () {
     }
   });
 
-  it('should throw error when unable to fetch latest block', async function () {
+  it('should throw error when unable to fetch latest block', async function() {
     stubs.provider.getBlockNumber.resolves(0);
     try {
       await engine.run();
@@ -222,7 +221,7 @@ describe('PositionExpiratorEngine', function () {
     }
   });
 
-  it('should get sorted expiration positions', async function () {
+  it('should get sorted expiration positions', async function() {
     const result = await engine.getSortedExpirationPositions(CURRENT_BLOCK);
     expect(result).to.be.an('array');
     expect(result).to.have.lengthOf(PositionsDummy.filter((p) => p.positionExpireBlock < CURRENT_BLOCK).length);
