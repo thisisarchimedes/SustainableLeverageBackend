@@ -16,7 +16,7 @@ import WBTCVault from '../src/expirator/contracts/WBTCVault';
 import { loadConfig } from '../src/lib/ConfigService';
 
 
-const POOL_BALANCES = [BigInt(1 * 10 ** 8), BigInt(3 * 10 ** 8)];
+const POOL_BALANCES = [BigInt(1 * 10e8), BigInt(3 * 10e8)];
 const ZERO_BALANCE_ERROR = 'lvBTC balance is zero, can\'t calculate ratio';
 const FETCH_BLOCK_ERROR = 'Could not fetch latest block! termina…';
 const CURRENT_BLOCK = 19144936;
@@ -37,7 +37,7 @@ describe('PositionExpiratorEngine', function () {
   function createUniswapStub(): sinon.SinonStubbedInstance<Uniswap> {
     const uniswapStub = sandbox.createStubInstance(Uniswap);
 
-    const swapAmountOut = (10 * 10 ** 8).toString();
+    const swapAmountOut = (10 * 10e8).toString();
     uniswapStub.buildPayload.resolves({ payload: '', swapOutputAmount: swapAmountOut });
 
     return uniswapStub;
@@ -77,8 +77,8 @@ describe('PositionExpiratorEngine', function () {
 
   function createCurvePoolStub(): sinon.SinonStubbedInstance<CurvePool> {
     const curvePoolStub = sandbox.createStubInstance(CurvePool);
-    curvePoolStub.balances.onFirstCall().resolves(BigInt(10 * 10 ** 8));
-    curvePoolStub.balances.onSecondCall().resolves(BigInt(51 * 10 ** 8));
+    curvePoolStub.balances.onFirstCall().resolves(BigInt(10 * 10e8));
+    curvePoolStub.balances.onSecondCall().resolves(BigInt(51 * 10e8));
 
     return curvePoolStub;
   }
@@ -88,10 +88,10 @@ describe('PositionExpiratorEngine', function () {
 
     mockMultiPoolStrategy.asset.resolves(ethers.ZeroAddress);
     mockMultiPoolStrategy.decimals.resolves(8);
-    mockMultiPoolStrategy.convertToAssets.onCall(0).resolves(BigInt(1 * (10 ** 8)));
-    mockMultiPoolStrategy.convertToAssets.onCall(1).resolves(BigInt(2 * (10 ** 8)));
-    mockMultiPoolStrategy.convertToAssets.onCall(2).resolves(BigInt(3 * (10 ** 8)));
-    mockMultiPoolStrategy.convertToAssets.returns(Promise.resolve(BigInt(4 * (10 ** 8))));
+    mockMultiPoolStrategy.convertToAssets.onCall(0).resolves(BigInt(1 * (10e8)));
+    mockMultiPoolStrategy.convertToAssets.onCall(1).resolves(BigInt(2 * (10e8)));
+    mockMultiPoolStrategy.convertToAssets.onCall(2).resolves(BigInt(3 * (10e8)));
+    mockMultiPoolStrategy.convertToAssets.returns(Promise.resolve(BigInt(4 * (10e8))));
 
     const multiPoolStrategyFactoryStub = sandbox.createStubInstance(MultiPoolStrategyFactory);
     multiPoolStrategyFactoryStub.create.returns(mockMultiPoolStrategy);
@@ -165,7 +165,7 @@ describe('PositionExpiratorEngine', function () {
 
   it('should return pool balances', async function () {
     const result = await engine.getCurvePoolBalances();
-    expect(result).to.deep.equal([BigInt(10 * 10 ** 8), BigInt(51 * 10 ** 8)]);
+    expect(result).to.deep.equal([BigInt(10 * 10e8), BigInt(51 * 10e8)]);
   });
 
   it('should aquire enough BTC from expired position', async function () {
@@ -188,7 +188,7 @@ describe('PositionExpiratorEngine', function () {
   });
 
   it('should throw error when lvBTC balance is zero', async function () {
-    stubs.curvePool.balances.onFirstCall().resolves(BigInt(10 * 10 ** 8));
+    stubs.curvePool.balances.onFirstCall().resolves(BigInt(10 * 10e8));
     stubs.curvePool.balances.onSecondCall().resolves(BigInt(0));
     try {
       await engine.run();

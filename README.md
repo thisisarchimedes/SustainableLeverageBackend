@@ -85,7 +85,7 @@ yarn liquidator
 ### Run Expirator Bot
 
 ```
-yarn ./expirator/runner.ts
+yarn expirator
 ```
 
 The expirator bot use node-cron to automatically run every 5 minutes.

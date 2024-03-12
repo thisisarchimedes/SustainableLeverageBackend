@@ -41,8 +41,8 @@ async function main() {
     // Create a contract instance
     const contract = new ethers.Contract(contractAddress, contractAbi, wallet);
 
-    const _balance0 = BigInt(1.5 * 10 ** 8);
-    const _balance1 = BigInt(3 * 10 ** 8);
+    const _balance0 = BigInt(1.5 * 10e8);
+    const _balance1 = BigInt(3 * 10e8);
     // Call the updateBalances function
     const tx = await contract.updateBalances(_balance0,_balance1);
 

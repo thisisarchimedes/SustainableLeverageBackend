@@ -160,7 +160,7 @@ export class ExpirationEngine {
     this.logger.warning(`LVBTC pool is unbalanced. WBTC ratio: ${wbtcRatio}\n WBTC ${poolBalances.wbtc}\n LvBTC ${poolBalances.lvbtc}`);
 
     const btcToAcquire = this.calculateBtcToAcquire(poolBalances.wbtc, poolBalances.lvbtc, this.config.targetWbtcRatio);
-    this.logger.info(`Need to acquire ${Number(btcToAcquire) / 10 ** 8} BTC from expired positions.`);
+    this.logger.info(`Need to acquire ${Number(btcToAcquire) / 10e8} BTC from expired positions.`);
 
     if (btcToAcquire === 0n) {
       return 0n;
@@ -193,7 +193,7 @@ export class ExpirationEngine {
 
     if (excessWbtc > 0n) {
       await this.wbtcVault.swapToWBTC(excessWbtc, 1n);
-      this.logger.info(`Transferred ${Number(excessWbtc) / 10 ** 8} WBTC from the pool to the WBTC vault`);
+      this.logger.info(`Transferred ${Number(excessWbtc) / 10e8} WBTC from the pool to the WBTC vault`);
     }
 
     return 0n;
@@ -247,18 +247,20 @@ export class ExpirationEngine {
 
       const wbtcVaultBalanceBefore = await wbtcInstance.balanceOf(this.addressesConfig.wbtcVault.toString());
 
+      const SLIPPAGE = 200n; // represent 0.5%
+
       // add 0.5% slippage tollerance
-      minimumWBTC = minimumWBTC - (minimumWBTC / 200n);
+      minimumWBTC = minimumWBTC - (minimumWBTC / SLIPPAGE);
       await this.expirePosition(position.nftId, payload, minimumWBTC);
 
       const wbtcVaultAfter = await wbtcInstance.balanceOf(this.addressesConfig.wbtcVault.toString());
       const totalAcquired = wbtcVaultAfter - wbtcVaultBalanceBefore;
 
-      this.logger.info(`Position: ${position.nftId} expired. acquired ${Number(totalAcquired) / 10 ** 8} BTC`);
+      this.logger.info(`Position: ${position.nftId} expired. acquired ${Number(totalAcquired) / 10e8} BTC`);
 
       btcAcquired += totalAcquired;
       if (btcAcquired >= btcToAcquire) {
-        this.logger.info(`Acquired ${Number(btcAcquired) / 10 ** 8} BTC out of: ${Number(btcToAcquire) / 10 ** 8}. stopping bot`);
+        this.logger.info(`Acquired ${Number(btcAcquired) / 10e8} BTC out of: ${Number(btcToAcquire) / 10e8}. stopping bot`);
         break;
       }
     }

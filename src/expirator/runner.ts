@@ -72,18 +72,18 @@ async function main() {
       tokenIndexes: tokenIndexes,
       addressesConfig: config,
       wbtcVault: wbtcVault,
-      minWbtcRatio: 0.25,
-      maxWbtcRatio: 0.4,
-      targetWbtcRatio: 0.3,
+      minWbtcRatio: Number(process.env.MIN_WBTC_CURVEPOOL_RATIO),
+      maxWbtcRatio: Number(process.env.MAX_WBTC_CURVEPOOL_RATIO),
+      targetWbtcRatio: Number(process.env.TARGET_WBTC_RATIO),
     });
 
 
-    console.log('mining 4 blocks...');
-    await mineBlocks(4);
-    const result = await positionExpiratorEngine.run();
+    if (process.env.ENVIROMENT == "demo") {
+      console.log('mining 4 blocks...');
+      await mineBlocks(4);
+    }
 
-    // const wbtcVaultBalanceAfter = await wbtcVaultInstance.balanceOf(config.wbtcVault.toString());
-    // console.log('WBTC vault after:', wbtcVaultBalanceAfter);
+    const result = await positionExpiratorEngine.run();
 
     return result;
   } catch (error) {
