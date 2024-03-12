@@ -1,19 +1,21 @@
 import dotenv from 'dotenv';
 dotenv.config();
 
-import {ExpirationEngine} from './expirationEngine';
-import {Logger} from '@thisisarchimedes/backend-sdk';
-import {ethers} from 'ethers';
+import { ExpirationEngine } from './expirationEngine';
+import { EthereumAddress, Logger } from '@thisisarchimedes/backend-sdk';
+import { ethers } from 'ethers';
 import DataSource from '../lib/DataSource';
-import {loadConfig} from '../lib/ConfigService';
+import { loadConfig } from '../lib/ConfigService';
 import Uniswap from '../lib/Uniswap';
-import {TokenIndexes} from '../types/TokenIndexes';
+import { TokenIndexes } from '../types/TokenIndexes';
 import PositionExpirator from './contracts/PositionExpirator';
 import CurvePool from './contracts/CurvePool';
-import {MultiPoolStrategyFactory} from './MultiPoolStrategyFactory';
+import { MultiPoolStrategyFactory } from './MultiPoolStrategyFactory';
 import PositionLedger from './contracts/PositionLedger';
 import cron from 'node-cron';
 import WBTCVault from './contracts/WBTCVault';
+import ERC20 from './contracts/ERC20';
+import { WBTC_ADDRESS } from '../constants';
 
 Logger.initialize('Position expirator');
 
@@ -57,7 +59,9 @@ async function main() {
     const DB = new DataSource();
     const multiPoolStrategyFactory = new MultiPoolStrategyFactory(wallet);
     const uniswapInstance = new Uniswap(process.env.MAINNET_RPC_URL!);
-    const tokenIndexes: TokenIndexes = {'WBTC': 0, 'LVBTC': 1};
+    const tokenIndexes: TokenIndexes = { 'WBTC': 0, 'LVBTC': 1 };
+
+    const wbtcInstance = new ERC20(wallet, new EthereumAddress(WBTC_ADDRESS))
 
     // Initialize PositionExpiratorEngine
     const positionExpiratorEngine = new ExpirationEngine({
@@ -75,6 +79,7 @@ async function main() {
       minWbtcRatio: Number(process.env.MIN_WBTC_CURVEPOOL_RATIO),
       maxWbtcRatio: Number(process.env.MAX_WBTC_CURVEPOOL_RATIO),
       targetWbtcRatio: Number(process.env.TARGET_WBTC_RATIO),
+      wbtcInstance: wbtcInstance
     });
 
 
