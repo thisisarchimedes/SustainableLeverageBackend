@@ -27,7 +27,9 @@ describe('Liquidator Test', function() {
   it('Check liquidator answers', async function() {
     const res = await dataSource.getLivePositions();
 
-    const {liquidatedCount, answers} = await liquidator.run();
+    const latestBlock = await signer.provider?.getBlock('latest');
+
+    const {liquidatedCount, answers} = await liquidator.run(latestBlock!.timestamp);
 
     // console.log(liquidatedCount, answers); // Debug
 
