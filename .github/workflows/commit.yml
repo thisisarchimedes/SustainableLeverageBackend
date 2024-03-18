@@ -4,16 +4,15 @@ on:
   push:
     branches-ignore:
       - 'main' 
-  
+  workflow_dispatch:  
 
 env:
-  AWS_REGION: us-east-1
+  ENVIRONMENT: ${{ vars.DEFAULT_ENVIRONMENT }}
+
+  AWS_REGION: ${{ vars.AWS_REGION }}
   AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
   AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-  EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
-  EC2_HOST: ${{ secrets.EC2_HOST }}
-  DEMO_EC2_HOST: ${{ secrets.DEMO_EC2_HOST }}
-  EC2_USER: ubuntu
+
   PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
   API_DEVOPS_EVENT_CATCHER: ${{ vars.API_DEVOPS_EVENT_CATCHER }}
   DEVOPS_EVENTS_SECRET_TOKEN: ${{ secrets.DEVOPS_EVENTS_SECRET_TOKEN }}
@@ -37,6 +36,10 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "latest"
+
+      - name: Install dotenvx
+        run: | 
+          curl -fsS https://dotenvx.sh/ | sh
           
       - name: Install dependencies
         run: yarn
@@ -44,37 +47,16 @@ jobs:
       - name: Run linter
         run: yarn lint
 
+      - name: Build
+        run: yarn tsc
+
       - name: Test
-        env:
-          DB_HOST: ${{ secrets.DB_HOST }}
-          DB_PORT: ${{ secrets.DB_PORT }}
-          DB_NAME: ${{ secrets.DB_NAME }}
-          DB_USER: ${{ secrets.DB_USER }}
-          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-          S3_BUCKET_CONFIG: ${{ secrets.S3_BUCKET_CONFIG }}
-          S3_ADDRESSES_KEY: ${{ secrets.S3_ADDRESSES_KEY }}
-          RPC_URL: ${{ secrets.RPC_URL }}
-          MAINNET_RPC_URL: ${{ secrets.MAINNET_RPC_URL }}
-          NEW_RELIC_API_KEY: ${{ secrets.NEW_RELIC_API_KEY }}
-          PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
         run: |  
-          yarn test
+          AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }} AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }} AWS_REGION=${{ vars.AWS_REGION }} DOTENV_KEY='${{ secrets.DOTENV_KEY_STABLE }}' dotenvx run --  yarn test
 
       - name: Test-Demo
-        env:
-          DB_HOST: ${{ secrets.DEMO_DB_HOST }}
-          DB_PORT: ${{ secrets.DEMO_DB_PORT }}
-          DB_NAME: ${{ secrets.DEMO_DB_NAME }}
-          DB_USER: ${{ secrets.DEMO_DB_USER }}
-          DB_PASSWORD: ${{ secrets.DEMO_DB_PASSWORD }}
-          S3_BUCKET_CONFIG: ${{ secrets.S3_BUCKET_CONFIG }}
-          S3_ADDRESSES_KEY: ${{ secrets.DEMO_S3_ADDRESSES_KEY }}
-          RPC_URL: ${{ secrets.DEMO_RPC_URL }}
-          MAINNET_RPC_URL: ${{ secrets.MAINNET_RPC_URL }}
-          NEW_RELIC_API_KEY: ${{ secrets.NEW_RELIC_API_KEY }}
-          PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
         run: |
-          yarn test
+          AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }} AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }} AWS_REGION=${{ vars.AWS_REGION }} DOTENV_KEY='${{ secrets.DOTENV_KEY_DEMO }}' dotenvx run --  yarn test
 
       - name: SonarCloud Scan
         uses: SonarSource/sonarcloud-github-action@master

@@ -7,14 +7,10 @@ on:
     paths:
       - 'src/**'
       - 'scripts/**'
-
+  workflow_dispatch:
 
 env:
-  AWS_REGION: us-east-1
-  EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }} # SSH private key stored in GitHub secrets
-  EC2_HOST: ${{ secrets.EC2_HOST }} # EC2 instance IP or domain
-  DEMO_EC2_HOST: ${{ secrets.DEMO_EC2_HOST }} # EC2 Demo instance IP or domain
-  EC2_USER: ubuntu
+  AWS_REGION: ${{ vars.AWS_REGION }}
   PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
   API_DEVOPS_EVENT_CATCHER: ${{ vars.API_DEVOPS_EVENT_CATCHER }}
   DEVOPS_EVENTS_SECRET_TOKEN: ${{ secrets.DEVOPS_EVENTS_SECRET_TOKEN }}
@@ -32,7 +28,11 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "18"
+          node-version: 20
+
+      - name: Install dotenvx
+        run: | 
+          curl -fsS https://dotenvx.sh/ | sh
 
       - name: Install dependencies
         run: |
@@ -43,49 +43,28 @@ jobs:
         run: yarn build
 
       - name: Copy files to EC2
-        uses: appleboy/scp-action@master
+        uses: appleboy/scp-action@v0.1.7
         with:
-          host: ${{ env.EC2_HOST }}
-          username: ${{ env.EC2_USER }}
-          key: ${{ env.EC2_SSH_KEY }}
+          host: ${{ vars.STABLE_LIQUIDATOR_NODE_EC2_HOST }}
+          username: ${{ vars.EC2_USER }}
+          key: ${{ secrets.STABLE_LIQUIDATOR_NODE_SSH_KEY }}
           port: 22
           source: "."
           target: "/srv"
 
       - name: Run deployment script on EC2
-        uses: appleboy/ssh-action@master
+        uses: appleboy/ssh-action@v1.0.3
         with:
-          host: ${{ env.EC2_HOST }}
-          username: ${{ env.EC2_USER }}
-          key: ${{ env.EC2_SSH_KEY }}
+          host: ${{ vars.STABLE_LIQUIDATOR_NODE_EC2_HOST }}
+          username: ${{ vars.EC2_USER }}
+          key: ${{ secrets.STABLE_LIQUIDATOR_NODE_SSH_KEY }}
           port: 22
           script: |
             set -e  # Exit immediately if a command exits with a non-zero status.
             export NVM_DIR="$HOME/.nvm"
             [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
             [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
-            cd /srv
-            cat > .env << EOF
-            AWS_REGION=${{ secrets.AWS_REGION }}
-            AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}
-            AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}
-            DB_HOST=${{ secrets.DB_HOST }}
-            DB_PORT=${{ secrets.DB_PORT }}
-            DB_NAME=${{ secrets.DB_NAME }}
-            DB_USER=${{ secrets.DB_USER }}
-            DB_PASSWORD=${{ secrets.DB_PASSWORD }}
-            S3_BUCKET_CONFIG=${{ secrets.S3_BUCKET_CONFIG }}
-            S3_ADDRESSES_KEY=${{ secrets.S3_ADDRESSES_KEY }}
-            RPC_URL=${{ secrets.RPC_URL }}
-            MAINNET_RPC_URL=${{ secrets.MAINNET_RPC_URL }}
-            NEW_RELIC_API_KEY=${{ secrets.NEW_RELIC_API_KEY }}
-            PRIVATE_KEY=${{ secrets.PRIVATE_KEY }}
-            ENVIRONMENT="demo"
-            EOF
-            pm2 kill                                    # Stops all PM2-managed applications
-            export PAT_TOKEN=${{ secrets.PAT_TOKEN }}   # GitHub personal access token for installing the Backend-SDK
-            yarn install                                # Install dependencies
-            pm2 start 'yarn liquidator'                 # Run the liquidator bot
+            ENVIRONMENT="demo" PAT_TOKEN=${{secrets.PAT_TOKEN}} AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }} AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }} DOTENV_KEY='${{ secrets.DOTENV_KEY_STABLE }}' dotenvx run --  cd /srv && pm2 kill && yarn install && pm2 start 'yarn liquidator'
 
   deploy-sustainable-leverage-liquidation-bot-demo-ec2:
     runs-on: ubuntu-latest
@@ -98,7 +77,11 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "18"
+          node-version: 20
+
+      - name: Install dotenvx
+        run: | 
+          curl -fsS https://dotenvx.sh/ | sh
 
       - name: Install dependencies
         run: |
@@ -112,21 +95,21 @@ jobs:
         run: npx eslint src/**/*.ts --ext .js,.jsx,.ts,.tsx --ignore-pattern /devops/  
 
       - name: Copy files to EC2
-        uses: appleboy/scp-action@master
+        uses: appleboy/scp-action@v0.1.7
         with:
-          host: ${{ env.DEMO_EC2_HOST }}
-          username: ${{ env.EC2_USER }}
-          key: ${{ env.EC2_SSH_KEY }}
+          host: ${{ vars.DEMO_LIQUIDATOR_NODE_EC2_HOST }}
+          username: ${{ vars.EC2_USER }}
+          key: ${{ secrets.DEMO_LIQUIDATOR_NODE_SSH_KEY }}
           port: 22
           source: "."
           target: "/srv"
 
       - name: Run deployment script on EC2
-        uses: appleboy/ssh-action@master
+        uses: appleboy/ssh-action@v1.0.3
         with:
-          host: ${{ env.DEMO_EC2_HOST }}
-          username: ${{ env.EC2_USER }}
-          key: ${{ env.EC2_SSH_KEY }}
+          host: ${{ vars.DEMO_LIQUIDATOR_NODE_EC2_HOST }}
+          username: ${{ vars.EC2_USER }}
+          key: ${{ secrets.DEMO_LIQUIDATOR_NODE_SSH_KEY }}
           port: 22
           script: |
             set -e  # Exit immediately if a command exits with a non-zero status.
@@ -134,27 +117,8 @@ jobs:
             [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
             [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
             cd /srv
-            cat > .env << EOF
-            AWS_REGION=${{ secrets.AWS_REGION }}
-            AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}
-            AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}
-            DB_HOST=${{ secrets.DEMO_DB_HOST }}
-            DB_PORT=${{ secrets.DEMO_DB_PORT }}
-            DB_NAME=${{ secrets.DEMO_DB_NAME }}
-            DB_USER=${{ secrets.DEMO_DB_USER }}
-            DB_PASSWORD=${{ secrets.DEMO_DB_PASSWORD }}
-            S3_BUCKET_CONFIG=${{ secrets.S3_BUCKET_CONFIG }}
-            S3_ADDRESSES_KEY=${{ secrets.DEMO_S3_ADDRESSES_KEY }}
-            RPC_URL=${{ secrets.DEMO_RPC_URL }}
-            MAINNET_RPC_URL=${{ secrets.MAINNET_RPC_URL }}
-            NEW_RELIC_API_KEY=${{ secrets.NEW_RELIC_API_KEY }}
-            PRIVATE_KEY=${{ secrets.PRIVATE_KEY }}
-            ENVIRONMENT="demo"
-            EOF
             pm2 kill                                    # Stops all PM2-managed applications
-            export PAT_TOKEN=${{ secrets.PAT_TOKEN }}   # GitHub personal access token for installing the Backend-SDK
-            yarn install                                # Install dependencies
-            pm2 start 'yarn liquidator'                 # Run the liquidator bot
+            ENVIRONMENT="demo" PAT_TOKEN=${{secrets.PAT_TOKEN}} AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }} AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }} DOTENV_KEY='${{ secrets.DOTENV_KEY_DEMO }}' dotenvx run --  yarn install && pm2 start 'yarn liquidator'
 
   report-devops-event-deploy:
       runs-on: ubuntu-latest
@@ -169,8 +133,12 @@ jobs:
         - name: Set up Node.js
           uses: actions/setup-node@v4
           with:
-            node-version: '20.x'
+            node-version: 20
             cache: 'yarn'
+
+        - name: Install dotenvx
+          run: | 
+            curl -fsS https://dotenvx.sh/ | sh
   
         - name: List all commit SHAs involved in the push
           id: format_commits

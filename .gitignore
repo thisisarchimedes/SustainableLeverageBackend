@@ -130,7 +130,6 @@ dist
 .pnp.*
 
 node_modules
-.env
 coverage
 coverage.json
 
@@ -154,3 +153,12 @@ jspm_packages
 
 # Serverless directories
 .serverless
+
+.stryker-tmp/**
+
+.env
+.env.demo
+.env.stable
+.env.keys
+
+*.pem

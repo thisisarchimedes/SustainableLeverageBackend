@@ -37,8 +37,8 @@
     "chai": "^4.3.10",
     "eslint": "^8.56.0",
     "eslint-config-google": "^0.14.0",
-    "eslint-plugin-promise": "^6.1.1",
     "eslint-plugin-mocha": "^10.2.0",
+    "eslint-plugin-promise": "^6.1.1",
     "hardhat": "^2.19.2",
     "mocha": "^10.2.0",
     "ts-node": "^10.9.1",
@@ -48,9 +48,12 @@
     "nyc": "^15.1.0"
   },
   "dependencies": {
+    "@dotenvx/dotenvx": "^0.23.0",
+    "@stryker-mutator/core": "^8.2.2",
     "@thisisarchimedes/backend-sdk": "^1.0.77",
     "dotenv": "^16.3.1",
     "ethers": "^6.9.1",
+    "nyc": "^15.1.0",
     "p-limit": "3",
     "pg": "^8.11.3",
     "@uniswap/router-sdk": "^1.7.1",
