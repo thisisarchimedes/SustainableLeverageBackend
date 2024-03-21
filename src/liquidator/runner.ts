@@ -1,4 +1,4 @@
-import {ethers, getDefaultProvider} from 'ethers';
+import {Provider, ethers, getDefaultProvider} from 'ethers';
 import {Logger} from '@thisisarchimedes/backend-sdk';
 import Liquidator from './liquidator';
 
@@ -27,6 +27,14 @@ import Liquidator from './liquidator';
     console.log(`New block mined: ${blockNumber}`);
     logger.info(`New block mined: ${blockNumber}`);
 
+    /*
+      * Get the fork's block's timestamp for proper deadline calculation
+      * for Uniswap's payload.
+      * Could be removed for production
+      * and use the current timestamp instead.
+    */
+    const currentTimestamp = await getBlockTimestamp(signer.provider!, blockNumber);
+
     // Prevent performActions from being called if it's already running
     if (isRunning) {
       console.warn('Already performing actions on another block. Skipping this block.');
@@ -39,7 +47,7 @@ import Liquidator from './liquidator';
 
     try {
       // Perform actions here
-      await liquidator.run();
+      await liquidator.run(currentTimestamp);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       console.error('Error running liquidator:', error);
@@ -51,3 +59,9 @@ import Liquidator from './liquidator';
     }
   });
 })();
+
+const getBlockTimestamp = async (provider: Provider, blockNumber: number): Promise<number> => {
+  const block = await provider.getBlock(blockNumber);
+  const currentTimestamp = block ? block.timestamp : Math.floor(Date.now() / 1000);
+  return currentTimestamp;
+};

@@ -32,6 +32,7 @@ export default class Uniswap {
       inputTokenDecimals: number,
       outputToken: EthereumAddress,
       outputTokenDecimals: number,
+      currentTimestamp: number,
   ): Promise<{ payload: string; swapOutputAmount: string }> {
     try {
       const primaryAsset = new Token(1, inputToken.toString(), inputTokenDecimals);
@@ -52,9 +53,8 @@ export default class Uniswap {
           tokenPath,
       );
       const abiCoder = ethers.AbiCoder.defaultAbiCoder();
-      const timestamp = Math.floor(Date.now() / 1000);
       const encodedPath = ethers.solidityPacked(dataTypes, dataValues);
-      const deadline = BigInt(timestamp + 1000);
+      const deadline = BigInt(currentTimestamp + 1000);
       const payload = abiCoder.encode(
           ['(bytes,uint256)'],
           [[encodedPath, deadline]],

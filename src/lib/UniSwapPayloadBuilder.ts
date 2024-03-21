@@ -14,6 +14,7 @@ export default class UniSwapPayloadBuilder {
       signer: Signer,
       amount: bigint,
       strategy: EthereumAddress,
+      currentTimestamp: number,
   ): Promise<string> => {
     // console.log('Building payload for:', nftId); // Debug
     const strategyContract = Contracts.general.multiPoolStrategy(strategy, signer);
@@ -28,6 +29,7 @@ export default class UniSwapPayloadBuilder {
         WBTC_DECIMALS,
         strategyAsset,
         Number(assetDecimals),
+        currentTimestamp,
     );
 
     return payload;
@@ -43,6 +45,7 @@ export default class UniSwapPayloadBuilder {
       signer: Signer,
       strategy: EthereumAddress,
       strategyShares: number,
+      currentTimestamp: number,
   ): Promise<string> => {
     // console.log('Building payload for:', nftId); // Debug
     const strategyContract = Contracts.general.multiPoolStrategy(strategy, signer);
@@ -59,6 +62,7 @@ export default class UniSwapPayloadBuilder {
         Number(assetDecimals),
         WBTC,
         WBTC_DECIMALS,
+        currentTimestamp,
     );
 
     return payload;

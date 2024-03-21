@@ -21,12 +21,13 @@ describe('E2E Positions', function() {
   let signer: Wallet;
   let positionOpener: PositionOpener;
   let positionCloser: PositionCloser;
-  let openedPosition = NaN;
 
   before(async function() {
+    console.log('RPC', process.env.RPC_URL);
+
     config = await loadConfig();
     console.log(config);
-    Logger.initialize('liquidator-bot');
+    Logger.initialize('e2e-positions-test');
     logger = Logger.getInstance();
     signer = new ethers.Wallet(process.env.PRIVATE_KEY!, getDefaultProvider(process.env.RPC_URL!));
     positionOpener = Contracts.leverage.positionOpener(config.positionOpener, signer);
@@ -40,11 +41,19 @@ describe('E2E Positions', function() {
     dataSource = new DataSource(logger);
   });
 
-  it('Open Position', async function() {
-    const totalAmount = OPEN_POSITION_COLLATERAL + OPEN_POSITION_BORROW;
-    const payload = await UniSwapPayloadBuilder.getOpenPositionSwapPayload(signer, totalAmount, OPEN_POSITION_STRATEGY);
+  it('Open and Close Position', async function() {
+    // Open position test
+    let latestBlock = await signer.provider?.getBlock('latest');
 
-    const tx = await positionOpener.openPosition({
+    const totalAmount = OPEN_POSITION_COLLATERAL + OPEN_POSITION_BORROW;
+    let payload = await UniSwapPayloadBuilder.getOpenPositionSwapPayload(
+        signer,
+        totalAmount,
+        OPEN_POSITION_STRATEGY,
+        latestBlock!.timestamp,
+    );
+
+    let tx = await positionOpener.openPosition({
       collateralAmount: OPEN_POSITION_COLLATERAL,
       wbtcToBorrow: OPEN_POSITION_BORROW,
       strategy: OPEN_POSITION_STRATEGY.toString(),
@@ -53,35 +62,37 @@ describe('E2E Positions', function() {
       swapData: payload,
       exchange: '0x0000000000000000000000000000000000000000',
     });
-    const txReceipt = await tx.wait();
+    let txReceipt = await tx.wait();
     assert(txReceipt!.status === 1, 'Transaction failed');
     console.log(tx, txReceipt);
 
     const event = txReceipt!.logs.find((event) => event['fragment']?.name === 'PositionOpened');
     assert.isDefined(event, 'PositionOpened event not found');
-    openedPosition = event!['args'][0]; // The first argument in the event should be the position ID
+    const openedPosition = event!['args'][0]; // The first argument in the event should be the position ID
     console.log('Position opened', openedPosition);
 
     console.log('Waiting for DB update...');
     await sleep(WAIT_FOR_DB_UPDATE);
 
-    const position = await dataSource.getPosition(openedPosition);
+    let position = await dataSource.getPosition(openedPosition);
     assert(position.positionState === 'LIVE', 'Position is not live');
-  });
 
-  it('Close Position', async function() {
+    // Close position test
+    latestBlock = await signer.provider?.getBlock('latest');
+
     assert.isNotNaN(openedPosition, 'Position not opened');
-    const position = await dataSource.getPosition(openedPosition);
+    position = await dataSource.getPosition(openedPosition);
     assert(position.positionState === 'LIVE', 'Position is not live');
     assert.isNumber(Number(position.strategyShares), 'Strategy shares are not numeric');
 
-    const payload = await UniSwapPayloadBuilder.getClosePositionSwapPayload(
+    payload = await UniSwapPayloadBuilder.getClosePositionSwapPayload(
         signer,
         OPEN_POSITION_STRATEGY,
         Number(position.strategyShares),
+        latestBlock!.timestamp,
     );
 
-    const tx = await positionCloser.closePosition({
+    tx = await positionCloser.closePosition({
       nftId: openedPosition,
       minWBTC: 0,
       swapRoute: '0',
@@ -89,7 +100,7 @@ describe('E2E Positions', function() {
       exchange: '0x0000000000000000000000000000000000000000',
     });
 
-    const txReceipt = await tx.wait();
+    txReceipt = await tx.wait();
     assert(txReceipt!.status === 1, 'Transaction failed');
 
     console.log('Waiting for DB update...');
