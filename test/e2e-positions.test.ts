@@ -24,6 +24,8 @@ describe('E2E Positions', function() {
   let openedPosition = NaN;
 
   before(async function() {
+    console.log('RPC', process.env.RPC_URL);
+
     config = await loadConfig();
     console.log(config);
     Logger.initialize('e2e-positions-test');
