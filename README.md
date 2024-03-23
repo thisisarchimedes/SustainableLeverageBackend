@@ -60,6 +60,17 @@ yarn build
 yarn test
 ```
 
+### E2E Tests
+The E2E tests are a part of the global unit-test suite.
+In case there is a need to run it independantly/locally/debug,
+you can do:
+
+```
+yarn test --grep E2E
+```
+
+More on that and the configurations for the environments can be found [here](https://www.notion.so/archimedesfi/End-to-end-Position-Open-Close-Test-6534d535490947149e44a8f1571dad82).
+
 ### Running Scripts
 
 *Configuring hardhat networks are on `hardhat.config.js`*
