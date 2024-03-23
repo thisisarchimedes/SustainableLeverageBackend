@@ -29,7 +29,8 @@ export default class DataSource {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public async getPosition(nftId: number): Promise<any> {
     const resp = this.client.query(
-        `SELECT "nftId", "strategy", "strategyShares", "positionState"
+        `SELECT "nftId", "strategy", "strategyShares", "positionState", "collateralAmount", "debtAmount", "timestamp",
+        "blockNumber", "positionExpireBlock", "claimableAmount", "user", "currentPositionValue"
         FROM "LeveragePosition" WHERE "nftId" = $1`,
         [nftId]);
     return (await resp).rows[0];
