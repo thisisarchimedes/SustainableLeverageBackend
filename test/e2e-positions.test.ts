@@ -13,13 +13,13 @@ import {
 import DataSource from '../src/lib/DataSource';
 import {Config, loadConfig} from '../src/lib/ConfigService';
 import UniSwapPayloadBuilder from '../src/lib/UniSwapPayloadBuilder';
-import {FRAXBPALUSD_STRATEGY} from './lib/addresses';
+import {UNIV3_STRATEGY} from './lib/addresses';
 import {WBTC, WBTC_DECIMALS} from '../src/constants';
 import {Wallet, getDefaultProvider} from 'ethers';
 
 const OPEN_POSITION_COLLATERAL = 1000n;
 const OPEN_POSITION_BORROW = 1000n;
-const OPEN_POSITION_STRATEGY = FRAXBPALUSD_STRATEGY;
+const OPEN_POSITION_STRATEGY = UNIV3_STRATEGY;
 const WAIT_FOR_DB_UPDATE = 2 * 60 * 1000;
 
 describe('E2E Positions', function() {
