@@ -19,6 +19,11 @@ export default class UniSwapPayloadBuilder {
     // console.log('Building payload for:', nftId); // Debug
     const strategyContract = Contracts.general.multiPoolStrategy(strategy, signer);
     const strategyAsset = new EthereumAddress(await strategyContract.asset()); // Optimization: can get from DB
+
+    if (strategyAsset === WBTC) {
+      return '0x';
+    }
+
     const asset = Contracts.general.erc20(strategyAsset, signer);
     const assetDecimals = await asset.decimals(); // Optimization: can get from DB
 
@@ -50,6 +55,11 @@ export default class UniSwapPayloadBuilder {
     // console.log('Building payload for:', nftId); // Debug
     const strategyContract = Contracts.general.multiPoolStrategy(strategy, signer);
     const strategyAsset = new EthereumAddress(await strategyContract.asset()); // Optimization: can get from DB
+
+    if (strategyAsset === WBTC) {
+      return '0x';
+    }
+
     const asset = Contracts.general.erc20(strategyAsset, signer);
     const assetDecimals = await asset.decimals(); // Optimization: can get from DB
     const strategySharesN = ethers.parseUnits(strategyShares.toFixed(Number(assetDecimals)), assetDecimals); // Converting float to bigint
