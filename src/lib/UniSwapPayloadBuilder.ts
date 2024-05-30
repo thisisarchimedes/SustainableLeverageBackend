@@ -20,7 +20,7 @@ export default class UniSwapPayloadBuilder {
     const strategyContract = Contracts.general.multiPoolStrategy(strategy, signer);
     const strategyAsset = new EthereumAddress(await strategyContract.asset()); // Optimization: can get from DB
 
-    if (strategyAsset === WBTC) {
+    if (strategyAsset.toString() === WBTC.toString()) {
       return '0x';
     }
 
@@ -56,7 +56,7 @@ export default class UniSwapPayloadBuilder {
     const strategyContract = Contracts.general.multiPoolStrategy(strategy, signer);
     const strategyAsset = new EthereumAddress(await strategyContract.asset()); // Optimization: can get from DB
 
-    if (strategyAsset === WBTC) {
+    if (strategyAsset.toString() === WBTC.toString()) {
       return '0x';
     }
 
