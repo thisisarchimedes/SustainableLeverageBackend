@@ -1,7 +1,7 @@
 import UniSwap from './UniSwap';
-import {Signer, ethers} from 'ethers';
+import {Signer} from 'ethers';
 import {WBTC, WBTC_DECIMALS} from '../constants';
-import {Contracts, EthereumAddress} from '@thisisarchimedes/backend-sdk';
+import {Contracts, EthereumAddress, ethers} from '@thisisarchimedes/backend-sdk';
 
 export default class UniSwapPayloadBuilder {
   /**
@@ -19,6 +19,11 @@ export default class UniSwapPayloadBuilder {
     // console.log('Building payload for:', nftId); // Debug
     const strategyContract = Contracts.general.multiPoolStrategy(strategy, signer);
     const strategyAsset = new EthereumAddress(await strategyContract.asset()); // Optimization: can get from DB
+
+    if (strategyAsset.toString() === WBTC.toString()) {
+      return '0x';
+    }
+
     const asset = Contracts.general.erc20(strategyAsset, signer);
     const assetDecimals = await asset.decimals(); // Optimization: can get from DB
 
@@ -50,6 +55,11 @@ export default class UniSwapPayloadBuilder {
     // console.log('Building payload for:', nftId); // Debug
     const strategyContract = Contracts.general.multiPoolStrategy(strategy, signer);
     const strategyAsset = new EthereumAddress(await strategyContract.asset()); // Optimization: can get from DB
+
+    if (strategyAsset.toString() === WBTC.toString()) {
+      return '0x';
+    }
+
     const asset = Contracts.general.erc20(strategyAsset, signer);
     const assetDecimals = await asset.decimals(); // Optimization: can get from DB
     const strategySharesN = ethers.parseUnits(strategyShares.toFixed(Number(assetDecimals)), assetDecimals); // Converting float to bigint
