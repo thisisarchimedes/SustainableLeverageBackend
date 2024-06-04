@@ -1,7 +1,7 @@
 import UniSwap from './UniSwap';
-import {Signer, ethers} from 'ethers';
+import {Signer} from 'ethers';
 import {WBTC, WBTC_DECIMALS} from '../constants';
-import {Contracts, EthereumAddress} from '@thisisarchimedes/backend-sdk';
+import {Contracts, EthereumAddress, ethers} from '@thisisarchimedes/backend-sdk';
 
 export default class UniSwapPayloadBuilder {
   /**
