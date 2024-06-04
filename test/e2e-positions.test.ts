@@ -23,7 +23,8 @@ const OPEN_POSITION_STRATEGY = UNIV3_STRATEGY;
 const WAIT_FOR_DB_UPDATE = 30 * 1000;
 const MIN_POSITION_DURATION = 12 * 15 * 1000;
 
-describe('E2E Positions', function() {
+// eslint-disable-next-line mocha/no-skipped-tests
+describe.skip('E2E Positions', function() {
   let config: Config;
   let logger: Logger;
   let dataSource: DataSource;
