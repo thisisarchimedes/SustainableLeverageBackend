@@ -20,7 +20,8 @@ import {Wallet, getDefaultProvider} from 'ethers';
 const OPEN_POSITION_COLLATERAL = 1000n;
 const OPEN_POSITION_BORROW = 1000n;
 const OPEN_POSITION_STRATEGY = UNIV3_STRATEGY;
-const WAIT_FOR_DB_UPDATE = 2 * 60 * 1000;
+const WAIT_FOR_DB_UPDATE = 30 * 1000;
+const MIN_POSITION_DURATION = 12 * 15 * 1000;
 
 describe('E2E Positions', function() {
   let config: Config;
@@ -70,6 +71,15 @@ describe('E2E Positions', function() {
         latestBlock!.timestamp,
     );
 
+    console.log({
+      collateralAmount: OPEN_POSITION_COLLATERAL,
+      wbtcToBorrow: OPEN_POSITION_BORROW,
+      strategy: OPEN_POSITION_STRATEGY.toString(),
+      minStrategyShares: 0,
+      swapRoute: '0',
+      swapData: payload,
+      exchange: '0x0000000000000000000000000000000000000000',
+    }); // Debug
     let tx = await positionOpener.openPosition({
       collateralAmount: OPEN_POSITION_COLLATERAL,
       wbtcToBorrow: OPEN_POSITION_BORROW,
@@ -117,6 +127,8 @@ describe('E2E Positions', function() {
     const wbtcVaultBal2 = await Contracts.general.erc20(WBTC, signer).balanceOf(config.wbtcVault.toString());
     assert(wbtcVaultBal2 + OPEN_POSITION_BORROW === wbtcVaultBal1, 'WBTC vault balance incorrectly reduced');
 
+    await sleep(MIN_POSITION_DURATION);
+
     // Close position test
     latestBlock = await signer.provider?.getBlock('latest');
 
@@ -132,6 +144,13 @@ describe('E2E Positions', function() {
         latestBlock!.timestamp,
     );
 
+    console.log({
+      nftId: openedPosition,
+      minWBTC: 0,
+      swapRoute: '0',
+      swapData: payload,
+      exchange: '0x0000000000000000000000000000000000000000',
+    });
     tx = await positionCloser.closePosition({
       nftId: openedPosition,
       minWBTC: 0,
