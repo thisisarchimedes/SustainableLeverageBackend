@@ -9,7 +9,8 @@
     "lint": "eslint --ext .ts,.tsx -c .eslintrc.cjs .",
     "build": "tsc",
     "test": "nyc hardhat test",
-    "liquidator": "node --loader ts-node/esm src/liquidator/runner.ts"
+    "liquidator": "node --loader ts-node/esm src/liquidator/runner.ts",
+    "generate-types": "rm -vrf ./src/types/leverage-contracts && typechain --target=ethers-v6 ./src/ABIs/* --out-dir ./src/types/leverage-contracts"
   },
   "nyc": {
     "extension": [
@@ -27,6 +28,8 @@
     "cache": false
   },
   "devDependencies": {
+    "@typechain/ethers-v6": "^0.5.1",
+    "typechain": "^8.3.2",
     "@nomicfoundation/hardhat-ethers": "^3.0.5",
     "@stryker-mutator/core": "^8.2.2",
     "@types/chai": "^4.3.11",
