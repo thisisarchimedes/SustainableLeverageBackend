@@ -1,7 +1,8 @@
 import UniSwap from './UniSwap';
-import {Signer} from 'ethers';
+import {ethers, Signer} from 'ethers';
 import {WBTC, WBTC_DECIMALS} from '../constants';
-import {Contracts, EthereumAddress, ethers} from '@thisisarchimedes/backend-sdk';
+import {MultiPoolStrategy__factory} from '../types/leverage-contracts/factories/MultiPoolStrategy__factory';
+import {ERC20__factory} from '../types/leverage-contracts/factories/ERC20__factory';
 
 export default class UniSwapPayloadBuilder {
   /**
@@ -13,18 +14,18 @@ export default class UniSwapPayloadBuilder {
   public static readonly getOpenPositionSwapPayload = async (
       signer: Signer,
       amount: bigint,
-      strategy: EthereumAddress,
+      strategy: string,
       currentTimestamp: number,
   ): Promise<string> => {
     // console.log('Building payload for:', nftId); // Debug
-    const strategyContract = Contracts.general.multiPoolStrategy(strategy, signer);
-    const strategyAsset = new EthereumAddress(await strategyContract.asset()); // Optimization: can get from DB
+    const strategyContract = MultiPoolStrategy__factory.connect(strategy, signer);
+    const strategyAsset = await strategyContract.asset(); // Optimization: can get from DB
 
     if (strategyAsset.toString() === WBTC.toString()) {
       return '0x';
     }
 
-    const asset = Contracts.general.erc20(strategyAsset, signer);
+    const asset = ERC20__factory.connect(strategyAsset, signer);
     const assetDecimals = await asset.decimals(); // Optimization: can get from DB
 
     const uniSwap = new UniSwap(process.env.MAINNET_RPC_URL!);
@@ -48,19 +49,19 @@ export default class UniSwapPayloadBuilder {
   */
   public static readonly getClosePositionSwapPayload = async (
       signer: Signer,
-      strategy: EthereumAddress,
+      strategy: string,
       strategyShares: number,
       currentTimestamp: number,
   ): Promise<string> => {
     // console.log('Building payload for:', nftId); // Debug
-    const strategyContract = Contracts.general.multiPoolStrategy(strategy, signer);
-    const strategyAsset = new EthereumAddress(await strategyContract.asset()); // Optimization: can get from DB
+    const strategyContract = MultiPoolStrategy__factory.connect(strategy, signer);
+    const strategyAsset = await strategyContract.asset(); // Optimization: can get from DB
 
     if (strategyAsset.toString() === WBTC.toString()) {
       return '0x';
     }
 
-    const asset = Contracts.general.erc20(strategyAsset, signer);
+    const asset = ERC20__factory.connect(strategyAsset, signer);
     const assetDecimals = await asset.decimals(); // Optimization: can get from DB
     const strategySharesN = ethers.parseUnits(strategyShares.toFixed(Number(assetDecimals)), assetDecimals); // Converting float to bigint
     const minimumExpectedAssets = await strategyContract.convertToAssets(strategySharesN); // Must query live
