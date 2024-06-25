@@ -2,28 +2,28 @@ import {type HardhatEthersSigner} from '@nomicfoundation/hardhat-ethers/signers'
 import {CURVE_POOL, CURVE_POOL_ADAPTER, LEVERAGED_STRATEGY} from './addresses';
 import {assert} from 'chai';
 import {ethers} from 'hardhat';
-import {Contracts,
-  EthereumAddress,
-  CurvePool as CurvePoolContract,
-  ConvexPoolAdapter,
-  LeveragedStrategy,
-} from '@thisisarchimedes/backend-sdk';
+import {LeveragedStrategy__factory} from '../../src/types/leverage-contracts/factories/LeveragedStrategy__factory';
+import {CurvePool__factory} from '../../src/types/leverage-contracts/factories/CurvePool__factory';
+import {ConvexPoolAdapter__factory} from '../../src/types/leverage-contracts/factories/ConvexPoolAdapter__factory';
+import {ERC20__factory} from '../../src/types/leverage-contracts/factories/ERC20__factory';
+import {LeveragedStrategy} from '../../src/types/leverage-contracts/LeveragedStrategy';
+import {ConvexPoolAdapter} from '../../src/types/leverage-contracts/ConvexPoolAdapter';
+import {CurvePool as CurvePoolContract} from '../../src/types/leverage-contracts/CurvePool';
 
 export default class CurvePool {
   //* Public methods *//
 
   static async createInstance(
       signer: HardhatEthersSigner,
-      poolAddress: EthereumAddress,
-      dumpToken: EthereumAddress,
-      valueToken: EthereumAddress,
+      poolAddress: string,
+      dumpToken: string,
+      valueToken: string,
   ): Promise<CurvePool> {
-    const leveragedStrategy = Contracts.leverage.leveragedStrategy(LEVERAGED_STRATEGY, signer);
-    const pool = Contracts.general.curvePool(poolAddress, signer);
-    const adapter = Contracts.general.convexPoolAdapter(CURVE_POOL_ADAPTER, signer);
-    const valueTokenContract = Contracts.general.erc20(valueToken, signer);
-    // eslint-disable-next-line new-cap
-    const dumpTokenContract = Contracts.general.erc20(dumpToken, signer);
+    const leveragedStrategy = LeveragedStrategy__factory.connect(LEVERAGED_STRATEGY, signer);
+    const pool = CurvePool__factory.connect(poolAddress, signer);
+    const adapter = ConvexPoolAdapter__factory.connect(CURVE_POOL_ADAPTER, signer);
+    const valueTokenContract = ERC20__factory.connect(valueToken, signer);
+    const dumpTokenContract = ERC20__factory.connect(dumpToken, signer);
     const valueTokenDecimals = Number(await valueTokenContract.decimals());
     const dumpTokenDecimals = Number(await dumpTokenContract.decimals());
 
@@ -141,12 +141,12 @@ export default class CurvePool {
 
   //* Private methods *//
 
-  private static async fetchTokenIndex(pool: CurvePoolContract, token: EthereumAddress): Promise<number> {
+  private static async fetchTokenIndex(pool: CurvePoolContract, token: string): Promise<number> {
     let tokenIndex = 0;
     for (let i = 0; i < 4; i++) {
       // eslint-disable-next-line no-await-in-loop
       const _token = await pool.coins(i);
-      if (_token === token.toString()) {
+      if (_token === token) {
         tokenIndex = i;
         break;
       }
