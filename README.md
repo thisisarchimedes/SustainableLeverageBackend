@@ -8,12 +8,6 @@ This repo contains different backend services for the Archimedes Finance Sustain
 ## Quick start
 
 ### Install Dependencies
-#### Archimedes Finance BackendSDK
-Once of the dependencies is the backend-sdk package which requires
-GitHub's PAT_TOKEN:
-```bash
-export PAT_TOKEN={PAT_TOKEN}
-```
 
 ```bash
 yarn install
@@ -27,7 +21,6 @@ Repo is using `dotenvx` to manage environment variables. Create a `.env` file in
 
 Environment example:
 ```bash
-PAT_TOKEN=
 PRIVATE_KEY=
 MAINNET_RPC_URL=
 RPC_URL=
