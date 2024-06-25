@@ -3,9 +3,9 @@ import '@nomicfoundation/hardhat-ethers';
 import {ethers} from 'hardhat';
 import {JsonRpcProvider} from 'ethers';
 import {type HardhatEthersSigner} from '@nomicfoundation/hardhat-ethers/signers';
-import {EVMStorageManipulator, EthereumAddress} from '@thisisarchimedes/backend-sdk';
 import {ALUSD, CURVE_POOL, FRAXBP, getTokenBalancesSlot} from './lib/addresses';
 import CurvePool from './lib/CurvePool';
+import EVMStorageManipulator from '../src/lib/EVMStorageManipulator';
 
 // eslint-disable-next-line mocha/no-skipped-tests
 describe.skip('Unbalance pool', function() {
@@ -24,7 +24,7 @@ describe.skip('Unbalance pool', function() {
     const evmStorage = new EVMStorageManipulator(signer.provider as JsonRpcProvider);
 
     const fraxbpMemSlot = getTokenBalancesSlot(FRAXBP.toString());
-    await evmStorage.setERC20Balance(FRAXBP, fraxbpMemSlot.slot, new EthereumAddress(signer.address), 10n ** 36n, fraxbpMemSlot.isVyper);
+    await evmStorage.setERC20Balance(FRAXBP, fraxbpMemSlot.slot, signer.address, 10n ** 36n, fraxbpMemSlot.isVyper);
 
     // Rebalance the pool
     await curvePool.rebalance();
@@ -32,7 +32,7 @@ describe.skip('Unbalance pool', function() {
     // Reinit pool balances
     curvePool = await CurvePool.createInstance(signer, CURVE_POOL, ALUSD, FRAXBP);
     const alUSDMemSlot = getTokenBalancesSlot(ALUSD.toString());
-    await evmStorage.setERC20Balance(ALUSD, alUSDMemSlot.slot, new EthereumAddress(signer.address), 10n ** 36n, alUSDMemSlot.isVyper);
+    await evmStorage.setERC20Balance(ALUSD, alUSDMemSlot.slot, signer.address, 10n ** 36n, alUSDMemSlot.isVyper);
 
     // Assert the pool is roughly balanced
     assert.isTrue(

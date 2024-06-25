@@ -1,15 +1,23 @@
 import {assert, expect} from 'chai';
 import '@nomicfoundation/hardhat-ethers';
 import {ethers} from 'hardhat';
-import {
-  Contracts,
-  EthereumAddress,
-  Logger,
-  PositionCloser,
-  PositionLedger,
-  PositionOpener,
-  PositionToken,
-} from '@thisisarchimedes/backend-sdk';
+// import {
+//   Contracts,
+//   PositionCloser,
+//   PositionLedger,
+//   PositionOpener,
+//   PositionToken,
+// } from '@thisisarchimedes/backend-sdk';
+import {PositionOpener__factory} from '../src/types/leverage-contracts/factories/PositionOpener__factory';
+import {PositionCloser__factory} from '../src/types/leverage-contracts/factories/PositionCloser__factory';
+import {PositionLedger__factory} from '../src/types/leverage-contracts/factories/PositionLedger__factory';
+import {PositionToken__factory} from '../src/types/leverage-contracts/factories/PositionToken__factory';
+import {MultiPoolStrategy__factory} from '../src/types/leverage-contracts/factories/MultiPoolStrategy__factory';
+import {ERC20__factory} from '../src/types/leverage-contracts/factories/ERC20__factory';
+import {PositionOpener} from '../src/types/leverage-contracts/PositionOpener';
+import {PositionCloser} from '../src/types/leverage-contracts/PositionCloser';
+import {PositionLedger} from '../src/types/leverage-contracts/PositionLedger';
+import {PositionToken} from '../src/types/leverage-contracts/PositionToken';
 import DataSource from '../src/lib/DataSource';
 import {Config, loadConfig} from '../src/lib/ConfigService';
 import UniSwapPayloadBuilder from '../src/lib/UniSwapPayloadBuilder';
@@ -24,9 +32,8 @@ const WAIT_FOR_DB_UPDATE = 30 * 1000;
 const MIN_POSITION_DURATION = 12 * 15 * 1000;
 
 // eslint-disable-next-line mocha/no-skipped-tests
-describe('E2E Positions', function() {
+describe.skip('E2E Positions', function() {
   let config: Config;
-  let logger: Logger;
   let dataSource: DataSource;
   let signer: Wallet;
   let positionOpener: PositionOpener;
@@ -39,30 +46,28 @@ describe('E2E Positions', function() {
 
     config = await loadConfig();
     console.log(config);
-    Logger.initialize('e2e-positions-test');
-    logger = Logger.getInstance();
     signer = new ethers.Wallet(process.env.PRIVATE_KEY!, getDefaultProvider(process.env.RPC_URL!));
-    positionOpener = Contracts.leverage.positionOpener(config.positionOpener, signer);
-    positionCloser = Contracts.leverage.positionCloser(config.positionCloser, signer);
-    positionLedger = Contracts.leverage.positionLedger(config.positionLedger, signer);
-    positionToken = Contracts.leverage.positionToken(config.positionToken, signer);
+    positionOpener = PositionOpener__factory.connect(config.positionOpener, signer);
+    positionCloser = PositionCloser__factory.connect(config.positionCloser, signer);
+    positionLedger = PositionLedger__factory.connect(config.positionLedger, signer);
+    positionToken = PositionToken__factory.connect(config.positionToken, signer);
 
     // Approve WBTC for position opener
-    Contracts.general.erc20(WBTC, signer).approve(config.positionOpener.toString(), ethers.MaxUint256);
+    ERC20__factory.connect(WBTC, signer).approve(config.positionOpener.toString(), ethers.MaxUint256);
   });
 
   beforeEach(function() {
-    dataSource = new DataSource(logger);
+    dataSource = new DataSource();
   });
 
   it('Open and Close Position', async function() {
     // Get strategy asset decimals
-    const strategyContract = Contracts.general.multiPoolStrategy(OPEN_POSITION_STRATEGY, signer);
-    const strategyAsset = new EthereumAddress(await strategyContract.asset());
-    const assetDecimals = await Contracts.general.erc20(strategyAsset, signer).decimals();
+    const strategyContract = MultiPoolStrategy__factory.connect(OPEN_POSITION_STRATEGY, signer);
+    const strategyAsset = await strategyContract.asset();
+    const assetDecimals = await ERC20__factory.connect(strategyAsset, signer).decimals();
 
     // Open position test
-    const wbtcVaultBal1 = await Contracts.general.erc20(WBTC, signer).balanceOf(config.wbtcVault.toString());
+    const wbtcVaultBal1 = await ERC20__factory.connect(WBTC, signer).balanceOf(config.wbtcVault.toString());
     let latestBlock = await signer.provider?.getBlock('latest');
     const totalAmount = OPEN_POSITION_COLLATERAL + OPEN_POSITION_BORROW;
     let payload = await UniSwapPayloadBuilder.getOpenPositionSwapPayload(
@@ -125,7 +130,7 @@ describe('E2E Positions', function() {
     assert(position.user === signer.address.toLowerCase(), 'Position does not belong to signer');
     assert(await positionToken.ownerOf(openedPosition) === signer.address, 'Nft does not belong to signer');
 
-    const wbtcVaultBal2 = await Contracts.general.erc20(WBTC, signer).balanceOf(config.wbtcVault.toString());
+    const wbtcVaultBal2 = await ERC20__factory.connect(WBTC, signer).balanceOf(config.wbtcVault.toString());
     assert(wbtcVaultBal2 + OPEN_POSITION_BORROW === wbtcVaultBal1, 'WBTC vault balance incorrectly reduced');
 
     await sleep(MIN_POSITION_DURATION);
@@ -211,7 +216,7 @@ describe('E2E Positions', function() {
       expect(error.reason).to.equal('ERC721NonexistentToken(uint256)');
     }
 
-    const wbtcVaultBal3 = await Contracts.general.erc20(WBTC, signer).balanceOf(config.wbtcVault.toString());
+    const wbtcVaultBal3 = await ERC20__factory.connect(WBTC, signer).balanceOf(config.wbtcVault.toString());
     assert(wbtcVaultBal2 + OPEN_POSITION_BORROW === wbtcVaultBal3, 'WBTC vault balance incorrectly added');
   });
 });

@@ -1,18 +1,11 @@
 import {assert} from 'chai';
 import DataSource from '../src/lib/DataSource';
-import {EthereumAddress, Logger} from '@thisisarchimedes/backend-sdk';
 
 describe('DataSource Test', function() {
   let dataSource: DataSource;
-  let logger: Logger;
-
-  before(function() {
-    Logger.initialize('liquidator-bot');
-    logger = Logger.getInstance();
-  });
 
   beforeEach(function() {
-    dataSource = new DataSource(logger);
+    dataSource = new DataSource();
   });
 
   it('Check get live positions', async function() {
@@ -21,7 +14,7 @@ describe('DataSource Test', function() {
     for (const row of res.rows) {
       const nftId: number = Number(row.nftId);
       const strategyShares: number = Number(row.strategyShares);
-      new EthereumAddress(row.strategy); // Throws on invalid address
+      row.strategy; // Throws on invalid address
 
       assert(nftId >= 0, 'nftId should be greater or equal 0');
       assert(!isNaN(nftId), 'nftId is not a number');

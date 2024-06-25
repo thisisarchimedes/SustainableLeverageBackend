@@ -1,6 +1,5 @@
 import {assert} from 'chai';
 import UniSwap from '../src/lib/UniSwap';
-import {EthereumAddress} from '@thisisarchimedes/backend-sdk';
 import 'dotenv/config';
 
 const WETH = '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2';
@@ -20,9 +19,9 @@ describe('UniSwap', function() {
 
     const {swapOutputAmount, payload} = await uniSwap.buildPayload(
         (1 ** WETH_DECIMALS).toString(),
-        new EthereumAddress(WETH),
+        WETH,
         WETH_DECIMALS,
-        new EthereumAddress(WBTC),
+        WBTC,
         WBTC_DECIMALS,
         currentTimestamp,
     );
