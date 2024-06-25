@@ -1,157 +1,161 @@
-// import {type HardhatEthersSigner} from '@nomicfoundation/hardhat-ethers/signers';
-// import {CURVE_POOL, CURVE_POOL_ADAPTER, EZETH_WETH_AURA_POOL, EZETH_WETH_AURA_POOL_ADAPTER, LEVERAGED_STRATEGY} from './addresses';
-// import {assert} from 'chai';
-// import {ethers} from 'hardhat';
-// import {Contracts,
-//   EthereumAddress,
-//   CurvePool as CurvePoolContract,
-//   ConvexPoolAdapter,
-//   LeveragedStrategy,
-// } from '@thisisarchimedes/backend-sdk';
+import {type HardhatEthersSigner} from '@nomicfoundation/hardhat-ethers/signers';
+import {EZETH, EZETH_WETH_AURA_POOL, EZETH_WETH_AURA_POOL_ADAPTER, LEVERAGED_STRATEGY, WETH} from './addresses';
+import {assert} from 'chai';
+import {ethers} from 'hardhat';
+import {LeveragedStrategy__factory} from '../../src/types/leverage-contracts/factories/LeveragedStrategy__factory';
+import {AuraComposableStablePool__factory} from '../../src/types/leverage-contracts/factories/AuraComposableStablePool__factory';
+import {AuraComposableStablePoolAdapter__factory}
+  from '../../src/types/leverage-contracts/factories/AuraComposableStablePoolAdapter__factory';
+import {ERC20__factory} from '../../src/types/leverage-contracts/factories/ERC20__factory';
+import {LeveragedStrategy} from '../../src/types/leverage-contracts/LeveragedStrategy';
+import {AuraComposableStablePool as AuraComposableStablePoolContract} from '../../src/types/leverage-contracts/AuraComposableStablePool';
+import {AuraComposableStablePoolAdapter} from '../../src/types/leverage-contracts/AuraComposableStablePoolAdapter';
 
-// export default class AuraComposableStablePool {
-//   //* Public methods *//
+export default class AuraCompotableStablePool {
+  //* Public methods *//
 
-//   static async createInstance(
-//       signer: HardhatEthersSigner,
-//       poolAddress: EthereumAddress,
-//       dumpToken: EthereumAddress,
-//       valueToken: EthereumAddress,
-//   ): Promise<AuraComposableStablePool> {
-//     const leveragedStrategy = Contracts.leverage.leveragedStrategy(LEVERAGED_STRATEGY, signer);
-//     const pool = Contracts.general.auraComposableStablePool(poolAddress, signer);
-//     const adapter = Contracts.general.auraComposableStablePoolAdapter(EZETH_WETH_AURA_POOL_ADAPTER, signer);
-//     const valueTokenContract = Contracts.general.erc20(valueToken, signer);
-//     // eslint-disable-next-line new-cap
-//     const dumpTokenContract = Contracts.general.erc20(dumpToken, signer);
-//     const valueTokenDecimals = Number(await valueTokenContract.decimals());
-//     const dumpTokenDecimals = Number(await dumpTokenContract.decimals());
+  static async createInstance(
+      signer: HardhatEthersSigner,
+      dumpToken: string,
+      valueToken: string,
+  ): Promise<AuraCompotableStablePool> {
+    // TODO: remove
+    valueToken = WETH;
+    dumpToken = EZETH;
 
-//     const valueTokenIndex = await AuraComposableStablePool.fetchTokenIndex(pool, valueToken);
-//     const dumpTokenIndex = await AuraComposableStablePool.fetchTokenIndex(pool, dumpToken);
+    const leveragedStrategy = LeveragedStrategy__factory.connect(LEVERAGED_STRATEGY, signer);
+    const pool = AuraComposableStablePool__factory.connect(EZETH_WETH_AURA_POOL, signer);
+    const adapter = AuraComposableStablePoolAdapter__factory.connect(EZETH_WETH_AURA_POOL_ADAPTER, signer);
+    const valueTokenContract = ERC20__factory.connect(valueToken, signer);
+    const dumpTokenContract = ERC20__factory.connect(dumpToken, signer);
+    const valueTokenDecimals = Number(await valueTokenContract.decimals());
+    const dumpTokenDecimals = Number(await dumpTokenContract.decimals());
 
-//     const valueTokenInitialBalance = await pool.balances(valueTokenIndex);
-//     const dumpTokenInitialBalance = await pool.balances(dumpTokenIndex);
+    const valueTokenIndex = await AuraCompotableStablePool.fetchTokenIndex(pool, valueToken);
+    const dumpTokenIndex = await AuraCompotableStablePool.fetchTokenIndex(pool, dumpToken);
 
-//     await valueTokenContract.approve(EZETH_WETH_AURA_POOL.toString(), ethers.MaxUint256);
-//     await dumpTokenContract.approve(EZETH_WETH_AURA_POOL.toString(), ethers.MaxUint256);
+    const valuetokenBalance = await pool.balances(valueTokenIndex);
+    const dumpTokenBalance = await pool.balances(dumpTokenIndex);
 
-//     return new AuraComposableStablePool(
-//         leveragedStrategy,
-//         pool,
-//         adapter,
-//         valueTokenIndex,
-//         dumpTokenIndex,
-//         valueTokenInitialBalance,
-//         dumpTokenInitialBalance,
-//         dumpTokenDecimals,
-//         valueTokenDecimals,
-//     );
-//   }
+    await valueTokenContract.approve(EZETH_WETH_AURA_POOL.toString(), ethers.MaxUint256);
+    await dumpTokenContract.approve(EZETH_WETH_AURA_POOL.toString(), ethers.MaxUint256);
 
-//   constructor(
-//     public readonly leveragedStrategy: LeveragedStrategy,
-//     public readonly contractPool: CurvePoolContract,
-//     public readonly adapter: ConvexPoolAdapter,
-//     public readonly valueTokenIndex: number,
-//     public readonly dumpTokenIndex: number,
-//     public readonly valueTokenInitialBalance: bigint,
-//     public readonly dumpTokenInitialBalance: bigint,
-//     public readonly dumpTokenDecimals: number,
-//     public readonly valueTokenDecimals: number,
-//   ) { }
+    return new AuraCompotableStablePool(
+        leveragedStrategy,
+        pool,
+        adapter,
+        valueTokenIndex,
+        dumpTokenIndex,
+        valuetokenBalance,
+        dumpTokenBalance,
+        dumpTokenDecimals,
+        valueTokenDecimals,
+    );
+  }
 
-//   public async exchangeDumpTokenForValueToken(amount: bigint): Promise<void> {
-//     await this.contractPool['exchange_underlying(int128,int128,uint256,uint256)'](this.dumpTokenIndex,
-//         this.valueTokenIndex, amount, 0);
-//   }
+  constructor(
+    public readonly leveragedStrategy: LeveragedStrategy,
+    public readonly contractPool: AuraComposableStablePoolContract,
+    public readonly adapter: AuraComposableStablePoolAdapter,
+    public readonly valueTokenIndex: number,
+    public readonly dumpTokenIndex: number,
+    public readonly valueTokenBalance: bigint,
+    public readonly dumpTokenBalance: bigint,
+    public readonly dumpTokenDecimals: number,
+    public readonly valueTokenDecimals: number,
+  ) { }
 
-//   public async exchangeValueTokenForDumpToken(amount: bigint): Promise<void> {
-//     await this.contractPool['exchange(int128,int128,uint256,uint256)'](this.valueTokenIndex,
-//         this.dumpTokenIndex, amount, 0);
-//   }
+  public async exchangeDumpTokenForValueToken(amount: bigint): Promise<void> {
+    await this.contractPool['exchange_underlying(int128,int128,uint256,uint256)'](this.dumpTokenIndex,
+        this.valueTokenIndex, amount, 0);
+  }
 
-//   public async getDumpTokenPriceInValueToken(dumpPercentage = 10): Promise<bigint> {
-//     assert.ok(dumpPercentage <= 100, 'Percentage can\'t be higher than 100');
-//     // Take a significant amount of dump token otherwise get a skewed price
-//     const priceReferenceAmount = this.dumpTokenInitialBalance * BigInt(dumpPercentage) / 10000n; // 0.1%
-//     const dumpTokenPriceInValueToken = await this.contractPool.get_dy(this.dumpTokenIndex,
-//         this.valueTokenIndex, priceReferenceAmount);
+  public async exchangeValueTokenForDumpToken(amount: bigint): Promise<void> {
+    await this.contractPool['exchange(int128,int128,uint256,uint256)'](this.valueTokenIndex,
+        this.dumpTokenIndex, amount, 0);
+  }
 
-//     return dumpTokenPriceInValueToken * (10n ** BigInt(this.dumpTokenDecimals)) / priceReferenceAmount;
-//   }
+  public async getDumpTokenPriceInValueToken(dumpPercentage = 10): Promise<bigint> {
+    assert.ok(dumpPercentage <= 100, 'Percentage can\'t be higher than 100');
+    // Take a significant amount of dump token otherwise get a skewed price
+    const priceReferenceAmount = this.dumpTokenBalance * BigInt(dumpPercentage) / 10000n; // 0.1%
+    const dumpTokenPriceInValueToken = await this.contractPool.get_dy(this.dumpTokenIndex,
+        this.valueTokenIndex, priceReferenceAmount);
 
-//   public async rebalance(): Promise<void> {
-//     const amountToSwap = this.valueTokenInitialBalance * 20n / 100n;
+    return dumpTokenPriceInValueToken * (10n ** BigInt(this.dumpTokenDecimals)) / priceReferenceAmount;
+  }
 
-//     for (let i = 0; i < 1000; i++) {
-//       console.log(await this.adapter.underlyingBalance(), await this.adapter.storedUnderlyingBalance()); // Debug
-//       if (await this.adapter.underlyingBalance() > await this.adapter.storedUnderlyingBalance()) {
-//         break;
-//       }
+  public async rebalance(): Promise<void> {
+    const amountToSwap = this.valueTokenBalance * 20n / 100n;
 
-//       // eslint-disable-next-line no-await-in-loop
-//       await this.exchangeValueTokenForDumpToken(amountToSwap);
-//     }
-//   }
+    for (let i = 0; i < 1000; i++) {
+      console.log(await this.adapter.underlyingBalance(), await this.adapter.storedUnderlyingBalance()); // Debug
+      if (await this.adapter.underlyingBalance() > await this.adapter.storedUnderlyingBalance()) {
+        break;
+      }
 
-//   public async unbalancePosition(nftId: number): Promise<void> {
-//     const amountToSwap = this.dumpTokenInitialBalance / 100n;
+      // eslint-disable-next-line no-await-in-loop
+      await this.exchangeValueTokenForDumpToken(amountToSwap);
+    }
+  }
 
-//     for (let i = 0; i < 100; i++) {
-//       try {
-//         if (await this.leveragedStrategy.isPositionLiquidatableEstimation(nftId)) {
-//           console.log(`Position ${nftId} is liquidatable`);
-//           break;
-//         }
+  public async unbalancePosition(nftId: number): Promise<void> {
+    const amountToSwap = this.dumpTokenBalance / 100n;
 
-//         // eslint-disable-next-line no-await-in-loop
-//         await this.exchangeDumpTokenForValueToken(amountToSwap);
-//         console.log(await this.contractPool.balances(this.valueTokenIndex), await this.contractPool.balances(this.dumpTokenIndex)); // Debug
-//         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-//       } catch (error: any) {
-//         if (error.data.data === '0x5117a49b') { // PositionNotLive
-//           console.error(`Position ${nftId} is not live`);
-//           return;
-//         } else if (error.data !== '0x5e6797f9') { // NotEligibleForLiquidation - skip
-//           console.error(`Position ${nftId} isPositionLiquidatableEstimation errored with:`, error);
-//           return;
-//         }
-//       }
-//     }
-//   }
+    for (let i = 0; i < 100; i++) {
+      try {
+        if (await this.leveragedStrategy.isPositionLiquidatableEstimation(nftId)) {
+          console.log(`Position ${nftId} is liquidatable`);
+          break;
+        }
 
-//   public async unbalance(percentToUnbalance: number): Promise<void> {
-//     assert.ok(percentToUnbalance <= 100, 'Percentage can\'t be higher than 100');
+        // eslint-disable-next-line no-await-in-loop
+        await this.exchangeDumpTokenForValueToken(amountToSwap);
+        console.log(await this.contractPool.balances(this.valueTokenIndex), await this.contractPool.balances(this.dumpTokenIndex)); // Debug
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } catch (error: any) {
+        if (error.data.data === '0x5117a49b') { // PositionNotLive
+          console.error(`Position ${nftId} is not live`);
+          return;
+        } else if (error.data !== '0x5e6797f9') { // NotEligibleForLiquidation - skip
+          console.error(`Position ${nftId} isPositionLiquidatableEstimation errored with:`, error);
+          return;
+        }
+      }
+    }
+  }
 
-//     const amountToSwap = this.dumpTokenInitialBalance * 5n / 100n;
+  public async unbalance(percentToUnbalance: number): Promise<void> {
+    assert.ok(percentToUnbalance <= 100, 'Percentage can\'t be higher than 100');
 
-//     for (let i = 0; i < 100; i++) {
-//       // eslint-disable-next-line no-await-in-loop
-//       await this.exchangeDumpTokenForValueToken(amountToSwap);
+    const amountToSwap = this.dumpTokenBalance * 5n / 100n;
 
-//       // eslint-disable-next-line no-await-in-loop
-//       const alUSDPriceInFRAXBPAfter = await this.getDumpTokenPriceInValueToken();
-//       console.log(await this.contractPool.balances(this.valueTokenIndex), await this.contractPool.balances(this.dumpTokenIndex)); // Debug
-//       if (Number(ethers.formatUnits(alUSDPriceInFRAXBPAfter, this.valueTokenDecimals)) < 1 - (percentToUnbalance / 100)) {
-//         break;
-//       }
-//     }
-//   }
+    for (let i = 0; i < 100; i++) {
+      // eslint-disable-next-line no-await-in-loop
+      await this.exchangeDumpTokenForValueToken(amountToSwap);
 
-//   //* Private methods *//
+      // eslint-disable-next-line no-await-in-loop
+      const alUSDPriceInFRAXBPAfter = await this.getDumpTokenPriceInValueToken();
+      console.log(await this.contractPool.balances(this.valueTokenIndex), await this.contractPool.balances(this.dumpTokenIndex)); // Debug
+      if (Number(ethers.formatUnits(alUSDPriceInFRAXBPAfter, this.valueTokenDecimals)) < 1 - (percentToUnbalance / 100)) {
+        break;
+      }
+    }
+  }
 
-//   private static async fetchTokenIndex(pool: CurvePoolContract, token: EthereumAddress): Promise<number> {
-//     let tokenIndex = 0;
-//     for (let i = 0; i < 4; i++) {
-//       // eslint-disable-next-line no-await-in-loop
-//       const _token = await pool.coins(i);
-//       if (_token === token.toString()) {
-//         tokenIndex = i;
-//         break;
-//       }
-//     }
+  //* Private methods *//
 
-//     return Number(tokenIndex);
-//   }
-// }
+  private static async fetchTokenIndex(pool: AuraComposableStablePoolContract, token: string): Promise<number> {
+    let tokenIndex = 0;
+    for (let i = 0; i < 4; i++) {
+      // eslint-disable-next-line no-await-in-loop
+      const _token = await pool.coins(i);
+      if (_token === token) {
+        tokenIndex = i;
+        break;
+      }
+    }
+
+    return Number(tokenIndex);
+  }
+}

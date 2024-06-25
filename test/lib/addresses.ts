@@ -13,6 +13,8 @@ export const UNIV3_STRATEGY = '0x7694Cd972Baa64018e5c6389740832e4C7f2Ce9a';
 export const EZETH_WETH_STRATEGY = '0x4f4c4D838c1bd66A1d19f599CA9e6C6c2F6104d2';
 export const EZETH_WETH_AURA_POOL = '0x596192bB6e41802428Ac943D2f1476C1Af25CC0E';
 export const EZETH_WETH_AURA_POOL_ADAPTER = '0x30C2C954F734f061C0fF254E310E8c93F7497a5B';
+export const WETH = '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2';
+export const EZETH = '0xbf5495Efe5DB9ce00f80364C8B423567e58d2110';
 
 //* Token balances slot addresses *//
 export type MemorySlot = { slot: bigint; isVyper?: boolean; };

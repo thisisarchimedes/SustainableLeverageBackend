@@ -15,12 +15,11 @@ export default class CurvePool {
 
   static async createInstance(
       signer: HardhatEthersSigner,
-      poolAddress: string,
       dumpToken: string,
       valueToken: string,
   ): Promise<CurvePool> {
     const leveragedStrategy = LeveragedStrategy__factory.connect(LEVERAGED_STRATEGY, signer);
-    const pool = CurvePool__factory.connect(poolAddress, signer);
+    const pool = CurvePool__factory.connect(CURVE_POOL, signer);
     const adapter = ConvexPoolAdapter__factory.connect(CURVE_POOL_ADAPTER, signer);
     const valueTokenContract = ERC20__factory.connect(valueToken, signer);
     const dumpTokenContract = ERC20__factory.connect(dumpToken, signer);
