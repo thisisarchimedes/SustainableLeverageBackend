@@ -71,11 +71,12 @@ More on that and the configurations for the environments can be found [here](htt
 Add **--network external** to each command to broadcast to external rpc
 configured in the hardhat config.
 
+**!!! BE SURE TO RUN ON FORK ONLY !!!**
 ```
-yarn hardhat run scripts/rebalance.ts
-yarn hardhat run scripts/unbalance.ts
-yarn hardhat run scripts/unbalance-position.ts
-yarn hardhat run scripts/changeAdjustInInterval.ts
+yarn hardhat run scripts/rebalance.ts --network external
+yarn hardhat run scripts/unbalance.ts --netwoek external
+yarn hardhat run scripts/unbalance-position.ts --netwoek external
+yarn hardhat run scripts/changeAdjustInInterval.ts --netwoek external
 ```
 
 ### Run Liquidator Bot
