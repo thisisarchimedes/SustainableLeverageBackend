@@ -3,6 +3,7 @@
 /* eslint-disable */
 export { AuraComposableStablePool__factory } from "./AuraComposableStablePool__factory";
 export { AuraComposableStablePoolAdapter__factory } from "./AuraComposableStablePoolAdapter__factory";
+export { BalancerVault__factory } from "./BalancerVault__factory";
 export { ConvexPoolAdapter__factory } from "./ConvexPoolAdapter__factory";
 export { CurvePool__factory } from "./CurvePool__factory";
 export { ERC20__factory } from "./ERC20__factory";

@@ -3,6 +3,7 @@
 /* eslint-disable */
 export type { AuraComposableStablePool } from "./AuraComposableStablePool";
 export type { AuraComposableStablePoolAdapter } from "./AuraComposableStablePoolAdapter";
+export type { BalancerVault } from "./BalancerVault";
 export type { ConvexPoolAdapter } from "./ConvexPoolAdapter";
 export type { CurvePool } from "./CurvePool";
 export type { ERC20 } from "./ERC20";
@@ -16,6 +17,7 @@ export type { PositionToken } from "./PositionToken";
 export * as factories from "./factories";
 export { AuraComposableStablePool__factory } from "./factories/AuraComposableStablePool__factory";
 export { AuraComposableStablePoolAdapter__factory } from "./factories/AuraComposableStablePoolAdapter__factory";
+export { BalancerVault__factory } from "./factories/BalancerVault__factory";
 export { ConvexPoolAdapter__factory } from "./factories/ConvexPoolAdapter__factory";
 export { CurvePool__factory } from "./factories/CurvePool__factory";
 export { ERC20__factory } from "./factories/ERC20__factory";
