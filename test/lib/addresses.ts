@@ -1,5 +1,5 @@
 export const POSITION_LEDGER = '0xaE251Cd1a1d8121876cA609141bA5C63C0889e42';
-export const LEVERAGED_STRATEGY = '0x8dA13e34324f95bF157593AE94AB1F24BEebD937';
+export const LEVERAGED_STRATEGY = '0x3a43146E8322FdDb4e8BBb395540263864107380';
 
 export const CURVE_POOL = '0xB30dA2376F63De30b42dC055C93fa474F31330A5';
 export const CURVE_POOL_ADAPTER = '0xb42Ca27d844a4106d3D5e64Ac971Bd66814aB08f';
@@ -22,7 +22,8 @@ export const EZETH = '0xbf5495Efe5DB9ce00f80364C8B423567e58d2110';
 export type MemorySlot = { slot: bigint; isVyper?: boolean; };
 
 const tokenAddressToSlot: { [key: string]: MemorySlot } = {};
-tokenAddressToSlot[ALUSD.toString()] = {slot: 1n};
-tokenAddressToSlot[FRAXBP.toString()] = {slot: 7n, isVyper: true};
+tokenAddressToSlot[ALUSD] = {slot: 1n};
+tokenAddressToSlot[FRAXBP] = {slot: 7n, isVyper: true};
+tokenAddressToSlot[EZETH] = {slot: 51n};
 
 export const getTokenBalancesSlot = (address: string): MemorySlot => tokenAddressToSlot[address];

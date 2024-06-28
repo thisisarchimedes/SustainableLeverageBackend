@@ -78,7 +78,7 @@ export default class AuraCompotableStablePool {
 
   public async exchangeDumpTokenForValueToken(amount: bigint): Promise<void> {
     const singleSwap: IVault.SingleSwapStruct = {
-      poolId: EZETH_WETH_AURA_POOL,
+      poolId: this.poolId,
       kind: 0, // GIVEN_IN
       assetIn: this.dumpToken,
       assetOut: this.valueToken,
@@ -103,7 +103,7 @@ export default class AuraCompotableStablePool {
 
   public async exchangeValueTokenForDumpToken(amount: bigint): Promise<void> {
     const singleSwap: IVault.SingleSwapStruct = {
-      poolId: EZETH_WETH_AURA_POOL,
+      poolId: this.poolId,
       kind: 0, // GIVEN_IN
       assetOut: this.valueToken,
       assetIn: this.dumpToken,
@@ -168,6 +168,7 @@ export default class AuraCompotableStablePool {
         ); // Debug
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (error: any) {
+        console.log(error);
         if (error.data.data === '0x5117a49b') { // PositionNotLive
           console.error(`Position ${nftId} is not live`);
           return;
@@ -214,6 +215,7 @@ export default class AuraCompotableStablePool {
   }
 
   private static async fetchTokenBalance(vault: BalancerVaultContract, poolId: string, tokenIndex: number): Promise<bigint> {
+    console.log(poolId);
     const tokens = await vault.getPoolTokens(poolId);
     return tokens.balances[tokenIndex];
   }

@@ -1808,7 +1808,7 @@
     "@nomicfoundation/ethereumjs-rlp" "5.0.4"
     ethereum-cryptography "0.1.3"
 
-"@nomicfoundation/hardhat-ethers@^3.0.5":
+"@nomicfoundation/hardhat-ethers@^3.0.6":
   version "3.0.6"
   resolved "https://registry.yarnpkg.com/@nomicfoundation/hardhat-ethers/-/hardhat-ethers-3.0.6.tgz#e8ba7f9719de360c03501b85dae4999bb3a7e1c5"
   integrity sha512-/xzkFQAaHQhmIAYOQmvHBPwL+NkwLzT9gRZBsgWUYeV+E6pzXsBQsHfRYbAZ3XEYare+T7S+5Tg/1KDJgepSkA==
@@ -5153,7 +5153,7 @@ hardhat-watcher@^2.1.1:
   dependencies:
     chokidar "^3.5.3"
 
-hardhat@^2.19.2:
+hardhat@^2.22.5:
   version "2.22.5"
   resolved "https://registry.yarnpkg.com/hardhat/-/hardhat-2.22.5.tgz#7e1a4311fa9e34a1cfe337784eae06706f6469a5"
   integrity sha512-9Zq+HonbXCSy6/a13GY1cgHglQRfh4qkzmj1tpPlhxJDwNVnhxlReV6K7hCWFKlOrV13EQwsdcD0rjcaQKWRZw==
